@@ -440,53 +440,6 @@
         let activeQuizIndex = 0;
         let activeQuizScore = 0;
 
-        // FUNGSI LOAD SENARAI DARI FIREBASE KE DROPDOWN
-window.refreshContentList = function() {
-    const listSelect = document.getElementById('adm-content-list');
-    listSelect.innerHTML = '<option value="">-- Loading... --</option>';
-    
-    get(ref(db, 'silibus')).then((snapshot) => {
-        listSelect.innerHTML = '<option value="">-- Pilih kandungan untuk edit/padam --</option>';
-        if (snapshot.exists()) {
-            const data = snapshot.val();
-            for(let form in data) {
-                for(let bab in data[form]) {
-                    if(data[form][bab].subtopik) {
-                        for(let sub in data[form][bab].subtopik) {
-                            let option = document.createElement('option');
-                            option.value = `${form}|${bab}|${sub}`;
-                            option.innerText = `[T${form}] ${bab.replace(/_/g, ' ')} > ${data[form][bab].subtopik[sub].nama}`;
-                            listSelect.appendChild(option);
-                        }
-                    }
-                }
-            }
-        }
-    });
-};
-
-// FUNGSI AUTO-FILL BORANG BILA ITEM DIPILIH
-window.loadContentToForm = function() {
-    const val = document.getElementById('adm-content-list').value;
-    if(!val) return;
-    const [form, bab, sub] = val.split('|');
-    
-    get(ref(db, `silibus/${form}/${bab}/subtopik/${sub}`)).then((snapshot) => {
-        if(snapshot.exists()) {
-            const data = snapshot.val();
-            document.getElementById('adm-form').value = form;
-            document.getElementById('adm-chapter').value = bab;
-            document.getElementById('adm-subtopic').value = sub;
-            document.getElementById('adm-nota-maksud').value = data.nota?.maksud || '';
-            document.getElementById('adm-nota-formula').value = data.nota?.formula || '';
-            document.getElementById('adm-nota-kesilapan').value = data.nota?.kesilapan || '';
-            document.getElementById('adm-nota-tips').value = data.nota?.tips || '';
-            document.getElementById('adm-contoh-soalan').value = data.contoh?.soalan || '';
-            document.getElementById('adm-contoh-jalan').value = data.contoh?.jalan_kerja || '';
-        }
-    });
-};
-
         window.switchView = function(viewId) {
             document.querySelectorAll('.view').forEach(el => el.classList.add('hide'));
             const targetView = document.getElementById('view-' + viewId);
@@ -752,6 +705,53 @@ window.loadContentToForm = function() {
                     penerangan: document.getElementById('adm-soalan-penerangan').value,
                 }
             };
+
+            // FUNGSI LOAD SENARAI DARI FIREBASE KE DROPDOWN
+window.refreshContentList = function() {
+    const listSelect = document.getElementById('adm-content-list');
+    listSelect.innerHTML = '<option value="">-- Loading... --</option>';
+    
+    get(ref(db, 'silibus')).then((snapshot) => {
+        listSelect.innerHTML = '<option value="">-- Pilih kandungan untuk edit/padam --</option>';
+        if (snapshot.exists()) {
+            const data = snapshot.val();
+            for(let form in data) {
+                for(let bab in data[form]) {
+                    if(data[form][bab].subtopik) {
+                        for(let sub in data[form][bab].subtopik) {
+                            let option = document.createElement('option');
+                            option.value = `${form}|${bab}|${sub}`;
+                            option.innerText = `[T${form}] ${bab.replace(/_/g, ' ')} > ${data[form][bab].subtopik[sub].nama}`;
+                            listSelect.appendChild(option);
+                        }
+                    }
+                }
+            }
+        }
+    });
+};
+
+// FUNGSI AUTO-FILL BORANG BILA ITEM DIPILIH
+window.loadContentToForm = function() {
+    const val = document.getElementById('adm-content-list').value;
+    if(!val) return;
+    const [form, bab, sub] = val.split('|');
+    
+    get(ref(db, `silibus/${form}/${bab}/subtopik/${sub}`)).then((snapshot) => {
+        if(snapshot.exists()) {
+            const data = snapshot.val();
+            document.getElementById('adm-form').value = form;
+            document.getElementById('adm-chapter').value = bab;
+            document.getElementById('adm-subtopic').value = sub;
+            document.getElementById('adm-nota-maksud').value = data.nota?.maksud || '';
+            document.getElementById('adm-nota-formula').value = data.nota?.formula || '';
+            document.getElementById('adm-nota-kesilapan').value = data.nota?.kesilapan || '';
+            document.getElementById('adm-nota-tips').value = data.nota?.tips || '';
+            document.getElementById('adm-contoh-soalan').value = data.contoh?.soalan || '';
+            document.getElementById('adm-contoh-jalan').value = data.contoh?.jalan_kerja || '';
+        }
+    });
+};
 
             update(ref(db, path), payload).then(() => {
                 alert("Isi kandungan subtopik berjaya disimpan!");
