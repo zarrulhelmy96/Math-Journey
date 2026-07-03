@@ -112,7 +112,7 @@
 
         <section id="view-login" class="view p-6 hide">
             <div class="pt-8 mb-6">
-                <button onclick="goBackFromAuth()" class="text-gray-500 text-sm"><i class="fa-solid fa-arrow-left"></i> Kembali</button>
+                <button onclick="switchView('landing')" class="text-gray-500 text-sm"><i class="fa-solid fa-arrow-left"></i> Kembali</button>
                 <h2 id="auth-title" class="text-2xl font-bold text-slate-900 mt-4">Selamat Kembali!</h2>
                 <p id="auth-subtitle" class="text-xs text-gray-500">Log masuk untuk sambung Journey anda.</p>
             </div>
@@ -122,15 +122,10 @@
                     <label class="block text-xs font-semibold text-gray-600 mb-1">E-mel</label>
                     <input type="email" id="auth-email" placeholder="contoh@gmail.com" class="w-full border border-gray-200 p-3 rounded-xl text-sm focus:outline-none focus:border-soft-pink">
                 </div>
-                <div id="auth-password-container">
+                <div>
                     <label class="block text-xs font-semibold text-gray-600 mb-1">Kata Laluan</label>
                     <input type="password" id="auth-password" placeholder="Minimal 6 aksara" class="w-full border border-gray-200 p-3 rounded-xl text-sm focus:outline-none focus:border-soft-pink">
                 </div>
-                
-                <div id="forgot-password-link" class="text-right">
-                    <a href="#" onclick="toggleForgotPasswordMode()" class="text-xs text-gray-500 hover:text-soft-pink underline">Lupa Kata Laluan?</a>
-                </div>
-
                 <button onclick="handleAuth()" id="auth-submit-btn" class="w-full btn-primary font-bold py-3 rounded-xl text-sm mt-2 shadow-sm">
                     Log Masuk
                 </button>
@@ -142,6 +137,14 @@
         </section>
 
         <section id="view-dashboard" class="view p-5 hide">
+            <div id="dash-announcement-box" class="mb-4 bg-amber-50 border border-amber-200 rounded-xl p-4 hide">
+                <div class="flex items-center space-x-2 text-amber-800 font-bold text-xs mb-1">
+                    <i class="fa-solid fa-bullhorn animate-pulse"></i>
+                    <span>PENGUMUMAN & NOTIS:</span>
+                </div>
+                <p id="dash-announcement-text" class="text-xs text-slate-700 whitespace-pre-line leading-relaxed">Tiada pengumuman terkini.</p>
+            </div>
+
             <div class="mb-6 bg-gradient-to-r from-rose-50 to-amber-50 p-5 rounded-2xl border border-pink-100">
                 <h2 class="text-lg font-bold text-slate-900">Selamat datang, <span id="dash-username">Pelajar</span>! 👋</h2>
                 <p class="text-xs text-gray-600 mt-1 italic font-medium text-pink-600">
@@ -237,6 +240,7 @@
                 <div id="kuiz-intro" class="text-center py-6">
                     <span class="text-4xl">📝</span>
                     <h3 class="font-bold text-lg mt-2">Kuiz Penilaian Bab</h3>
+                    <p class="text-xs text-gray-500 mt-1">Uji pemahaman anda setelah mempelajari semua subtopik.</p>
                     <button onclick="startChapterQuiz()" class="btn-primary text-xs font-bold px-6 py-2.5 rounded-xl mt-4">Mula Kuiz</button>
                 </div>
                 <div id="kuiz-active" class="space-y-5 hide"></div>
@@ -249,22 +253,6 @@
                 <h2 class="text-xl font-bold text-slate-900">Profil & Kemajuan</h2>
                 <button onclick="handleLogout()" class="text-xs text-red-500 font-bold bg-red-50 px-3 py-1.5 rounded-lg">Log Keluar</button>
             </div>
-            
-            <div class="bg-white border border-gray-200 p-4 rounded-xl space-y-3 mb-6 text-xs shadow-sm">
-                <h3 class="font-bold text-sm text-slate-800 border-b pb-2"><i class="fa-solid fa-user-edit mr-1"></i> Maklumat Peribadi</h3>
-                <div>
-                    <label class="block font-semibold text-gray-600 mb-1">Nama Penuh</label>
-                    <input type="text" id="prof-fullname" placeholder="Masukkan nama penuh anda" class="w-full border p-2.5 rounded-lg focus:outline-none focus:border-soft-pink text-sm">
-                </div>
-                <div>
-                    <label class="block font-semibold text-gray-600 mb-1">Nama Panggilan (Nickname)</label>
-                    <input type="text" id="prof-nickname" placeholder="Masukkan nama panggilan" class="w-full border p-2.5 rounded-lg focus:outline-none focus:border-soft-pink text-sm">
-                </div>
-                <button onclick="saveUserProfileData()" class="w-full btn-primary font-bold p-2.5 rounded-xl text-xs shadow-sm">
-                    Simpan Maklumat
-                </button>
-            </div>
-
             <div class="bg-slate-900 text-white p-5 rounded-2xl mb-6">
                 <p class="text-xs text-slate-400 font-medium">Topik Paling Lemah</p>
                 <p id="prof-weakest-topic" class="text-sm font-bold text-amber-300 mb-4">Tiada data lagi</p>
@@ -285,6 +273,17 @@
             <div class="mb-6">
                 <h2 class="text-xl font-bold text-purple-900">Admin Panel (Silibus Builder)</h2>
                 <p class="text-xs text-gray-500">Urus struktur silibus dan isi kandungan data secara fleksibel.</p>
+            </div>
+
+            <div class="bg-amber-50 border border-amber-300 p-4 rounded-xl space-y-3 mb-6 text-xs shadow-sm">
+                <h3 class="font-bold text-sm text-amber-900 border-b pb-2"><i class="fa-solid fa-bullhorn"></i> 3. Urus Pengumuman / Notis Halaman Utama</h3>
+                <div>
+                    <label class="block font-semibold text-gray-700 mb-1">Teks Notis / Pengumuman Terkini Pelajar</label>
+                    <textarea id="adm-announcement-input" rows="3" class="w-full border p-2.5 rounded-lg bg-white focus:border-amber-500 focus:outline-none" placeholder="Taip pengumuman penting untuk semua pelajar lihat di dashboard utama mereka..."></textarea>
+                </div>
+                <button onclick="updateGlobalAnnouncement()" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold p-2.5 rounded-xl flex items-center justify-center space-x-1 transition">
+                    <i class="fa-solid fa-floppy-disk"></i> <span>Kemas Kini Pengumuman</span>
+                </button>
             </div>
 
             <div class="bg-white border border-purple-200 p-4 rounded-xl space-y-4 mb-6 text-xs shadow-sm">
@@ -317,7 +316,7 @@
                     <div class="bg-slate-50 p-3 rounded-lg border">
                         <p class="font-bold text-slate-700 mb-2"><i class="fa-solid fa-list-ol"></i> Pengurusan Nama Subtopik</p>
                         <div class="space-y-2">
-                            <select id="adm-subtopic-select" class="w-full border p-2 rounded bg-white outline-none">
+                            <select id="adm-subtopic-select" class="w-full border p-2 rounded bg-white outline-none" onchange="loadSubtopicContentList()">
                                 <option value="">-- Pilih Subtopik Sedia Ada --</option>
                             </select>
                             <input type="text" id="adm-subtopic-custom" class="w-full border p-2 rounded" placeholder="Taip Nama Subtopik Baru (Untuk Ditambah)">
@@ -335,24 +334,50 @@
             </div>
 
             <div class="bg-white border border-gray-200 p-4 rounded-xl space-y-3 mb-6 text-xs shadow-sm">
-                <h3 class="font-bold text-sm text-slate-800 border-b pb-2"><i class="fa-solid fa-file-pen"></i> 2. Isi Kandungan Subtopik</h3>
-                <p class="text-[11px] text-amber-600 font-medium">Nota: Sila pastikan Bab & Subtopik telah dipilih/wujud di Bahagian 1 sebelum mengisi kandungan di bawah.</p>
+                <h3 class="font-bold text-sm text-slate-800 border-b pb-2"><i class="fa-solid fa-file-pen"></i> 2. Urus Isi Kandungan</h3>
                 
+                <div class="bg-indigo-50 p-3 rounded border border-indigo-200 space-y-2">
+                    <p class="font-bold text-[11px] text-indigo-700"><i class="fa-solid fa-folder-open"></i> Senarai Kandungan Wujud Dalam Subtopik Ini</p>
+                    <select id="adm-content-list-select" class="w-full border p-2 rounded bg-white outline-none">
+                        <option value="">-- Tiada Kandungan Dipilih --</option>
+                    </select>
+                    <button onclick="deleteSelectedContent()" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold p-2 rounded flex items-center justify-center space-x-1">
+                        <i class="fa-solid fa-trash-can"></i> <span>Padam Kandungan Dipilih</span>
+                    </button>
+                </div>
+
+                <hr class="my-2">
+                <p class="text-[11px] text-purple-600 font-bold"><i class="fa-solid fa-plus-circle"></i> Borang Tambah Kandungan Baru:</p>
+
                 <div class="bg-purple-50 p-3 rounded space-y-2 border">
-                    <p class="font-bold text-[11px] text-purple-700">Nota Ringkas</p>
+                    <p class="font-bold text-[11px] text-purple-700">1. Nota Ringkas</p>
                     <textarea id="adm-nota-maksud" rows="2" class="w-full border p-2 rounded" placeholder="Maksud topik..."></textarea>
                     <input type="text" id="adm-nota-formula" class="w-full border p-2 rounded" placeholder="Formula Utama (e.g. I = PRT)">
                     <textarea id="adm-nota-kesilapan" rows="2" class="w-full border p-2 rounded" placeholder="Kesilapan biasa pelajar..."></textarea>
                     <textarea id="adm-nota-tips" rows="2" class="w-full border p-2 rounded" placeholder="Tips mudah ingat..."></textarea>
+                    <div class="bg-white p-2 border rounded">
+                        <label class="block text-[10px] text-gray-500 font-bold mb-1">Gambar Nota Tambahan (Rajah/Sifir):</label>
+                        <input type="file" id="adm-nota-image-file" accept="image/jpeg, image/png" class="w-full text-xs">
+                    </div>
                 </div>
+
                 <div class="bg-amber-50 p-3 rounded space-y-2 border border-amber-200">
-                    <p class="font-bold text-[11px] text-amber-700">Contoh Soalan & Langkah Mengajar</p>
+                    <p class="font-bold text-[11px] text-amber-700">2. Contoh Soalan & Langkah Mengajar</p>
                     <textarea id="adm-contoh-soalan" rows="2" class="w-full border p-2 rounded" placeholder="Soalan contoh..."></textarea>
                     <textarea id="adm-contoh-jalan" rows="3" class="w-full border p-2 rounded" placeholder="Jalan kerja bertulis langkah-demi-langkah..."></textarea>
+                    <div class="bg-white p-2 border rounded">
+                        <label class="block text-[10px] text-gray-500 font-bold mb-1">Gambar Soalan Contoh (Graf/Geometri):</label>
+                        <input type="file" id="adm-contoh-image-file" accept="image/jpeg, image/png" class="w-full text-xs">
+                    </div>
                 </div>
+
                 <div class="bg-emerald-50 p-3 rounded space-y-2 border border-emerald-200">
-                    <p class="font-bold text-[11px] text-emerald-700">Soalan Latihan / Kuiz (Objektif)</p>
+                    <p class="font-bold text-[11px] text-emerald-700">3. Soalan Latihan Interaktif (Objektif)</p>
                     <textarea id="adm-soalan-teks" rows="2" class="w-full border p-2 rounded" placeholder="Soalan objektif..."></textarea>
+                    <div class="bg-white p-2 border rounded mb-2">
+                        <label class="block text-[10px] text-gray-500 font-bold mb-1">Gambar Soalan Latihan (Jika ada):</label>
+                        <input type="file" id="adm-latihan-image-file" accept="image/jpeg, image/png" class="w-full text-xs">
+                    </div>
                     <div class="grid grid-cols-2 gap-2">
                         <input type="text" id="adm-opt-a" class="border p-2 rounded" placeholder="Pilihan A">
                         <input type="text" id="adm-opt-b" class="border p-2 rounded" placeholder="Pilihan B">
@@ -367,8 +392,31 @@
                     </select>
                     <textarea id="adm-soalan-penerangan" rows="2" class="w-full border p-2 rounded" placeholder="Penerangan jawapan (Gaya guru santai)..."></textarea>
                 </div>
-                <button onclick="saveContentToFirebase()" class="w-full bg-purple-700 text-white font-bold p-3 rounded-xl hover:bg-purple-800 transition">
-                    Simpan / Kemaskini Kandungan Ke Firebase
+
+                <div class="bg-blue-50 p-3 rounded space-y-2 border border-blue-200">
+                    <p class="font-bold text-[11px] text-blue-700"><i class="fa-solid fa-image"></i> 4. Soalan Kuiz Bab (Format Teks/Gambar)</p>
+                    <textarea id="adm-kuiz-teks" rows="2" class="w-full border p-2 rounded" placeholder="Taip soalan kuiz..."></textarea>
+                    <div class="bg-white p-2 border rounded">
+                        <label class="block text-[10px] text-gray-500 font-bold mb-1">Muat Naik Gambar Soalan Kuiz:</label>
+                        <input type="file" id="adm-kuiz-image-file" accept="image/jpeg, image/png" class="w-full text-xs">
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="text" id="adm-kuiz-a" class="border p-2 rounded" placeholder="Pilihan A">
+                        <input type="text" id="adm-kuiz-b" class="border p-2 rounded" placeholder="Pilihan B">
+                        <input type="text" id="adm-kuiz-c" class="border p-2 rounded" placeholder="Pilihan C">
+                        <input type="text" id="adm-kuiz-d" class="border p-2 rounded" placeholder="Pilihan D">
+                    </div>
+                    <select id="adm-kuiz-jawapan" class="w-full border p-2 rounded">
+                        <option value="A">Jawapan Kuiz Betul: A</option>
+                        <option value="B">Jawapan Kuiz Betul: B</option>
+                        <option value="C">Jawapan Kuiz Betul: C</option>
+                        <option value="D">Jawapan Kuiz Betul: D</option>
+                    </select>
+                    <textarea id="adm-kuiz-penerangan" rows="2" class="w-full border p-2 rounded" placeholder="Penerangan / Jalan kerja jawapan kuiz (Akan dipaparkan selepas pelajar menjawab)..."></textarea>
+                </div>
+
+                <button onclick="addContentToFirebase()" class="w-full bg-purple-700 text-white font-bold p-3 rounded-xl hover:bg-purple-800 transition">
+                    + Tambah Sebagai Kandungan Baru
                 </button>
             </div>
         </section>
@@ -392,8 +440,9 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getDatabase, ref, set, get, child, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getDatabase, ref, set, get, child, update, push, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCsFCvkBLuLHzUVGokE82jRWshbsTsavVI",
@@ -408,9 +457,10 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getDatabase(app);
+        const storage = getStorage(app);
 
         let currentUser = null;
-        let currentAuthMode = 'login'; // boleh jadi 'login', 'register', atau 'forgot'
+        let currentAuthMode = 'login';
         let appSilibusData = {};
         let currentSelectedForm = null;
         let currentSelectedChapterKey = null;
@@ -441,76 +491,29 @@
         };
 
         window.toggleAuthMode = function() {
-            // Reset keadaan input jika bertukar mod
-            document.getElementById('auth-password-container').classList.remove('hide');
-            document.getElementById('forgot-password-link').classList.remove('hide');
-
-            if (currentAuthMode === 'login' || currentAuthMode === 'forgot') {
+            if (currentAuthMode === 'login') {
                 currentAuthMode = 'register';
                 document.getElementById('auth-title').innerText = "Jom Daftar Akaun!";
-                document.getElementById('auth-subtitle').innerText = "Daftar akaun untuk memulakan sesi pembelajaran.";
                 document.getElementById('auth-submit-btn').innerText = "Daftar Akaun Baharu";
-                document.getElementById('auth-toggle-msg').innerText = "Sudah ada akaun?";
-                document.getElementById('auth-toggle-btn').innerText = "Log masuk di sini";
             } else {
                 currentAuthMode = 'login';
                 document.getElementById('auth-title').innerText = "Selamat Kembali!";
-                document.getElementById('auth-subtitle').innerText = "Log masuk untuk sambung Journey anda.";
                 document.getElementById('auth-submit-btn').innerText = "Log Masuk";
-                document.getElementById('auth-toggle-msg').innerText = "Belum ada akaun?";
-                document.getElementById('auth-toggle-btn').innerText = "Daftar di sini";
-            }
-        };
-
-        window.toggleForgotPasswordMode = function() {
-            currentAuthMode = 'forgot';
-            document.getElementById('auth-title').innerText = "Set Semula Kata Laluan";
-            document.getElementById('auth-subtitle').innerText = "Masukkan e-mel anda untuk menerima pautan set semula.";
-            document.getElementById('auth-password-container').classList.add('hide');
-            document.getElementById('forgot-password-link').classList.add('hide');
-            document.getElementById('auth-submit-btn').innerText = "Hantar E-mel Set Semula";
-            document.getElementById('auth-toggle-msg').innerText = "Ingat kata laluan?";
-            document.getElementById('auth-toggle-btn').innerText = "Log masuk di sini";
-        };
-
-        window.goBackFromAuth = function() {
-            if (currentAuthMode === 'forgot') {
-                currentAuthMode = 'register'; // trigger toggleAuthMode untuk kembali ke 'login'
-                toggleAuthMode();
-            } else {
-                switchView('landing');
             }
         };
 
         window.handleAuth = function() {
             const email = document.getElementById('auth-email').value.trim();
             const password = document.getElementById('auth-password').value;
-            if(!email) return alert("Sila isi e-mel anda.");
+            if(!email || !password) return alert("Sila isi e-mel dan kata laluan anda.");
 
             if (currentAuthMode === 'login') {
-                if(!password) return alert("Sila isi kata laluan anda.");
                 signInWithEmailAndPassword(auth, email, password).then((uc) => initUserData(uc.user)).catch((e) => alert(e.message));
-            } else if (currentAuthMode === 'register') {
-                if(!password) return alert("Sila isi kata laluan anda.");
+            } else {
                 createUserWithEmailAndPassword(auth, email, password).then((uc) => {
-                    set(ref(db, 'users/' + uc.user.uid), { 
-                        email, 
-                        streak: 1, 
-                        questionsAnswered: 0, 
-                        role: email.includes("admin") ? "admin" : "student",
-                        fullName: "",
-                        nickname: ""
-                    })
+                    set(ref(db, 'users/' + uc.user.uid), { email, streak: 1, questionsAnswered: 0, role: email.includes("admin") ? "admin" : "student" })
                     .then(() => initUserData(uc.user));
                 }).catch((e) => alert(e.message));
-            } else if (currentAuthMode === 'forgot') {
-                sendPasswordResetEmail(auth, email)
-                .then(() => {
-                    alert("E-mel pengesahan set semula kata laluan telah dihantar! Sila semak peti masuk (inbox) atau spam e-mel anda.");
-                    currentAuthMode = 'forgot';
-                    toggleAuthMode(); // kembali ke halaman log masuk
-                })
-                .catch((e) => alert(e.message));
             }
         };
 
@@ -520,11 +523,29 @@
 
         function initUserData(user) {
             currentUser = user;
+            document.getElementById('dash-username').innerText = user.email.split('@')[0];
             
             get(ref(db, 'silibus')).then((snapshot) => {
                 appSilibusData = snapshot.exists() ? snapshot.val() : {};
                 updateAdminChapterOptions();
             }).catch(() => { updateAdminChapterOptions(); });
+
+            // LOGIK UNTUK SYNC DAN PAPAR PENGUMUMAN SECARA REAL-TIME DARI FIREBASE
+            onValue(ref(db, 'announcement'), (snapshot) => {
+                const annText = snapshot.exists() ? snapshot.val() : "";
+                const box = document.getElementById('dash-announcement-box');
+                const textEl = document.getElementById('dash-announcement-text');
+                const inputEl = document.getElementById('adm-announcement-input');
+                
+                if (annText && annText.trim() !== "") {
+                    textEl.innerText = annText;
+                    box.classList.remove('hide');
+                    if(inputEl) inputEl.value = annText; // Isi siap-siap dalam panel admin
+                } else {
+                    box.classList.add('hide');
+                    if(inputEl) inputEl.value = "";
+                }
+            });
 
             get(ref(db, 'users/' + user.uid)).then((snapshot) => {
                 if (snapshot.exists()) {
@@ -533,39 +554,19 @@
                     document.getElementById('nav-streak').innerText = data.streak || 1;
                     document.getElementById('dash-stat-streak').innerText = (data.streak || 1) + " Hari";
                     document.getElementById('dash-stat-questions').innerText = data.questionsAnswered || 0;
-                    
-                    // Kemaskini paparan nama panggilan di Dashboard
-                    if (data.nickname && data.nickname.trim() !== "") {
-                        document.getElementById('dash-username').innerText = data.nickname;
-                    } else {
-                        document.getElementById('dash-username').innerText = user.email.split('@')[0];
-                    }
-
-                    // Isi data ke dalam box di halaman profil
-                    document.getElementById('prof-fullname').value = data.fullName || "";
-                    document.getElementById('prof-nickname').value = data.nickname || "";
                 }
             });
             switchView('dashboard');
         }
 
-        // FUNGSI SIMPAN DATA PROFIL USER
-        window.saveUserProfileData = function() {
-            if (!currentUser) return alert("Sesi log masuk tidak sah.");
-            const fullName = document.getElementById('prof-fullname').value.trim();
-            const nickname = document.getElementById('prof-nickname').value.trim();
-
-            if (!nickname) return alert("Sila isi sekurang-kurangnya nama panggilan (nickname) anda.");
-
-            update(ref(db, 'users/' + currentUser.uid), {
-                fullName: fullName,
-                nickname: nickname
-            })
+        // FUNGSI KEMAS KINI PENGUMUMAN OLEH ADMIN
+        window.updateGlobalAnnouncement = function() {
+            const txt = document.getElementById('adm-announcement-input').value.trim();
+            set(ref(db, 'announcement'), txt)
             .then(() => {
-                alert("Maklumat profil anda berjaya dikemaskini!");
-                document.getElementById('dash-username').innerText = nickname; // Kemaskini terus paparan dashboard
+                alert("Pengumuman global berjaya dikemas kini!");
             })
-            .catch((err) => alert("Gagal menyimpan maklumat: " + err.message));
+            .catch(err => alert(err.message));
         };
 
         window.loadChapters = function(formNum) {
@@ -612,19 +613,211 @@
             if(!subKey) return;
             const subData = appSilibusData[currentSelectedForm][currentSelectedChapterKey].subtopik[subKey];
 
-            if(subtab === 'nota' && subData.nota) {
-                document.getElementById('nota-content').innerHTML = `<div class="bg-white p-4 rounded-xl border"><span class="text-xs font-bold text-soft-pink uppercase">Maksud</span><p class="text-sm mt-1">${subData.nota.maksud || ''}</p></div><div class="bg-neon-green p-4 rounded-xl border text-green-900"><span class="text-xs font-bold uppercase">Formula</span><p class="font-mono font-bold mt-1">${subData.nota.formula || 'Tiada'}</p></div>`;
-            } else if (subtab === 'contoh' && subData.contoh) {
-                document.getElementById('contoh-content').innerHTML = `<div class="bg-white border p-4 rounded-xl"><p class="text-sm font-semibold">${subData.contoh.soalan || ''}</p></div><div class="bg-slate-50 border p-4 rounded-xl text-xs"><p class="whitespace-pre-line">${subData.contoh.jalan_kerja || ''}</p></div>`;
-            } else if (subtab === 'latihan' && subData.latihan) {
-                document.getElementById('latihan-content').innerHTML = `<div class="bg-white border p-4 rounded-xl"><p class="text-sm font-medium">${subData.latihan.soalan || ''}</p></div><div class="grid grid-cols-1 gap-2"><button onclick="checkLatihanJawapan('A', '${subData.latihan.jawapan}', '${subData.latihan.penerangan}')" class="w-full text-left p-3 text-xs bg-white border rounded-xl">A. ${subData.latihan.a}</button><button onclick="checkLatihanJawapan('B', '${subData.latihan.jawapan}', '${subData.latihan.penerangan}')" class="w-full text-left p-3 text-xs bg-white border rounded-xl">B. ${subData.latihan.b}</button><button onclick="checkLatihanJawapan('C', '${subData.latihan.jawapan}', '${subData.latihan.penerangan}')" class="w-full text-left p-3 text-xs bg-white border rounded-xl">C. ${subData.latihan.c}</button><button onclick="checkLatihanJawapan('D', '${subData.latihan.jawapan}', '${subData.latihan.penerangan}')" class="w-full text-left p-3 text-xs bg-white border rounded-xl">D. ${subData.latihan.d}</button></div><div id="latihan-feedback" class="p-4 rounded-xl text-xs hide"></div>`;
+            if (subtab === 'nota') {
+                const target = document.getElementById('nota-content');
+                target.innerHTML = "";
+                if (subData && subData.kandungan_list) {
+                    for (let k in subData.kandungan_list) {
+                        let item = subData.kandungan_list[k];
+                        if(item.nota && (item.nota.maksud || item.nota.formula || item.nota.imageUrl)) {
+                            let imgTag = item.nota.imageUrl ? `<div class="mt-2 rounded-lg overflow-hidden border"><img src="${item.nota.imageUrl}" class="w-full h-auto object-contain"></div>` : '';
+                            target.innerHTML += `
+                                <div class="bg-white p-4 rounded-xl border mb-3">
+                                    <span class="text-xs font-bold text-soft-pink uppercase">Maksud</span>
+                                    <p class="text-sm mt-1">${item.nota.maksud || ''}</p>
+                                    ${imgTag}
+                                </div>
+                                <div class="bg-neon-green p-4 rounded-xl border text-green-900 mb-4">
+                                    <span class="text-xs font-bold uppercase">Formula / Tips</span>
+                                    <p class="font-mono font-bold mt-1">${item.nota.formula || 'Tiada'}</p>
+                                    <p class="text-xs text-gray-600 mt-1 italic">${item.nota.tips || ''}</p>
+                                </div>
+                            `;
+                        }
+                    }
+                } else { target.innerHTML = `<p class="text-xs text-gray-400 text-center">Tiada kandungan nota.</p>`; }
+            } 
+            else if (subtab === 'contoh') {
+                const target = document.getElementById('contoh-content');
+                target.innerHTML = "";
+                if (subData && subData.kandungan_list) {
+                    for (let k in subData.kandungan_list) {
+                        let item = subData.kandungan_list[k];
+                        if(item.contoh && (item.contoh.soalan || item.contoh.imageUrl)) {
+                            let imgTag = item.contoh.imageUrl ? `<div class="mt-2 rounded-lg overflow-hidden border"><img src="${item.contoh.imageUrl}" class="w-full h-auto object-contain"></div>` : '';
+                            target.innerHTML += `
+                                <div class="bg-white border p-4 rounded-xl mb-2">
+                                    <p class="text-sm font-semibold">${item.contoh.soalan || ''}</p>
+                                    ${imgTag}
+                                </div>
+                                <div class="bg-slate-50 border p-4 rounded-xl text-xs mb-4">
+                                    <p class="whitespace-pre-line">${item.contoh.jalan_kerja || ''}</p>
+                                </div>
+                            `;
+                        }
+                    }
+                } else { target.innerHTML = `<p class="text-xs text-gray-400 text-center">Tiada kandungan contoh soalan.</p>`; }
+            } 
+            else if (subtab === 'latihan') {
+                const target = document.getElementById('latihan-content');
+                target.innerHTML = "";
+                if (subData && subData.kandungan_list) {
+                    let index = 1;
+                    for (let k in subData.kandungan_list) {
+                        let item = subData.kandungan_list[k];
+                        if(item.latihan && (item.latihan.soalan || item.latihan.imageUrl)) {
+                            let latId = `fb-${k}`;
+                            let imgTag = item.latihan.imageUrl ? `<div class="mt-2 rounded-lg overflow-hidden border"><img src="${item.latihan.imageUrl}" class="w-full h-auto object-contain"></div>` : '';
+                            target.innerHTML += `
+                                <div class="bg-white border p-4 rounded-xl mb-2">
+                                    <p class="text-sm font-medium">Soalan ${index}: ${item.latihan.soalan || ''}</p>
+                                    ${imgTag}
+                                </div>
+                                <div class="grid grid-cols-1 gap-2 mb-2">
+                                    <button onclick="checkLatihanJawapan('A', '${item.latihan.jawapan}', '${item.latihan.penerangan || ''}', '${latId}')" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50">A. ${item.latihan.a}</button>
+                                    <button onclick="checkLatihanJawapan('B', '${item.latihan.jawapan}', '${item.latihan.penerangan || ''}', '${latId}')" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50">B. ${item.latihan.b}</button>
+                                    <button onclick="checkLatihanJawapan('C', '${item.latihan.jawapan}', '${item.latihan.penerangan || ''}', '${latId}')" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50">C. ${item.latihan.c}</button>
+                                    <button onclick="checkLatihanJawapan('D', '${item.latihan.jawapan}', '${item.latihan.penerangan || ''}', '${latId}')" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50">D. ${item.latihan.d}</button>
+                                </div>
+                                <div id="${latId}" class="p-4 rounded-xl text-xs hide mb-6"></div>
+                            `;
+                            index++;
+                        }
+                    }
+                } else { target.innerHTML = `<p class="text-xs text-gray-400 text-center">Tiada kandungan latihan.</p>`; }
+            }
+            else if (subtab === 'kuiz') {
+                document.getElementById('kuiz-intro').classList.remove('hide');
+                document.getElementById('kuiz-active').classList.add('hide');
+                document.getElementById('kuiz-result').classList.add('hide');
             }
         };
 
-        window.checkLatihanJawapan = function(pilih, betul, fbTeks) {
-            const fb = document.getElementById('latihan-feedback'); fb.classList.remove('hide', 'bg-green-50', 'text-green-700', 'bg-red-50', 'text-red-700');
+        window.checkLatihanJawapan = function(pilih, betul, fbTeks, targetElementId) {
+            const fb = document.getElementById(targetElementId); 
+            fb.classList.remove('hide', 'bg-green-50', 'text-green-700', 'bg-red-50', 'text-red-700');
             if (pilih === betul) { fb.classList.add('bg-green-50', 'text-green-700'); fb.innerHTML = `<strong>🎉 Betul!</strong><br>${fbTeks}`; }
-            else { fb.classList.add('bg-red-50', 'text-red-700'); fb.innerHTML = `<strong>❌ Salah!</strong><br>${fbTeks}`; }
+            else { fb.classList.add('bg-red-50', 'text-red-700'); fb.innerHTML = `<strong>❌ Salah!</strong> Jawapan betul ialah ${betul}.<br>${fbTeks}`; }
+        };
+
+        window.startChapterQuiz = function() {
+            const subKey = document.getElementById('flow-subtopic-select').value;
+            const subData = appSilibusData[currentSelectedForm][currentSelectedChapterKey].subtopik[subKey];
+            
+            activeQuizQuestions = [];
+            if (subData && subData.kandungan_list) {
+                for (let k in subData.kandungan_list) {
+                    let item = subData.kandungan_list[k];
+                    if (item.kuiz && (item.kuiz.soalan || item.kuiz.imageUrl)) {
+                        activeQuizQuestions.push(item.kuiz);
+                    }
+                }
+            }
+
+            if (activeQuizQuestions.length === 0) {
+                return alert("Tiada soalan kuiz yang dimasukkan untuk subtopik ini lagi.");
+            }
+
+            activeQuizIndex = 0;
+            activeQuizScore = 0;
+            document.getElementById('kuiz-intro').classList.add('hide');
+            document.getElementById('kuiz-active').classList.remove('hide');
+            renderQuizQuestion();
+        };
+
+        function renderQuizQuestion() {
+            const container = document.getElementById('kuiz-active');
+            const q = activeQuizQuestions[activeQuizIndex];
+            
+            let imageTag = q.imageUrl ? `<div class="mb-3 border rounded-xl overflow-hidden bg-black flex justify-center"><img src="${q.imageUrl}" class="max-h-60 object-contain"></div>` : '';
+            let textQuestion = q.soalan ? `<p class="text-sm font-semibold mb-3">${q.soalan}</p>` : '';
+
+            container.innerHTML = `
+                <div class="bg-gray-100 p-2 rounded-lg text-[10px] font-bold text-gray-500 mb-2">Soalan ${activeQuizIndex + 1} daripada ${activeQuizQuestions.length}</div>
+                <div class="bg-white border p-4 rounded-xl mb-4">
+                    ${imageTag}
+                    ${textQuestion}
+                </div>
+                <div class="grid grid-cols-1 gap-2" id="quiz-options-group">
+                    <button id="btn-opt-A" onclick="submitQuizAnswer('A')" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50 transition font-medium">A. ${q.a}</button>
+                    <button id="btn-opt-B" onclick="submitQuizAnswer('B')" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50 transition font-medium">B. ${q.b}</button>
+                    <button id="btn-opt-C" onclick="submitQuizAnswer('C')" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50 transition font-medium">C. ${q.c}</button>
+                    <button id="btn-opt-D" onclick="submitQuizAnswer('D')" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50 transition font-medium">D. ${q.d}</button>
+                </div>
+                <div id="quiz-feedback-box" class="p-4 rounded-xl text-xs hide mt-3"></div>
+                <button id="btn-quiz-next" onclick="nextQuizQuestion()" class="w-full bg-slate-900 text-white font-bold p-3 text-xs rounded-xl mt-4 hide">
+                    Seterusnya <i class="fa-solid fa-arrow-right ml-1"></i>
+                </button>
+            `;
+        }
+
+        window.submitQuizAnswer = function(chosen) {
+            const q = activeQuizQuestions[activeQuizIndex];
+            const correctAns = q.jawapan;
+
+            const buttons = document.querySelectorAll('#quiz-options-group button');
+            buttons.forEach(btn => btn.disabled = true);
+
+            buttons.forEach(btn => {
+                const optId = btn.id.replace('btn-opt-', '');
+                if (optId === correctAns) {
+                    btn.className = "w-full text-left p-3 text-xs bg-green-100 border-2 border-green-500 rounded-xl text-green-800 font-bold";
+                }
+                if (chosen === optId && chosen !== correctAns) {
+                    btn.className = "w-full text-left p-3 text-xs bg-red-100 border-2 border-red-500 rounded-xl text-red-800 font-bold";
+                }
+            });
+
+            if (chosen === correctAns) activeQuizScore++;
+
+            const fbBox = document.getElementById('quiz-feedback-box');
+            fbBox.classList.remove('hide', 'bg-green-50', 'text-green-700', 'bg-red-50', 'text-red-700');
+            
+            let htmlFeedback = "";
+            if(chosen === correctAns) {
+                fbBox.classList.add('bg-green-50', 'text-green-700');
+                htmlFeedback = `<strong>🎉 Tahniah, Betul!</strong>`;
+            } else {
+                fbBox.classList.add('bg-red-50', 'text-red-700');
+                htmlFeedback = `<strong>❌ Jawapan Kurang Tepat!</strong> Jawapan betul ialah Pilihan ${correctAns}.`;
+            }
+
+            if(q.penerangan && q.penerangan.trim() !== "") {
+                htmlFeedback += `<div class="mt-2 pt-2 border-t border-gray-200/50 text-slate-700 font-normal italic">💡 Penerangan: ${q.penerangan}</div>`;
+            }
+            fbBox.innerHTML = htmlFeedback;
+            document.getElementById('btn-quiz-next').classList.remove('hide');
+        };
+
+        window.nextQuizQuestion = function() {
+            activeQuizIndex++;
+            if (activeQuizIndex < activeQuizQuestions.length) {
+                renderQuizQuestion();
+            } else {
+                document.getElementById('kuiz-active').classList.add('hide');
+                const resultDiv = document.getElementById('kuiz-result');
+                resultDiv.classList.remove('hide');
+                const per = Math.round((activeQuizScore / activeQuizQuestions.length) * 100);
+                
+                resultDiv.innerHTML = `
+                    <span class="text-5xl">🎉</span>
+                    <h3 class="font-bold text-lg mt-3">Kuiz Selesai!</h3>
+                    <p class="text-2xl font-black text-soft-pink mt-2">${activeQuizScore} / ${activeQuizQuestions.length} (${per}%)</p>
+                    <p class="text-xs text-gray-500 mt-2">Teruskan usaha dalam memantapkan penguasaan Matematik anda!</p>
+                    <button onclick="switchFlowSubTab('kuiz')" class="bg-slate-900 text-white font-bold text-xs px-5 py-2 rounded-xl mt-4">Kembali</button>
+                `;
+
+                if (currentUser) {
+                    const userRef = ref(db, 'users/' + currentUser.uid);
+                    get(userRef).then(snap => {
+                        if (snap.exists()) {
+                            let curQ = snap.val().questionsAnswered || 0;
+                            update(userRef, { questionsAnswered: curQ + activeQuizQuestions.length });
+                            document.getElementById('dash-stat-questions').innerText = curQ + activeQuizQuestions.length;
+                        }
+                    });
+                }
+            }
         };
 
         // ADMIN CONTROLS INTERACTION
@@ -642,6 +835,7 @@
                     let op = document.createElement('option'); op.value = k; op.innerText = chapters[k].nama; select.appendChild(op);
                 }
             }
+            loadSubtopicContentList();
         };
 
         window.updateAdminSubtopicOptions = function() {
@@ -656,6 +850,7 @@
                     let op = document.createElement('option'); op.value = k; op.innerText = subtopics[k].nama; select.appendChild(op);
                 }
             }
+            loadSubtopicContentList();
         };
 
         window.manageStructure = function(actionType) {
@@ -670,7 +865,6 @@
             if (actionType === 'add_chapter') {
                 if (!customChName) return alert("Sila taip nama Bab Baru di dalam kotak input.");
                 const newChKey = "Bab_" + customChName.replace(/[^a-zA-Z0-9]/g, '_');
-                
                 set(ref(db, `silibus/${formNum}/${newChKey}`), { nama: customChName })
                 .then(() => { alert(`Bab "${customChName}" berjaya ditambah!`); danReload(); })
                 .catch(e => alert(e.message));
@@ -678,7 +872,6 @@
             else if (actionType === 'delete_chapter') {
                 if (!selectedChKey) return alert("Sila pilih Bab Sedia Ada dari dropdown untuk dipadam.");
                 const chName = document.getElementById('adm-chapter-select').options[document.getElementById('adm-chapter-select').selectedIndex].text;
-                
                 if (confirm(`Adakah anda pasti mahu memadam KESELURUHAN Bab "${chName}" beserta semua subtopik di dalamnya?`)) {
                     set(ref(db, `silibus/${formNum}/${selectedChKey}`), null)
                     .then(() => { alert("Bab berjaya dipadamkan."); danReload(); })
@@ -689,7 +882,6 @@
                 if (!selectedChKey) return alert("Sila pilih Bab utama dari dropdown terlebih dahulu.");
                 if (!customSubName) return alert("Sila taip nama Subtopik Baru di dalam kotak input.");
                 const newSubKey = "Sub_" + customSubName.replace(/[^a-zA-Z0-9]/g, '_');
-
                 set(ref(db, `silibus/${formNum}/${selectedChKey}/subtopik/${newSubKey}`), { nama: customSubName })
                 .then(() => { alert(`Subtopik "${customSubName}" berjaya ditambah!`); danReload(); })
                 .catch(e => alert(e.message));
@@ -698,7 +890,6 @@
                 if (!selectedChKey) return alert("Sila pilih Bab berkaitan dari dropdown.");
                 if (!selectedSubKey) return alert("Sila pilih Subtopik dari dropdown untuk dipadam.");
                 const subName = document.getElementById('adm-subtopic-select').options[document.getElementById('adm-subtopic-select').selectedIndex].text;
-
                 if (confirm(`Adakah anda pasti mahu memadam Subtopik "${subName}"?`)) {
                     set(ref(db, `silibus/${formNum}/${selectedChKey}/subtopik/${selectedSubKey}`), null)
                     .then(() => { alert("Subtopik berjaya dipadamkan."); danReload(); })
@@ -716,42 +907,163 @@
             });
         }
 
-        window.saveContentToFirebase = function() {
+        window.loadSubtopicContentList = function() {
+            const formNum = document.getElementById('adm-form').value;
+            const chKey = document.getElementById('adm-chapter-select').value;
+            const subKey = document.getElementById('adm-subtopic-select').value;
+            const selectList = document.getElementById('adm-content-list-select');
+            
+            selectList.innerHTML = '<option value="">-- Pilih Kandungan Sedia Ada --</option>';
+            if (!formNum || !chKey || !subKey) return;
+
+            const subtopicData = appSilibusData[formNum]?.[chKey]?.subtopik?.[subKey];
+            if (subtopicData && subtopicData.kandungan_list) {
+                const list = subtopicData.kandungan_list;
+                let index = 1;
+                for (let contentKey in list) {
+                    let op = document.createElement('option');
+                    op.value = contentKey;
+                    
+                    let jenis = "Kandungan";
+                    let ringkasan = "";
+                    if (list[contentKey].nota?.maksud || list[contentKey].nota?.imageUrl) { jenis = "Nota"; ringkasan = list[contentKey].nota.maksud || "[Nota Bergambar]"; }
+                    else if (list[contentKey].contoh?.soalan || list[contentKey].contoh?.imageUrl) { jenis = "Contoh"; ringkasan = list[contentKey].contoh.soalan || "[Contoh Bergambar]"; }
+                    else if (list[contentKey].latihan?.soalan || list[contentKey].latihan?.imageUrl) { jenis = "Latihan"; ringkasan = list[contentKey].latihan.soalan || "[Latihan Bergambar]"; }
+                    else if (list[contentKey].kuiz?.soalan || list[contentKey].kuiz?.imageUrl) { jenis = "Kuiz Bab"; ringkasan = list[contentKey].kuiz.soalan || "[Kuiz Bergambar]"; }
+
+                    op.innerText = `#${index} [${jenis}] - ${ringkasan.substring(0, 30)}...`;
+                    selectList.appendChild(op);
+                    index++;
+                }
+            }
+        };
+
+        async function uploadFileHelper(fileElementId, folderName) {
+            const file = document.getElementById(fileElementId).files[0];
+            if (!file) return "";
+            try {
+                const storageRefPath = sRef(storage, `${folderName}/${Date.now()}_${file.name}`);
+                const snapshot = await uploadBytes(storageRefPath, file);
+                return await getDownloadURL(snapshot.ref);
+            } catch (error) {
+                console.error("Gagal upload bagi " + fileElementId, error);
+                throw new Error("Gagal muat naik gambar: " + error.message);
+            }
+        }
+
+        window.addContentToFirebase = async function() {
             const formNum = document.getElementById('adm-form').value;
             const chKey = document.getElementById('adm-chapter-select').value;
             const subKey = document.getElementById('adm-subtopic-select').value;
 
             if(!chKey || !subKey) return alert("Sila pilih Bab dan Subtopik di Bahagian 1 terlebih dahulu.");
 
-            const subtopicName = document.getElementById('adm-subtopic-select').options[document.getElementById('adm-subtopic-select').selectedIndex].text;
-            const path = `silibus/${formNum}/${chKey}/subtopik/${subKey}`;
+            alert("Sedang memproses dan memuat naik data/gambar, sila tunggu sehingga mesej selesai dipaparkan...");
 
-            const payload = {
-                nama: subtopicName,
-                nota: {
-                    maksud: document.getElementById('adm-nota-maksud').value,
-                    formula: document.getElementById('adm-nota-formula').value,
-                    kesilapan: document.getElementById('adm-nota-kesilapan').value,
-                    tips: document.getElementById('adm-nota-tips').value,
-                },
-                contoh: {
-                    soalan: document.getElementById('adm-contoh-soalan').value,
-                    jalan_kerja: document.getElementById('adm-contoh-jalan').value,
-                },
-                latihan: {
-                    soalan: document.getElementById('adm-soalan-teks').value,
-                    a: document.getElementById('adm-opt-a').value,
-                    b: document.getElementById('adm-opt-b').value,
-                    c: document.getElementById('adm-opt-c').value,
-                    d: document.getElementById('adm-opt-d').value,
-                    jawapan: document.getElementById('adm-opt-jawapan').value,
-                    penerangan: document.getElementById('adm-soalan-penerangan').value,
-                }
-            };
+            try {
+                const [notaImgUrl, contohImgUrl, latihanImgUrl, kuizImgUrl] = await Promise.all([
+                    uploadFileHelper('adm-nota-image-file', 'nota_images'),
+                    uploadFileHelper('adm-contoh-image-file', 'contoh_images'),
+                    uploadFileHelper('adm-latihan-image-file', 'latihan_images'),
+                    uploadFileHelper('adm-kuiz-image-file', 'kuiz_images')
+                ]);
 
-            update(ref(db, path), payload).then(() => {
-                alert("Isi kandungan subtopik berjaya disimpan!");
-            }).catch(err => alert(err.message));
+                const contentListRef = ref(db, `silibus/${formNum}/${chKey}/subtopik/${subKey}/kandungan_list`);
+                
+                const payload = {
+                    nota: {
+                        maksud: document.getElementById('adm-nota-maksud').value,
+                        formula: document.getElementById('adm-nota-formula').value,
+                        kesilapan: document.getElementById('adm-nota-kesilapan').value,
+                        tips: document.getElementById('adm-nota-tips').value,
+                        imageUrl: notaImgUrl
+                    },
+                    contoh: {
+                        soalan: document.getElementById('adm-contoh-soalan').value,
+                        jalan_kerja: document.getElementById('adm-contoh-jalan').value,
+                        imageUrl: contohImgUrl
+                    },
+                    latihan: {
+                        soalan: document.getElementById('adm-soalan-teks').value,
+                        imageUrl: latihanImgUrl,
+                        a: document.getElementById('adm-opt-a').value,
+                        b: document.getElementById('adm-opt-b').value,
+                        c: document.getElementById('adm-opt-c').value,
+                        d: document.getElementById('adm-opt-d').value,
+                        jawapan: document.getElementById('adm-opt-jawapan').value,
+                        penerangan: document.getElementById('adm-soalan-penerangan').value,
+                    },
+                    kuiz: {
+                        soalan: document.getElementById('adm-kuiz-teks').value,
+                        imageUrl: kuizImgUrl,
+                        a: document.getElementById('adm-kuiz-a').value,
+                        b: document.getElementById('adm-kuiz-b').value,
+                        c: document.getElementById('adm-kuiz-c').value,
+                        d: document.getElementById('adm-kuiz-d').value,
+                        jawapan: document.getElementById('adm-kuiz-jawapan').value,
+                        penerangan: document.getElementById('adm-kuiz-penerangan').value
+                    }
+                };
+
+                const newContentRef = push(contentListRef);
+                await set(newContentRef, payload);
+                alert("Isi kandungan baru berjaya ditambah!");
+                
+                // Reset form
+                document.getElementById('adm-nota-maksud').value = "";
+                document.getElementById('adm-nota-formula').value = "";
+                document.getElementById('adm-nota-kesilapan').value = "";
+                document.getElementById('adm-nota-tips').value = "";
+                document.getElementById('adm-nota-image-file').value = "";
+                document.getElementById('adm-contoh-soalan').value = "";
+                document.getElementById('adm-contoh-jalan').value = "";
+                document.getElementById('adm-contoh-image-file').value = "";
+                document.getElementById('adm-soalan-teks').value = "";
+                document.getElementById('adm-latihan-image-file').value = "";
+                document.getElementById('adm-opt-a').value = "";
+                document.getElementById('adm-opt-b').value = "";
+                document.getElementById('adm-opt-c').value = "";
+                document.getElementById('adm-opt-d').value = "";
+                document.getElementById('adm-kuiz-teks').value = "";
+                document.getElementById('adm-kuiz-image-file').value = "";
+                document.getElementById('adm-kuiz-a').value = "";
+                document.getElementById('adm-kuiz-b').value = "";
+                document.getElementById('adm-kuiz-c').value = "";
+                document.getElementById('adm-kuiz-d').value = "";
+                document.getElementById('adm-kuiz-penerangan').value = "";
+                
+                const snapshot = await get(ref(db, 'silibus'));
+                appSilibusData = snapshot.exists() ? snapshot.val() : {};
+                loadSubtopicContentList();
+            } catch (err) {
+                alert(err.message);
+            }
+        };
+
+        window.deleteSelectedContent = function() {
+            const formNum = document.getElementById('adm-form').value;
+            const chKey = document.getElementById('adm-chapter-select').value;
+            const subKey = document.getElementById('adm-subtopic-select').value;
+            const contentKey = document.getElementById('adm-content-list-select').value;
+
+            if(!chKey || !subKey || !contentKey) return alert("Sila pilih isi kandungan sedia ada yang mahu dipadam dari dropdown.");
+
+            if (confirm("Adakah anda pasti mahu memadam isi kandungan ini sahaja?")) {
+                set(ref(db, `silibus/${formNum}/${chKey}/subtopik/${subKey}/kandungan_list/${contentKey}`), null)
+                .then(() => {
+                    alert("Kandungan tersebut berjaya dipadamkan!");
+                    get(ref(db, 'silibus')).then((snapshot) => {
+                        appSilibusData = snapshot.exists() ? snapshot.val() : {};
+                        loadSubtopicContentList();
+                    });
+                }).catch(e => alert(e.message));
+            }
+        };
+
+        const originalUpdateAdminSubtopicOptions = window.updateAdminSubtopicOptions;
+        window.updateAdminSubtopicOptions = function() {
+            originalUpdateAdminSubtopicOptions();
+            loadSubtopicContentList();
         };
     </script>
 </body>
