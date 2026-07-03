@@ -315,7 +315,7 @@
             </div>
 
             <div class="bg-white border border-gray-200 p-4 rounded-xl space-y-3 mb-6 text-xs shadow-sm">
-                <h3 class="font-bold text-sm text-slate-800 border-b pb-2"><i class="fa-solid fa-file-pen"></i> 2. Urus Isi Kandungan (Boleh Lebih Daripada Satu)</h3>
+                <h3 class="font-bold text-sm text-slate-800 border-b pb-2"><i class="fa-solid fa-file-pen"></i> 2. Urus Isi Kandungan</h3>
                 
                 <div class="bg-indigo-50 p-3 rounded border border-indigo-200 space-y-2">
                     <p class="font-bold text-[11px] text-indigo-700"><i class="fa-solid fa-folder-open"></i> Senarai Kandungan Wujud Dalam Subtopik Ini</p>
@@ -375,7 +375,7 @@
                 </div>
 
                 <div class="bg-blue-50 p-3 rounded space-y-2 border border-blue-200">
-                    <p class="font-bold text-[11px] text-blue-700"><i class="fa-solid fa-image"></i> 4. Soalan Kuiz Bab (Format Teks ATAU Gambar/JPEG)</p>
+                    <p class="font-bold text-[11px] text-blue-700"><i class="fa-solid fa-image"></i> 4. Soalan Kuiz Bab (Format Teks/Gambar)</p>
                     <textarea id="adm-kuiz-teks" rows="2" class="w-full border p-2 rounded" placeholder="Taip soalan kuiz..."></textarea>
                     <div class="bg-white p-2 border rounded">
                         <label class="block text-[10px] text-gray-500 font-bold mb-1">Muat Naik Gambar Soalan Kuiz:</label>
@@ -393,7 +393,7 @@
                         <option value="C">Jawapan Kuiz Betul: C</option>
                         <option value="D">Jawapan Kuiz Betul: D</option>
                     </select>
-                    <textarea id="adm-kuiz-penerangan" rows="2" class="w-full border p-2 rounded" placeholder="Penerangan jawapan kuiz..."></textarea>
+                    <textarea id="adm-kuiz-penerangan" rows="2" class="w-full border p-2 rounded" placeholder="Penerangan / Jalan kerja jawapan kuiz (Akan dipaparkan selepas pelajar menjawab)..."></textarea>
                 </div>
 
                 <button onclick="addContentToFirebase()" class="w-full bg-purple-700 text-white font-bold p-3 rounded-xl hover:bg-purple-800 transition">
@@ -688,27 +688,79 @@
 
             container.innerHTML = `
                 <div class="bg-gray-100 p-2 rounded-lg text-[10px] font-bold text-gray-500 mb-2">Soalan ${activeQuizIndex + 1} daripada ${activeQuizQuestions.length}</div>
-                <div class="bg-white border p-4 rounded-xl">
+                <div class="bg-white border p-4 rounded-xl mb-4">
                     ${imageTag}
                     ${textQuestion}
                 </div>
-                <div class="grid grid-cols-1 gap-2">
-                    <button onclick="submitQuizAnswer('A')" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50">A. ${q.a}</button>
-                    <button onclick="submitQuizAnswer('B')" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50">B. ${q.b}</button>
-                    <button onclick="submitQuizAnswer('C')" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50">C. ${q.c}</button>
-                    <button onclick="submitQuizAnswer('D')" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50">D. ${q.d}</button>
+                <div class="grid grid-cols-1 gap-2" id="quiz-options-group">
+                    <button id="btn-opt-A" onclick="submitQuizAnswer('A')" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50 transition font-medium">A. ${q.a}</button>
+                    <button id="btn-opt-B" onclick="submitQuizAnswer('B')" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50 transition font-medium">B. ${q.b}</button>
+                    <button id="btn-opt-C" onclick="submitQuizAnswer('C')" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50 transition font-medium">C. ${q.c}</button>
+                    <button id="btn-opt-D" onclick="submitQuizAnswer('D')" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50 transition font-medium">D. ${q.d}</button>
                 </div>
+                
+                <div id="quiz-feedback-box" class="p-4 rounded-xl text-xs hide mt-3"></div>
+                
+                <button id="btn-quiz-next" onclick="nextQuizQuestion()" class="w-full bg-slate-900 text-white font-bold p-3 text-xs rounded-xl mt-4 hide">
+                    Seterusnya <i class="fa-solid fa-arrow-right ml-1"></i>
+                </button>
             `;
         }
 
         window.submitQuizAnswer = function(chosen) {
             const q = activeQuizQuestions[activeQuizIndex];
-            if (chosen === q.jawapan) activeQuizScore++;
+            const correctAns = q.jawapan;
 
+            // 1. Matikan (Disable) semua pilihan jawapan supaya tidak boleh ditekan/tukar lagi
+            const buttons = document.querySelectorAll('#quiz-options-group button');
+            buttons.forEach(btn => btn.disabled = true);
+
+            // 2. Logik penukaran warna kotak pilihan jawapan secara interaktif
+            buttons.forEach(btn => {
+                const optId = btn.id.replace('btn-opt-', '');
+                if (optId === correctAns) {
+                    // Sentiasa warnakan kotak jawapan yang BETUL menjadi HIJAU
+                    btn.className = "w-full text-left p-3 text-xs bg-green-100 border-2 border-green-500 rounded-xl text-green-800 font-bold";
+                }
+                if (chosen === optId && chosen !== correctAns) {
+                    // Jika pelajar pilih yang SALAH, warnakan kotak tersebut menjadi MERAH
+                    btn.className = "w-full text-left p-3 text-xs bg-red-100 border-2 border-red-500 rounded-xl text-red-800 font-bold";
+                }
+            });
+
+            // 3. Kemas kini skor kuiz
+            if (chosen === correctAns) {
+                activeQuizScore++;
+            }
+
+            // 4. Paparkan kotak maklum balas & penerangan jawapan kuiz dari Admin
+            const fbBox = document.getElementById('quiz-feedback-box');
+            fbBox.classList.remove('hide', 'bg-green-50', 'text-green-700', 'bg-red-50', 'text-red-700');
+            
+            let htmlFeedback = "";
+            if(chosen === correctAns) {
+                fbBox.classList.add('bg-green-50', 'text-green-700');
+                htmlFeedback = `<strong>🎉 Tahniah, Betul!</strong>`;
+            } else {
+                fbBox.classList.add('bg-red-50', 'text-red-700');
+                htmlFeedback = `<strong>❌ Jawapan Kurang Tepat!</strong> Jawapan betul ialah Pilihan ${correctAns}.`;
+            }
+
+            if(q.penerangan && q.penerangan.trim() !== "") {
+                htmlFeedback += `<div class="mt-2 pt-2 border-t border-gray-200/50 text-slate-700 font-normal italic">💡 Penerangan: ${q.penerangan}</div>`;
+            }
+            fbBox.innerHTML = htmlFeedback;
+
+            // 5. Paparkan butang untuk mara ke soalan seterusnya
+            document.getElementById('btn-quiz-next').classList.remove('hide');
+        };
+
+        window.nextQuizQuestion = function() {
             activeQuizIndex++;
             if (activeQuizIndex < activeQuizQuestions.length) {
                 renderQuizQuestion();
             } else {
+                // Semua soalan selesai
                 document.getElementById('kuiz-active').classList.add('hide');
                 const resultDiv = document.getElementById('kuiz-result');
                 resultDiv.classList.remove('hide');
@@ -809,7 +861,7 @@
                 if (!selectedSubKey) return alert("Sila pilih Subtopik dari dropdown untuk dipadam.");
                 const subName = document.getElementById('adm-subtopic-select').options[document.getElementById('adm-subtopic-select').selectedIndex].text;
 
-                if (confirm(`Adakah Logic anda pasti mahu memadam Subtopik "${subName}"?`)) {
+                if (confirm(`Adakah anda pasti mahu memadam Subtopik "${subName}"?`)) {
                     set(ref(db, `silibus/${formNum}/${selectedChKey}/subtopik/${selectedSubKey}`), null)
                     .then(() => { alert("Subtopik berjaya dipadamkan."); danReload(); })
                     .catch(e => alert(e.message));
@@ -858,7 +910,6 @@
             }
         };
 
-        // Fungsi helper asinkronus untuk urusan upload fail ke Storage
         async function uploadFileHelper(fileElementId, folderName) {
             const file = document.getElementById(fileElementId).files[0];
             if (!file) return "";
@@ -879,11 +930,9 @@
 
             if(!chKey || !subKey) return alert("Sila pilih Bab dan Subtopik di Bahagian 1 terlebih dahulu.");
 
-            // Paparkan petunjuk loading semasa muat naik fail
             alert("Sedang memproses dan memuat naik data/gambar, sila tunggu sehingga mesej selesai dipaparkan...");
 
             try {
-                // Lakukan upload serentak jika ada fail dipilih bagi mana-mana bahagian
                 const [notaImgUrl, contohImgUrl, latihanImgUrl, kuizImgUrl] = await Promise.all([
                     uploadFileHelper('adm-nota-image-file', 'nota_images'),
                     uploadFileHelper('adm-contoh-image-file', 'contoh_images'),
@@ -924,28 +973,26 @@
                         c: document.getElementById('adm-kuiz-c').value,
                         d: document.getElementById('adm-kuiz-d').value,
                         jawapan: document.getElementById('adm-kuiz-jawapan').value,
-                        penerangan: document.getElementById('adm-kuiz-penerangan').value,
+                        penerangan: document.getElementById('adm-kuiz-penerangan').value, // Disimpan ke Firebase
                     }
                 };
 
                 const newContentRef = push(contentListRef);
                 await set(newContentRef, payload);
                 
-                alert("Isi kandungan baru (termasuk gambar yang diisi) berjaya ditambah!");
+                alert("Isi kandungan baru berjaya ditambah!");
                 
-                // Kosongkan input Nota
+                // Kosongkan input form admin
                 document.getElementById('adm-nota-maksud').value = "";
                 document.getElementById('adm-nota-formula').value = "";
                 document.getElementById('adm-nota-kesilapan').value = "";
                 document.getElementById('adm-nota-tips').value = "";
                 document.getElementById('adm-nota-image-file').value = "";
                 
-                // Kosongkan input Contoh
                 document.getElementById('adm-contoh-soalan').value = "";
                 document.getElementById('adm-contoh-jalan').value = "";
                 document.getElementById('adm-contoh-image-file').value = "";
                 
-                // Kosongkan input Latihan
                 document.getElementById('adm-soalan-teks').value = "";
                 document.getElementById('adm-latihan-image-file').value = "";
                 document.getElementById('adm-opt-a').value = "";
@@ -953,7 +1000,6 @@
                 document.getElementById('adm-opt-c').value = "";
                 document.getElementById('adm-opt-d').value = "";
                 
-                // Kosongkan input Kuiz
                 document.getElementById('adm-kuiz-teks').value = "";
                 document.getElementById('adm-kuiz-image-file').value = "";
                 document.getElementById('adm-kuiz-a').value = "";
