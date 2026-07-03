@@ -269,12 +269,12 @@
 
         <!-- ADMIN VIEW (UPDATED WITH SEPARATE ADD & DELETE LOGICS) -->
         <section id="view-admin" class="view p-5 hide">
-    <div class="mb-6">
-        <h2 class="text-xl font-bold text-purple-900">Admin Panel (Content Manager)</h2>
-    </div>
+            <div class="mb-6">
+                <h2 class="text-xl font-bold text-purple-900">Admin Panel (Silibus Builder)</h2>
+                <p class="text-xs text-gray-500">Urus struktur silibus dan isi kandungan data secara fleksibel.</p>
+            </div>
 
-
-           <!-- BAHAGIAN 1: URUS STRUKTUR (TAMBAH/PADAM BAB & SUBTOPIK) -->
+            <!-- BAHAGIAN 1: URUS STRUKTUR (TAMBAH/PADAM BAB & SUBTOPIK) -->
             <div class="bg-white border border-purple-200 p-4 rounded-xl space-y-4 mb-6 text-xs shadow-sm">
                 <h3 class="font-bold text-sm text-purple-800 border-b pb-2"><i class="fa-solid fa-folder-tree"></i> 1. Urus Struktur (Bab & Subtopik)</h3>
                 
@@ -680,65 +680,6 @@
                 alert("Isi kandungan subtopik berjaya disimpan!");
             }).catch(err => alert(err.message));
         };
-        window.refreshContentList = function() {
-    const listSelect = document.getElementById('adm-content-list');
-    listSelect.innerHTML = '<option value="">-- Loading... --</option>';
-    
-    get(ref(db, 'silibus')).then((snapshot) => {
-        listSelect.innerHTML = '<option value="">-- Pilih kandungan untuk edit/padam --</option>';
-        if (snapshot.exists()) {
-            const data = snapshot.val();
-            for(let form in data) {
-                for(let bab in data[form]) {
-                    if(data[form][bab].subtopik) {
-                        for(let sub in data[form][bab].subtopik) {
-                            let option = document.createElement('option');
-                            option.value = `${form}|${bab}|${sub}`;
-                            option.innerText = `[T${form}] ${bab.replace(/_/g, ' ')} > ${data[form][bab].subtopik[sub].nama}`;
-                            listSelect.appendChild(option);
-                        }
-                    }
-                }
-            }
-        }
-    });
-};
-
-// FUNGSI AUTO-FILL BORANG BILA ITEM DIPILIH
-window.loadContentToForm = function() {
-    const val = document.getElementById('adm-content-list').value;
-    if(!val) return;
-    const [form, bab, sub] = val.split('|');
-    
-    get(ref(db, `silibus/${form}/${bab}/subtopik/${sub}`)).then((snapshot) => {
-        if(snapshot.exists()) {
-            const data = snapshot.val();
-            document.getElementById('adm-form').value = form;
-            document.getElementById('adm-chapter').value = bab;
-            document.getElementById('adm-subtopic').value = sub;
-            document.getElementById('adm-nota-maksud').value = data.nota?.maksud || '';
-            document.getElementById('adm-nota-formula').value = data.nota?.formula || '';
-            document.getElementById('adm-nota-kesilapan').value = data.nota?.kesilapan || '';
-            document.getElementById('adm-nota-tips').value = data.nota?.tips || '';
-            document.getElementById('adm-contoh-soalan').value = data.contoh?.soalan || '';
-            document.getElementById('adm-contoh-jalan').value = data.contoh?.jalan_kerja || '';
-        }
-    });
-};
-
-// FUNGSI PADAM ITEM TERPILIH
-window.deleteSelectedContent = function() {
-    const val = document.getElementById('adm-content-list').value;
-    if(!val) return alert("Sila pilih item dari senarai!");
-    const [form, bab, sub] = val.split('|');
-    
-    if(confirm("Padam subtopik ini?")) {
-        set(ref(db, `silibus/${form}/${bab}/subtopik/${sub}`), null).then(() => {
-            alert("Berjaya dipadam!");
-            refreshContentList();
-        });
-    }
-};
     </script>
 </body>
 </html>
