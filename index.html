@@ -672,41 +672,7 @@
             });
         }
 
-        // SIMPAN ISI KANDUNGAN SUBTOPIK
-        window.saveContentToFirebase = function() {
-            const formNum = document.getElementById('adm-form').value;
-            const chKey = document.getElementById('adm-chapter-select').value;
-            const subKey = document.getElementById('adm-subtopic-select').value;
-
-            if(!chKey || !subKey) return alert("Sila pilih Bab dan Subtopik di Bahagian 1 terlebih dahulu.");
-
-            const subtopicName = document.getElementById('adm-subtopic-select').options[document.getElementById('adm-subtopic-select').selectedIndex].text;
-            const path = `silibus/${formNum}/${chKey}/subtopik/${subKey}`;
-
-            const payload = {
-                nama: subtopicName,
-                nota: {
-                    maksud: document.getElementById('adm-nota-maksud').value,
-                    formula: document.getElementById('adm-nota-formula').value,
-                    kesilapan: document.getElementById('adm-nota-kesilapan').value,
-                    tips: document.getElementById('adm-nota-tips').value,
-                },
-                contoh: {
-                    soalan: document.getElementById('adm-contoh-soalan').value,
-                    jalan_kerja: document.getElementById('adm-contoh-jalan').value,
-                },
-                latihan: {
-                    soalan: document.getElementById('adm-soalan-teks').value,
-                    a: document.getElementById('adm-opt-a').value,
-                    b: document.getElementById('adm-opt-b').value,
-                    c: document.getElementById('adm-opt-c').value,
-                    d: document.getElementById('adm-opt-d').value,
-                    jawapan: document.getElementById('adm-opt-jawapan').value,
-                    penerangan: document.getElementById('adm-soalan-penerangan').value,
-                }
-            };
-
-            // FUNGSI LOAD SENARAI DARI FIREBASE KE DROPDOWN
+         // FUNGSI LOAD SENARAI DARI FIREBASE KE DROPDOWN
 window.refreshContentList = function() {
     const listSelect = document.getElementById('adm-content-list');
     listSelect.innerHTML = '<option value="">-- Loading... --</option>';
@@ -752,6 +718,40 @@ window.loadContentToForm = function() {
         }
     });
 };
+
+        // SIMPAN ISI KANDUNGAN SUBTOPIK
+        window.saveContentToFirebase = function() {
+            const formNum = document.getElementById('adm-form').value;
+            const chKey = document.getElementById('adm-chapter-select').value;
+            const subKey = document.getElementById('adm-subtopic-select').value;
+
+            if(!chKey || !subKey) return alert("Sila pilih Bab dan Subtopik di Bahagian 1 terlebih dahulu.");
+
+            const subtopicName = document.getElementById('adm-subtopic-select').options[document.getElementById('adm-subtopic-select').selectedIndex].text;
+            const path = `silibus/${formNum}/${chKey}/subtopik/${subKey}`;
+
+            const payload = {
+                nama: subtopicName,
+                nota: {
+                    maksud: document.getElementById('adm-nota-maksud').value,
+                    formula: document.getElementById('adm-nota-formula').value,
+                    kesilapan: document.getElementById('adm-nota-kesilapan').value,
+                    tips: document.getElementById('adm-nota-tips').value,
+                },
+                contoh: {
+                    soalan: document.getElementById('adm-contoh-soalan').value,
+                    jalan_kerja: document.getElementById('adm-contoh-jalan').value,
+                },
+                latihan: {
+                    soalan: document.getElementById('adm-soalan-teks').value,
+                    a: document.getElementById('adm-opt-a').value,
+                    b: document.getElementById('adm-opt-b').value,
+                    c: document.getElementById('adm-opt-c').value,
+                    d: document.getElementById('adm-opt-d').value,
+                    jawapan: document.getElementById('adm-opt-jawapan').value,
+                    penerangan: document.getElementById('adm-soalan-penerangan').value,
+                }
+            };
 
             update(ref(db, path), payload).then(() => {
                 alert("Isi kandungan subtopik berjaya disimpan!");
