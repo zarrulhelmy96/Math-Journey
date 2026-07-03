@@ -137,6 +137,14 @@
         </section>
 
         <section id="view-dashboard" class="view p-5 hide">
+            <div id="dash-announcement-box" class="mb-4 bg-amber-50 border border-amber-200 rounded-xl p-4 hide">
+                <div class="flex items-center space-x-2 text-amber-800 font-bold text-xs mb-1">
+                    <i class="fa-solid fa-bullhorn animate-pulse"></i>
+                    <span>PENGUMUMAN & NOTIS:</span>
+                </div>
+                <p id="dash-announcement-text" class="text-xs text-slate-700 whitespace-pre-line leading-relaxed">Tiada pengumuman terkini.</p>
+            </div>
+
             <div class="mb-6 bg-gradient-to-r from-rose-50 to-amber-50 p-5 rounded-2xl border border-pink-100">
                 <h2 class="text-lg font-bold text-slate-900">Selamat datang, <span id="dash-username">Pelajar</span>! 👋</h2>
                 <p class="text-xs text-gray-600 mt-1 italic font-medium text-pink-600">
@@ -265,6 +273,17 @@
             <div class="mb-6">
                 <h2 class="text-xl font-bold text-purple-900">Admin Panel (Silibus Builder)</h2>
                 <p class="text-xs text-gray-500">Urus struktur silibus dan isi kandungan data secara fleksibel.</p>
+            </div>
+
+            <div class="bg-amber-50 border border-amber-300 p-4 rounded-xl space-y-3 mb-6 text-xs shadow-sm">
+                <h3 class="font-bold text-sm text-amber-900 border-b pb-2"><i class="fa-solid fa-bullhorn"></i> 3. Urus Pengumuman / Notis Halaman Utama</h3>
+                <div>
+                    <label class="block font-semibold text-gray-700 mb-1">Teks Notis / Pengumuman Terkini Pelajar</label>
+                    <textarea id="adm-announcement-input" rows="3" class="w-full border p-2.5 rounded-lg bg-white focus:border-amber-500 focus:outline-none" placeholder="Taip pengumuman penting untuk semua pelajar lihat di dashboard utama mereka..."></textarea>
+                </div>
+                <button onclick="updateGlobalAnnouncement()" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold p-2.5 rounded-xl flex items-center justify-center space-x-1 transition">
+                    <i class="fa-solid fa-floppy-disk"></i> <span>Kemas Kini Pengumuman</span>
+                </button>
             </div>
 
             <div class="bg-white border border-purple-200 p-4 rounded-xl space-y-4 mb-6 text-xs shadow-sm">
@@ -422,7 +441,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getDatabase, ref, set, get, child, update, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, set, get, child, update, push, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
         import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
         const firebaseConfig = {
@@ -511,6 +530,23 @@
                 updateAdminChapterOptions();
             }).catch(() => { updateAdminChapterOptions(); });
 
+            // LOGIK UNTUK SYNC DAN PAPAR PENGUMUMAN SECARA REAL-TIME DARI FIREBASE
+            onValue(ref(db, 'announcement'), (snapshot) => {
+                const annText = snapshot.exists() ? snapshot.val() : "";
+                const box = document.getElementById('dash-announcement-box');
+                const textEl = document.getElementById('dash-announcement-text');
+                const inputEl = document.getElementById('adm-announcement-input');
+                
+                if (annText && annText.trim() !== "") {
+                    textEl.innerText = annText;
+                    box.classList.remove('hide');
+                    if(inputEl) inputEl.value = annText; // Isi siap-siap dalam panel admin
+                } else {
+                    box.classList.add('hide');
+                    if(inputEl) inputEl.value = "";
+                }
+            });
+
             get(ref(db, 'users/' + user.uid)).then((snapshot) => {
                 if (snapshot.exists()) {
                     const data = snapshot.val();
@@ -522,6 +558,16 @@
             });
             switchView('dashboard');
         }
+
+        // FUNGSI KEMAS KINI PENGUMUMAN OLEH ADMIN
+        window.updateGlobalAnnouncement = function() {
+            const txt = document.getElementById('adm-announcement-input').value.trim();
+            set(ref(db, 'announcement'), txt)
+            .then(() => {
+                alert("Pengumuman global berjaya dikemas kini!");
+            })
+            .catch(err => alert(err.message));
+        };
 
         window.loadChapters = function(formNum) {
             currentSelectedForm = formNum;
@@ -698,9 +744,7 @@
                     <button id="btn-opt-C" onclick="submitQuizAnswer('C')" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50 transition font-medium">C. ${q.c}</button>
                     <button id="btn-opt-D" onclick="submitQuizAnswer('D')" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50 transition font-medium">D. ${q.d}</button>
                 </div>
-                
                 <div id="quiz-feedback-box" class="p-4 rounded-xl text-xs hide mt-3"></div>
-                
                 <button id="btn-quiz-next" onclick="nextQuizQuestion()" class="w-full bg-slate-900 text-white font-bold p-3 text-xs rounded-xl mt-4 hide">
                     Seterusnya <i class="fa-solid fa-arrow-right ml-1"></i>
                 </button>
@@ -711,29 +755,21 @@
             const q = activeQuizQuestions[activeQuizIndex];
             const correctAns = q.jawapan;
 
-            // 1. Matikan (Disable) semua pilihan jawapan supaya tidak boleh ditekan/tukar lagi
             const buttons = document.querySelectorAll('#quiz-options-group button');
             buttons.forEach(btn => btn.disabled = true);
 
-            // 2. Logik penukaran warna kotak pilihan jawapan secara interaktif
             buttons.forEach(btn => {
                 const optId = btn.id.replace('btn-opt-', '');
                 if (optId === correctAns) {
-                    // Sentiasa warnakan kotak jawapan yang BETUL menjadi HIJAU
                     btn.className = "w-full text-left p-3 text-xs bg-green-100 border-2 border-green-500 rounded-xl text-green-800 font-bold";
                 }
                 if (chosen === optId && chosen !== correctAns) {
-                    // Jika pelajar pilih yang SALAH, warnakan kotak tersebut menjadi MERAH
                     btn.className = "w-full text-left p-3 text-xs bg-red-100 border-2 border-red-500 rounded-xl text-red-800 font-bold";
                 }
             });
 
-            // 3. Kemas kini skor kuiz
-            if (chosen === correctAns) {
-                activeQuizScore++;
-            }
+            if (chosen === correctAns) activeQuizScore++;
 
-            // 4. Paparkan kotak maklum balas & penerangan jawapan kuiz dari Admin
             const fbBox = document.getElementById('quiz-feedback-box');
             fbBox.classList.remove('hide', 'bg-green-50', 'text-green-700', 'bg-red-50', 'text-red-700');
             
@@ -750,8 +786,6 @@
                 htmlFeedback += `<div class="mt-2 pt-2 border-t border-gray-200/50 text-slate-700 font-normal italic">💡 Penerangan: ${q.penerangan}</div>`;
             }
             fbBox.innerHTML = htmlFeedback;
-
-            // 5. Paparkan butang untuk mara ke soalan seterusnya
             document.getElementById('btn-quiz-next').classList.remove('hide');
         };
 
@@ -760,7 +794,6 @@
             if (activeQuizIndex < activeQuizQuestions.length) {
                 renderQuizQuestion();
             } else {
-                // Semua soalan selesai
                 document.getElementById('kuiz-active').classList.add('hide');
                 const resultDiv = document.getElementById('kuiz-result');
                 resultDiv.classList.remove('hide');
@@ -832,7 +865,6 @@
             if (actionType === 'add_chapter') {
                 if (!customChName) return alert("Sila taip nama Bab Baru di dalam kotak input.");
                 const newChKey = "Bab_" + customChName.replace(/[^a-zA-Z0-9]/g, '_');
-                
                 set(ref(db, `silibus/${formNum}/${newChKey}`), { nama: customChName })
                 .then(() => { alert(`Bab "${customChName}" berjaya ditambah!`); danReload(); })
                 .catch(e => alert(e.message));
@@ -840,7 +872,6 @@
             else if (actionType === 'delete_chapter') {
                 if (!selectedChKey) return alert("Sila pilih Bab Sedia Ada dari dropdown untuk dipadam.");
                 const chName = document.getElementById('adm-chapter-select').options[document.getElementById('adm-chapter-select').selectedIndex].text;
-                
                 if (confirm(`Adakah anda pasti mahu memadam KESELURUHAN Bab "${chName}" beserta semua subtopik di dalamnya?`)) {
                     set(ref(db, `silibus/${formNum}/${selectedChKey}`), null)
                     .then(() => { alert("Bab berjaya dipadamkan."); danReload(); })
@@ -851,7 +882,6 @@
                 if (!selectedChKey) return alert("Sila pilih Bab utama dari dropdown terlebih dahulu.");
                 if (!customSubName) return alert("Sila taip nama Subtopik Baru di dalam kotak input.");
                 const newSubKey = "Sub_" + customSubName.replace(/[^a-zA-Z0-9]/g, '_');
-
                 set(ref(db, `silibus/${formNum}/${selectedChKey}/subtopik/${newSubKey}`), { nama: customSubName })
                 .then(() => { alert(`Subtopik "${customSubName}" berjaya ditambah!`); danReload(); })
                 .catch(e => alert(e.message));
@@ -860,7 +890,6 @@
                 if (!selectedChKey) return alert("Sila pilih Bab berkaitan dari dropdown.");
                 if (!selectedSubKey) return alert("Sila pilih Subtopik dari dropdown untuk dipadam.");
                 const subName = document.getElementById('adm-subtopic-select').options[document.getElementById('adm-subtopic-select').selectedIndex].text;
-
                 if (confirm(`Adakah anda pasti mahu memadam Subtopik "${subName}"?`)) {
                     set(ref(db, `silibus/${formNum}/${selectedChKey}/subtopik/${selectedSubKey}`), null)
                     .then(() => { alert("Subtopik berjaya dipadamkan."); danReload(); })
@@ -885,7 +914,6 @@
             const selectList = document.getElementById('adm-content-list-select');
             
             selectList.innerHTML = '<option value="">-- Pilih Kandungan Sedia Ada --</option>';
-            
             if (!formNum || !chKey || !subKey) return;
 
             const subtopicData = appSilibusData[formNum]?.[chKey]?.subtopik?.[subKey];
@@ -973,33 +1001,29 @@
                         c: document.getElementById('adm-kuiz-c').value,
                         d: document.getElementById('adm-kuiz-d').value,
                         jawapan: document.getElementById('adm-kuiz-jawapan').value,
-                        penerangan: document.getElementById('adm-kuiz-penerangan').value, // Disimpan ke Firebase
+                        penerangan: document.getElementById('adm-kuiz-penerangan').value
                     }
                 };
 
                 const newContentRef = push(contentListRef);
                 await set(newContentRef, payload);
-                
                 alert("Isi kandungan baru berjaya ditambah!");
                 
-                // Kosongkan input form admin
+                // Reset form
                 document.getElementById('adm-nota-maksud').value = "";
                 document.getElementById('adm-nota-formula').value = "";
                 document.getElementById('adm-nota-kesilapan').value = "";
                 document.getElementById('adm-nota-tips').value = "";
                 document.getElementById('adm-nota-image-file').value = "";
-                
                 document.getElementById('adm-contoh-soalan').value = "";
                 document.getElementById('adm-contoh-jalan').value = "";
                 document.getElementById('adm-contoh-image-file').value = "";
-                
                 document.getElementById('adm-soalan-teks').value = "";
                 document.getElementById('adm-latihan-image-file').value = "";
                 document.getElementById('adm-opt-a').value = "";
                 document.getElementById('adm-opt-b').value = "";
                 document.getElementById('adm-opt-c').value = "";
                 document.getElementById('adm-opt-d').value = "";
-                
                 document.getElementById('adm-kuiz-teks').value = "";
                 document.getElementById('adm-kuiz-image-file').value = "";
                 document.getElementById('adm-kuiz-a').value = "";
@@ -1011,7 +1035,6 @@
                 const snapshot = await get(ref(db, 'silibus'));
                 appSilibusData = snapshot.exists() ? snapshot.val() : {};
                 loadSubtopicContentList();
-
             } catch (err) {
                 alert(err.message);
             }
