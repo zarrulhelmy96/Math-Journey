@@ -36,7 +36,8 @@
         .btn-secondary:hover {
             background-color: #D6F7B3;
         }
-        .hide { display: none; }
+        /* DITUKAR: Ditambah !important untuk mengatasi class grid/flex daripada Tailwind */
+        .hide { display: none !important; }
     </style>
 </head>
 <body class="text-slate-800 antialiased">
@@ -384,7 +385,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getDatabase, ref, set, get, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, set, get, child, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         // Konfigurasi Firebase Pengguna
         const firebaseConfig = {
@@ -461,13 +462,13 @@
             const targetView = document.getElementById('view-' + viewId);
             if (targetView) targetView.classList.remove('hide');
             
-            // Logik Sekatan Paparan Mengikut Halaman Sedia Ada (PENTING!)
+            // Adjust elements according to login states
             if (viewId === 'landing' || viewId === 'login') {
                 document.getElementById('app-nav').classList.add('hide');
-                document.getElementById('bottom-nav').classList.add('hide'); // Memastikan nav bawah hilang di page hadapan & register/login
+                document.getElementById('bottom-nav').classList.add('hide');
             } else {
                 document.getElementById('app-nav').classList.remove('hide');
-                document.getElementById('bottom-nav').classList.remove('hide'); // Hanya dipaparkan selepas berjaya masuk ke dashboard / halaman dalaman
+                document.getElementById('bottom-nav').classList.remove('hide');
                 
                 // Active indicator update on mobile layout
                 document.querySelectorAll('#bottom-nav button').forEach(b => b.classList.remove('text-soft-pink'));
@@ -478,15 +479,10 @@
         };
 
         window.smoothScrollTo = function(id) {
-            const el = document.getElementById(id);
-            if(el) el.scrollIntoView({ behavior: 'smooth' });
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
         };
 
         window.toggleAuthMode = function() {
-            // Memastikan navigasi bawah kekal tersembunyi semasa bertukar mod login/register
-            document.getElementById('app-nav').classList.add('hide');
-            document.getElementById('bottom-nav').classList.add('hide');
-
             if (currentAuthMode === 'login') {
                 currentAuthMode = 'register';
                 document.getElementById('auth-title').innerText = "Jom Daftar Akaun!";
@@ -587,12 +583,11 @@
             });
 
             renderBadges();
-            switchView('dashboard'); // Membawa pengguna ke dashboard dan membuka paparan butang navigasi utama
+            switchView('dashboard');
         }
 
         function renderBadges() {
             const container = document.getElementById('dash-badges');
-            if(!container) return;
             const list = [
                 { name: "Formula Master", icon: "📐", desc: "Mula Belajar" },
                 { name: "Quiz Champion", icon: "🏆", desc: "Skor 100%" },
@@ -666,17 +661,15 @@
 
         window.switchFlowSubTab = function(subtab) {
             document.querySelectorAll('.flow-subview').forEach(el => el.classList.add('hide'));
+            document.querySelectorAll('#view-content-flow border-b-2').forEach(b => b.classList.remove('text-soft-pink', 'border-soft-pink'));
             
             // UI tab states styling adjustments
             ['nota','contoh','latihan','kuiz'].forEach(t => {
-                const btn = document.getElementById('tab-btn-' + t);
-                if(btn) btn.className = "py-3 border-b-2 border-transparent text-slate-400";
+                document.getElementById('tab-btn-' + t).className = "py-3 border-b-2 border-transparent text-slate-400";
             });
-            const activeBtn = document.getElementById('tab-btn-' + subtab);
-            if(activeBtn) activeBtn.className = "py-3 border-b-2 text-soft-pink border-soft-pink font-bold";
+            document.getElementById('tab-btn-' + subtab).className = "py-3 border-b-2 text-soft-pink border-soft-pink font-bold";
             
-            const targetSec = document.getElementById('flow-section-' + subtab);
-            if(targetSec) targetSec.classList.remove('hide');
+            document.getElementById('flow-section-' + subtab).classList.remove('hide');
 
             // Render relevant selected engine content item dynamically
             const subKey = document.getElementById('flow-subtopic-select').value;
@@ -735,12 +728,12 @@
 
         window.checkLatihanJawapan = function(pilih, betul, feedbackTeks) {
             const fb = document.getElementById('latihan-feedback');
-            if(!fb) return;
             fb.classList.remove('hide', 'bg-green-50', 'text-green-700', 'bg-red-50', 'text-red-700');
             
             if (pilih === betul) {
                 fb.classList.add('bg-green-50', 'text-green-700');
                 fb.innerHTML = `<strong>🎉 Syabas, Betul!</strong><br>${feedbackTeks}`;
+                // Increment question total count profile inside Firebase
                 if(currentUser) {
                     update(ref(db, 'users/' + currentUser.uid), { questionsAnswered: 1 });
                 }
@@ -755,6 +748,7 @@
             document.getElementById('kuiz-intro').classList.add('hide');
             document.getElementById('kuiz-active').classList.remove('hide');
             
+            // Build dynamic quiz collection array using active parsed subtopics lists inside the structural system tree
             activeQuizQuestions = [];
             const subtopics = appSilibusData[currentSelectedForm][currentSelectedChapterKey].subtopik;
             for(let k in subtopics) {
@@ -818,6 +812,7 @@
         // Mode Ulang Kaji Mode Engine Trigger
         window.initReviewMode = function() {
             switchView('content-flow');
+            // Mock switch to a fallback weak tracking point
             setTimeout(() => {
                 alert("Sistem mengesan anda memerlukan pengukuhan pada Bab Matematik Pengguna. Mari kita lihat nota padat.");
             }, 300);
@@ -835,6 +830,7 @@
             }
 
             const targetPath = `silibus/${formNum}/${chapter}`;
+            // Structured dataset injection mappings standard payload
             const payload = {
                 nama: document.getElementById('adm-chapter').value.trim(),
                 subtopik: {}
