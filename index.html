@@ -336,17 +336,29 @@
                     <input type="text" id="adm-nota-formula" class="w-full border p-2 rounded" placeholder="Formula Utama (e.g. I = PRT)">
                     <textarea id="adm-nota-kesilapan" rows="2" class="w-full border p-2 rounded" placeholder="Kesilapan biasa pelajar..."></textarea>
                     <textarea id="adm-nota-tips" rows="2" class="w-full border p-2 rounded" placeholder="Tips mudah ingat..."></textarea>
+                    <div class="bg-white p-2 border rounded">
+                        <label class="block text-[10px] text-gray-500 font-bold mb-1">Gambar Nota Tambahan (Rajah/Sifir):</label>
+                        <input type="file" id="adm-nota-image-file" accept="image/jpeg, image/png" class="w-full text-xs">
+                    </div>
                 </div>
 
                 <div class="bg-amber-50 p-3 rounded space-y-2 border border-amber-200">
                     <p class="font-bold text-[11px] text-amber-700">2. Contoh Soalan & Langkah Mengajar</p>
                     <textarea id="adm-contoh-soalan" rows="2" class="w-full border p-2 rounded" placeholder="Soalan contoh..."></textarea>
                     <textarea id="adm-contoh-jalan" rows="3" class="w-full border p-2 rounded" placeholder="Jalan kerja bertulis langkah-demi-langkah..."></textarea>
+                    <div class="bg-white p-2 border rounded">
+                        <label class="block text-[10px] text-gray-500 font-bold mb-1">Gambar Soalan Contoh (Graf/Geometri):</label>
+                        <input type="file" id="adm-contoh-image-file" accept="image/jpeg, image/png" class="w-full text-xs">
+                    </div>
                 </div>
 
                 <div class="bg-emerald-50 p-3 rounded space-y-2 border border-emerald-200">
                     <p class="font-bold text-[11px] text-emerald-700">3. Soalan Latihan Interaktif (Objektif)</p>
                     <textarea id="adm-soalan-teks" rows="2" class="w-full border p-2 rounded" placeholder="Soalan objektif..."></textarea>
+                    <div class="bg-white p-2 border rounded mb-2">
+                        <label class="block text-[10px] text-gray-500 font-bold mb-1">Gambar Soalan Latihan (Jika ada):</label>
+                        <input type="file" id="adm-latihan-image-file" accept="image/jpeg, image/png" class="w-full text-xs">
+                    </div>
                     <div class="grid grid-cols-2 gap-2">
                         <input type="text" id="adm-opt-a" class="border p-2 rounded" placeholder="Pilihan A">
                         <input type="text" id="adm-opt-b" class="border p-2 rounded" placeholder="Pilihan B">
@@ -364,13 +376,11 @@
 
                 <div class="bg-blue-50 p-3 rounded space-y-2 border border-blue-200">
                     <p class="font-bold text-[11px] text-blue-700"><i class="fa-solid fa-image"></i> 4. Soalan Kuiz Bab (Format Teks ATAU Gambar/JPEG)</p>
-                    <textarea id="adm-kuiz-teks" rows="2" class="w-full border p-2 rounded" placeholder="Taip soalan kuiz (Boleh dibiarkan kosong jika guna gambar)..."></textarea>
-                    
+                    <textarea id="adm-kuiz-teks" rows="2" class="w-full border p-2 rounded" placeholder="Taip soalan kuiz..."></textarea>
                     <div class="bg-white p-2 border rounded">
-                        <label class="block text-[10px] text-gray-500 font-bold mb-1">Muat Naik Gambar Soalan (JPEG/PNG):</label>
+                        <label class="block text-[10px] text-gray-500 font-bold mb-1">Muat Naik Gambar Soalan Kuiz:</label>
                         <input type="file" id="adm-kuiz-image-file" accept="image/jpeg, image/png" class="w-full text-xs">
                     </div>
-
                     <div class="grid grid-cols-2 gap-2">
                         <input type="text" id="adm-kuiz-a" class="border p-2 rounded" placeholder="Pilihan A">
                         <input type="text" id="adm-kuiz-b" class="border p-2 rounded" placeholder="Pilihan B">
@@ -413,7 +423,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getDatabase, ref, set, get, child, update, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-        // Import Firebase Storage untuk pengendalian upload fail imej
         import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
         const firebaseConfig = {
@@ -429,7 +438,7 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getDatabase(app);
-        const storage = getStorage(app); // Initialize Storage
+        const storage = getStorage(app);
 
         let currentUser = null;
         let currentAuthMode = 'login';
@@ -564,8 +573,20 @@
                 if (subData && subData.kandungan_list) {
                     for (let k in subData.kandungan_list) {
                         let item = subData.kandungan_list[k];
-                        if(item.nota && (item.nota.maksud || item.nota.formula)) {
-                            target.innerHTML += `<div class="bg-white p-4 rounded-xl border mb-3"><span class="text-xs font-bold text-soft-pink uppercase">Maksud</span><p class="text-sm mt-1">${item.nota.maksud || ''}</p></div><div class="bg-neon-green p-4 rounded-xl border text-green-900 mb-4"><span class="text-xs font-bold uppercase">Formula / Tips</span><p class="font-mono font-bold mt-1">${item.nota.formula || 'Tiada'}</p><p class="text-xs text-gray-600 mt-1 italic">${item.nota.tips || ''}</p></div>`;
+                        if(item.nota && (item.nota.maksud || item.nota.formula || item.nota.imageUrl)) {
+                            let imgTag = item.nota.imageUrl ? `<div class="mt-2 rounded-lg overflow-hidden border"><img src="${item.nota.imageUrl}" class="w-full h-auto object-contain"></div>` : '';
+                            target.innerHTML += `
+                                <div class="bg-white p-4 rounded-xl border mb-3">
+                                    <span class="text-xs font-bold text-soft-pink uppercase">Maksud</span>
+                                    <p class="text-sm mt-1">${item.nota.maksud || ''}</p>
+                                    ${imgTag}
+                                </div>
+                                <div class="bg-neon-green p-4 rounded-xl border text-green-900 mb-4">
+                                    <span class="text-xs font-bold uppercase">Formula / Tips</span>
+                                    <p class="font-mono font-bold mt-1">${item.nota.formula || 'Tiada'}</p>
+                                    <p class="text-xs text-gray-600 mt-1 italic">${item.nota.tips || ''}</p>
+                                </div>
+                            `;
                         }
                     }
                 } else { target.innerHTML = `<p class="text-xs text-gray-400 text-center">Tiada kandungan nota.</p>`; }
@@ -576,8 +597,17 @@
                 if (subData && subData.kandungan_list) {
                     for (let k in subData.kandungan_list) {
                         let item = subData.kandungan_list[k];
-                        if(item.contoh && item.contoh.soalan) {
-                            target.innerHTML += `<div class="bg-white border p-4 rounded-xl mb-2"><p class="text-sm font-semibold">${item.contoh.soalan || ''}</p></div><div class="bg-slate-50 border p-4 rounded-xl text-xs mb-4"><p class="whitespace-pre-line">${item.contoh.jalan_kerja || ''}</p></div>`;
+                        if(item.contoh && (item.contoh.soalan || item.contoh.imageUrl)) {
+                            let imgTag = item.contoh.imageUrl ? `<div class="mt-2 rounded-lg overflow-hidden border"><img src="${item.contoh.imageUrl}" class="w-full h-auto object-contain"></div>` : '';
+                            target.innerHTML += `
+                                <div class="bg-white border p-4 rounded-xl mb-2">
+                                    <p class="text-sm font-semibold">${item.contoh.soalan || ''}</p>
+                                    ${imgTag}
+                                </div>
+                                <div class="bg-slate-50 border p-4 rounded-xl text-xs mb-4">
+                                    <p class="whitespace-pre-line">${item.contoh.jalan_kerja || ''}</p>
+                                </div>
+                            `;
                         }
                     }
                 } else { target.innerHTML = `<p class="text-xs text-gray-400 text-center">Tiada kandungan contoh soalan.</p>`; }
@@ -589,11 +619,13 @@
                     let index = 1;
                     for (let k in subData.kandungan_list) {
                         let item = subData.kandungan_list[k];
-                        if(item.latihan && item.latihan.soalan) {
+                        if(item.latihan && (item.latihan.soalan || item.latihan.imageUrl)) {
                             let latId = `fb-${k}`;
+                            let imgTag = item.latihan.imageUrl ? `<div class="mt-2 rounded-lg overflow-hidden border"><img src="${item.latihan.imageUrl}" class="w-full h-auto object-contain"></div>` : '';
                             target.innerHTML += `
                                 <div class="bg-white border p-4 rounded-xl mb-2">
-                                    <p class="text-sm font-medium">Soalan ${index}: ${item.latihan.soalan}</p>
+                                    <p class="text-sm font-medium">Soalan ${index}: ${item.latihan.soalan || ''}</p>
+                                    ${imgTag}
                                 </div>
                                 <div class="grid grid-cols-1 gap-2 mb-2">
                                     <button onclick="checkLatihanJawapan('A', '${item.latihan.jawapan}', '${item.latihan.penerangan || ''}', '${latId}')" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50">A. ${item.latihan.a}</button>
@@ -609,7 +641,6 @@
                 } else { target.innerHTML = `<p class="text-xs text-gray-400 text-center">Tiada kandungan latihan.</p>`; }
             }
             else if (subtab === 'kuiz') {
-                // Sediakan paparan intro kuiz semula
                 document.getElementById('kuiz-intro').classList.remove('hide');
                 document.getElementById('kuiz-active').classList.add('hide');
                 document.getElementById('kuiz-result').classList.add('hide');
@@ -623,7 +654,6 @@
             else { fb.classList.add('bg-red-50', 'text-red-700'); fb.innerHTML = `<strong>❌ Salah!</strong> Jawapan betul ialah ${betul}.<br>${fbTeks}`; }
         };
 
-        /* LOGIK KUIZ PELAJAR (DENGAN SOKONGAN KANDUNGAN GAMBAR) */
         window.startChapterQuiz = function() {
             const subKey = document.getElementById('flow-subtopic-select').value;
             const subData = appSilibusData[currentSelectedForm][currentSelectedChapterKey].subtopik[subKey];
@@ -632,7 +662,6 @@
             if (subData && subData.kandungan_list) {
                 for (let k in subData.kandungan_list) {
                     let item = subData.kandungan_list[k];
-                    // Tapis item kandungan yang mempunyai data kuiz
                     if (item.kuiz && (item.kuiz.soalan || item.kuiz.imageUrl)) {
                         activeQuizQuestions.push(item.kuiz);
                     }
@@ -654,7 +683,6 @@
             const container = document.getElementById('kuiz-active');
             const q = activeQuizQuestions[activeQuizIndex];
             
-            // Semak jika ada gambar untuk dipaparkan di bahagian soalan
             let imageTag = q.imageUrl ? `<div class="mb-3 border rounded-xl overflow-hidden bg-black flex justify-center"><img src="${q.imageUrl}" class="max-h-60 object-contain"></div>` : '';
             let textQuestion = q.soalan ? `<p class="text-sm font-semibold mb-3">${q.soalan}</p>` : '';
 
@@ -681,7 +709,6 @@
             if (activeQuizIndex < activeQuizQuestions.length) {
                 renderQuizQuestion();
             } else {
-                // Tamat kuiz, papar markah keputusan
                 document.getElementById('kuiz-active').classList.add('hide');
                 const resultDiv = document.getElementById('kuiz-result');
                 resultDiv.classList.remove('hide');
@@ -695,7 +722,6 @@
                     <button onclick="switchFlowSubTab('kuiz')" class="bg-slate-900 text-white font-bold text-xs px-5 py-2 rounded-xl mt-4">Kembali</button>
                 `;
 
-                // Kemaskini progress pelajar di Firebase jika log masuk
                 if (currentUser) {
                     const userRef = ref(db, 'users/' + currentUser.uid);
                     get(userRef).then(snap => {
@@ -783,7 +809,7 @@
                 if (!selectedSubKey) return alert("Sila pilih Subtopik dari dropdown untuk dipadam.");
                 const subName = document.getElementById('adm-subtopic-select').options[document.getElementById('adm-subtopic-select').selectedIndex].text;
 
-                if (confirm(`Adakah anda pasti mahu memadam Subtopik "${subName}"?`)) {
+                if (confirm(`Adakah Logic anda pasti mahu memadam Subtopik "${subName}"?`)) {
                     set(ref(db, `silibus/${formNum}/${selectedChKey}/subtopik/${selectedSubKey}`), null)
                     .then(() => { alert("Subtopik berjaya dipadamkan."); danReload(); })
                     .catch(e => alert(e.message));
@@ -800,10 +826,6 @@
             });
         }
 
-        /* ==========================================================================
-           LOGIK: SISTEM MULTIPLE CONTENT (TAMBAH & PADAM ISI SUBTOPIK + STORAGE)
-           ========================================================================== */
-        
         window.loadSubtopicContentList = function() {
             const formNum = document.getElementById('adm-form').value;
             const chKey = document.getElementById('adm-chapter-select').value;
@@ -822,16 +844,12 @@
                     let op = document.createElement('option');
                     op.value = contentKey;
                     
-                    // Label jenis kandungan mengikut apa yang admin isi
                     let jenis = "Kandungan";
                     let ringkasan = "";
-                    if (list[contentKey].nota?.maksud) { jenis = "Nota"; ringkasan = list[contentKey].nota.maksud; }
-                    else if (list[contentKey].contoh?.soalan) { jenis = "Contoh"; ringkasan = list[contentKey].contoh.soalan; }
-                    else if (list[contentKey].latihan?.soalan) { jenis = "Latihan"; ringkasan = list[contentKey].latihan.soalan; }
-                    else if (list[contentKey].kuiz?.soalan || list[contentKey].kuiz?.imageUrl) { 
-                        jenis = "Kuiz Bab"; 
-                        ringkasan = list[contentKey].kuiz.soalan || "[Soalan Gambar]"; 
-                    }
+                    if (list[contentKey].nota?.maksud || list[contentKey].nota?.imageUrl) { jenis = "Nota"; ringkasan = list[contentKey].nota.maksud || "[Nota Bergambar]"; }
+                    else if (list[contentKey].contoh?.soalan || list[contentKey].contoh?.imageUrl) { jenis = "Contoh"; ringkasan = list[contentKey].contoh.soalan || "[Contoh Bergambar]"; }
+                    else if (list[contentKey].latihan?.soalan || list[contentKey].latihan?.imageUrl) { jenis = "Latihan"; ringkasan = list[contentKey].latihan.soalan || "[Latihan Bergambar]"; }
+                    else if (list[contentKey].kuiz?.soalan || list[contentKey].kuiz?.imageUrl) { jenis = "Kuiz Bab"; ringkasan = list[contentKey].kuiz.soalan || "[Kuiz Bergambar]"; }
 
                     op.innerText = `#${index} [${jenis}] - ${ringkasan.substring(0, 30)}...`;
                     selectList.appendChild(op);
@@ -840,6 +858,20 @@
             }
         };
 
+        // Fungsi helper asinkronus untuk urusan upload fail ke Storage
+        async function uploadFileHelper(fileElementId, folderName) {
+            const file = document.getElementById(fileElementId).files[0];
+            if (!file) return "";
+            try {
+                const storageRefPath = sRef(storage, `${folderName}/${Date.now()}_${file.name}`);
+                const snapshot = await uploadBytes(storageRefPath, file);
+                return await getDownloadURL(snapshot.ref);
+            } catch (error) {
+                console.error("Gagal upload bagi " + fileElementId, error);
+                throw new Error("Gagal muat naik gambar: " + error.message);
+            }
+        }
+
         window.addContentToFirebase = async function() {
             const formNum = document.getElementById('adm-form').value;
             const chKey = document.getElementById('adm-chapter-select').value;
@@ -847,73 +879,81 @@
 
             if(!chKey || !subKey) return alert("Sila pilih Bab dan Subtopik di Bahagian 1 terlebih dahulu.");
 
-            // Ambil fail imej daripada input kuiz jika ada
-            const imageFile = document.getElementById('adm-kuiz-image-file').files[0];
-            let uploadedImageUrl = "";
+            // Paparkan petunjuk loading semasa muat naik fail
+            alert("Sedang memproses dan memuat naik data/gambar, sila tunggu sehingga mesej selesai dipaparkan...");
 
-            // Jika admin memilih gambar untuk kuiz, lakukan proses muat naik ke Storage terlebih dahulu
-            if (imageFile) {
-                try {
-                    const storageRefPath = sRef(storage, `kuiz_images/${Date.now()}_${imageFile.name}`);
-                    const snapshot = await uploadBytes(storageRefPath, imageFile);
-                    uploadedImageUrl = await getDownloadURL(snapshot.ref);
-                } catch (error) {
-                    return alert("Gagal memuat naik gambar: " + error.message);
-                }
-            }
+            try {
+                // Lakukan upload serentak jika ada fail dipilih bagi mana-mana bahagian
+                const [notaImgUrl, contohImgUrl, latihanImgUrl, kuizImgUrl] = await Promise.all([
+                    uploadFileHelper('adm-nota-image-file', 'nota_images'),
+                    uploadFileHelper('adm-contoh-image-file', 'contoh_images'),
+                    uploadFileHelper('adm-latihan-image-file', 'latihan_images'),
+                    uploadFileHelper('adm-kuiz-image-file', 'kuiz_images')
+                ]);
 
-            const contentListRef = ref(db, `silibus/${formNum}/${chKey}/subtopik/${subKey}/kandungan_list`);
-            
-            const payload = {
-                nota: {
-                    maksud: document.getElementById('adm-nota-maksud').value,
-                    formula: document.getElementById('adm-nota-formula').value,
-                    kesilapan: document.getElementById('adm-nota-kesilapan').value,
-                    tips: document.getElementById('adm-nota-tips').value,
-                },
-                contoh: {
-                    soalan: document.getElementById('adm-contoh-soalan').value,
-                    jalan_kerja: document.getElementById('adm-contoh-jalan').value,
-                },
-                latihan: {
-                    soalan: document.getElementById('adm-soalan-teks').value,
-                    a: document.getElementById('adm-opt-a').value,
-                    b: document.getElementById('adm-opt-b').value,
-                    c: document.getElementById('adm-opt-c').value,
-                    d: document.getElementById('adm-opt-d').value,
-                    jawapan: document.getElementById('adm-opt-jawapan').value,
-                    penerangan: document.getElementById('adm-soalan-penerangan').value,
-                },
-                kuiz: {
-                    soalan: document.getElementById('adm-kuiz-teks').value,
-                    imageUrl: uploadedImageUrl, // Menyimpan URL gambar yang berjaya di-upload
-                    a: document.getElementById('adm-kuiz-a').value,
-                    b: document.getElementById('adm-kuiz-b').value,
-                    c: document.getElementById('adm-kuiz-c').value,
-                    d: document.getElementById('adm-kuiz-d').value,
-                    jawapan: document.getElementById('adm-kuiz-jawapan').value,
-                    penerangan: document.getElementById('adm-kuiz-penerangan').value,
-                }
-            };
-
-            const newContentRef = push(contentListRef);
-            set(newContentRef, payload).then(() => {
-                alert("Isi kandungan baru berjaya ditambah!");
+                const contentListRef = ref(db, `silibus/${formNum}/${chKey}/subtopik/${subKey}/kandungan_list`);
                 
-                // Kosongkan semula borang pengisian input
+                const payload = {
+                    nota: {
+                        maksud: document.getElementById('adm-nota-maksud').value,
+                        formula: document.getElementById('adm-nota-formula').value,
+                        kesilapan: document.getElementById('adm-nota-kesilapan').value,
+                        tips: document.getElementById('adm-nota-tips').value,
+                        imageUrl: notaImgUrl
+                    },
+                    contoh: {
+                        soalan: document.getElementById('adm-contoh-soalan').value,
+                        jalan_kerja: document.getElementById('adm-contoh-jalan').value,
+                        imageUrl: contohImgUrl
+                    },
+                    latihan: {
+                        soalan: document.getElementById('adm-soalan-teks').value,
+                        imageUrl: latihanImgUrl,
+                        a: document.getElementById('adm-opt-a').value,
+                        b: document.getElementById('adm-opt-b').value,
+                        c: document.getElementById('adm-opt-c').value,
+                        d: document.getElementById('adm-opt-d').value,
+                        jawapan: document.getElementById('adm-opt-jawapan').value,
+                        penerangan: document.getElementById('adm-soalan-penerangan').value,
+                    },
+                    kuiz: {
+                        soalan: document.getElementById('adm-kuiz-teks').value,
+                        imageUrl: kuizImgUrl,
+                        a: document.getElementById('adm-kuiz-a').value,
+                        b: document.getElementById('adm-kuiz-b').value,
+                        c: document.getElementById('adm-kuiz-c').value,
+                        d: document.getElementById('adm-kuiz-d').value,
+                        jawapan: document.getElementById('adm-kuiz-jawapan').value,
+                        penerangan: document.getElementById('adm-kuiz-penerangan').value,
+                    }
+                };
+
+                const newContentRef = push(contentListRef);
+                await set(newContentRef, payload);
+                
+                alert("Isi kandungan baru (termasuk gambar yang diisi) berjaya ditambah!");
+                
+                // Kosongkan input Nota
                 document.getElementById('adm-nota-maksud').value = "";
                 document.getElementById('adm-nota-formula').value = "";
                 document.getElementById('adm-nota-kesilapan').value = "";
                 document.getElementById('adm-nota-tips').value = "";
+                document.getElementById('adm-nota-image-file').value = "";
+                
+                // Kosongkan input Contoh
                 document.getElementById('adm-contoh-soalan').value = "";
                 document.getElementById('adm-contoh-jalan').value = "";
+                document.getElementById('adm-contoh-image-file').value = "";
+                
+                // Kosongkan input Latihan
                 document.getElementById('adm-soalan-teks').value = "";
+                document.getElementById('adm-latihan-image-file').value = "";
                 document.getElementById('adm-opt-a').value = "";
                 document.getElementById('adm-opt-b').value = "";
                 document.getElementById('adm-opt-c').value = "";
                 document.getElementById('adm-opt-d').value = "";
                 
-                // Kosongkan bahagian kuiz bab
+                // Kosongkan input Kuiz
                 document.getElementById('adm-kuiz-teks').value = "";
                 document.getElementById('adm-kuiz-image-file').value = "";
                 document.getElementById('adm-kuiz-a').value = "";
@@ -922,12 +962,13 @@
                 document.getElementById('adm-kuiz-d').value = "";
                 document.getElementById('adm-kuiz-penerangan').value = "";
                 
-                // Ambil data terbaru & kemaskini dropdown rujukan admin
-                get(ref(db, 'silibus')).then((snapshot) => {
-                    appSilibusData = snapshot.exists() ? snapshot.val() : {};
-                    loadSubtopicContentList();
-                });
-            }).catch(err => alert(err.message));
+                const snapshot = await get(ref(db, 'silibus'));
+                appSilibusData = snapshot.exists() ? snapshot.val() : {};
+                loadSubtopicContentList();
+
+            } catch (err) {
+                alert(err.message);
+            }
         };
 
         window.deleteSelectedContent = function() {
