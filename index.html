@@ -41,7 +41,6 @@
 </head>
 <body class="text-slate-800 antialiased">
 
-    <!-- TOP NAVIGATION BAR -->
     <nav id="app-nav" class="bg-white border-b border-gray-100 sticky top-0 z-50 hide">
         <div class="max-w-md mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center space-x-2 cursor-pointer" onclick="switchView('dashboard')">
@@ -62,10 +61,8 @@
         </div>
     </nav>
 
-    <!-- MAIN CONTAINER -->
     <main class="max-w-md mx-auto min-h-screen bg-white shadow-xl relative pb-24">
 
-        <!-- LANDING PAGE -->
         <section id="view-landing" class="view">
             <div class="p-6 text-center pt-16">
                 <span class="text-5xl inline-block mb-4 animate-bounce">📐✨</span>
@@ -123,7 +120,6 @@
             </div>
         </section>
 
-        <!-- LOGIN / REGISTER PAGE -->
         <section id="view-login" class="view p-6 hide">
             <div class="pt-8 mb-6">
                 <button onclick="switchView('landing')" class="text-gray-500 text-sm"><i class="fa-solid fa-arrow-left"></i> Kembali</button>
@@ -150,7 +146,6 @@
             </div>
         </section>
 
-        <!-- DASHBOARD -->
         <section id="view-dashboard" class="view p-5 hide">
             <div class="mb-6 bg-gradient-to-r from-rose-50 to-amber-50 p-5 rounded-2xl border border-pink-100">
                 <h2 class="text-lg font-bold text-slate-900">Selamat datang ke Math Journey, <span id="dash-username">Pelajar</span>! 👋</h2>
@@ -185,7 +180,8 @@
 
             <div class="mb-6 bg-white p-4 rounded-xl border border-gray-100">
                 <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Lencana Pencapaian</h3>
-                <div class="grid grid-cols-4 gap-2 text-center" id="dash-badges"></div>
+                <div class="grid grid-cols-4 gap-2 text-center" id="dash-badges">
+                    </div>
             </div>
 
             <div class="space-y-3">
@@ -202,7 +198,6 @@
             </div>
         </section>
 
-        <!-- PILIH TINGKATAN -->
         <section id="view-levels" class="view p-5 hide">
             <div class="mb-6">
                 <button onclick="switchView('dashboard')" class="text-gray-500 text-sm"><i class="fa-solid fa-arrow-left"></i> Dashboard</button>
@@ -229,16 +224,16 @@
             </div>
         </section>
 
-        <!-- SENARAI BAB -->
         <section id="view-chapters" class="view p-5 hide">
             <div class="mb-6">
                 <button onclick="switchView('levels')" class="text-gray-500 text-sm"><i class="fa-solid fa-arrow-left"></i> Tukar Tingkatan</button>
                 <h2 id="chapters-title" class="text-xl font-bold text-slate-900 mt-3">Senarai Bab</h2>
             </div>
-            <div id="chapters-container" class="space-y-3"></div>
+
+            <div id="chapters-container" class="space-y-3">
+                </div>
         </section>
 
-        <!-- FLOW KANDUNGAN -->
         <section id="view-content-flow" class="view hide">
             <div class="bg-white border-b border-gray-100 grid grid-cols-4 text-center text-xs font-semibold text-gray-400 sticky top-14 z-40">
                 <button id="tab-btn-nota" onclick="switchFlowSubTab('nota')" class="py-3 border-b-2 border-transparent text-soft-pink border-soft-pink">Nota</button>
@@ -249,19 +244,23 @@
 
             <div class="p-3 bg-slate-50 border-b border-gray-100 flex items-center justify-between">
                 <span class="text-xs font-bold text-gray-500">Subtopik:</span>
-                <select id="flow-subtopic-select" onchange="onSubtopicChange()" class="text-xs bg-white border border-gray-200 rounded p-1.5 font-medium max-w-[250px] outline-none"></select>
+                <select id="flow-subtopic-select" onchange="onSubtopicChange()" class="text-xs bg-white border border-gray-200 rounded p-1.5 font-medium max-w-[250px] outline-none">
+                    </select>
             </div>
 
             <div id="flow-section-nota" class="flow-subview p-5">
-                <div id="nota-content" class="space-y-4"></div>
+                <div id="nota-content" class="space-y-4">
+                    </div>
             </div>
 
             <div id="flow-section-contoh" class="flow-subview p-5 hide">
-                <div id="contoh-content" class="space-y-5"></div>
+                <div id="contoh-content" class="space-y-5">
+                    </div>
             </div>
 
             <div id="flow-section-latihan" class="flow-subview p-5 hide">
-                <div id="latihan-content" class="space-y-5"></div>
+                <div id="latihan-content" class="space-y-5">
+                    </div>
             </div>
 
             <div id="flow-section-kuiz" class="flow-subview p-5 hide">
@@ -271,12 +270,13 @@
                     <p class="text-xs text-gray-500 mt-1 mb-4">Uji kefahaman keseluruhan anda untuk bab ini.</p>
                     <button onclick="startChapterQuiz()" class="btn-primary text-xs font-bold px-6 py-2.5 rounded-xl">Mula Kuiz Sekarang</button>
                 </div>
-                <div id="kuiz-active" class="space-y-5 hide"></div>
-                <div id="kuiz-result" class="text-center py-6 hide"></div>
+                <div id="kuiz-active" class="space-y-5 hide">
+                    </div>
+                <div id="kuiz-result" class="text-center py-6 hide">
+                    </div>
             </div>
         </section>
 
-        <!-- PROFILE -->
         <section id="view-profile" class="view p-5 hide">
             <div class="mb-6 flex justify-between items-center">
                 <h2 class="text-xl font-bold text-slate-900">Profil & Kemajuan</h2>
@@ -305,7 +305,6 @@
             </div>
         </section>
 
-        <!-- ADMIN PANEL -->
         <section id="view-admin" class="view p-5 hide">
             <div class="mb-6">
                 <h2 class="text-xl font-bold text-purple-900">Admin Panel (Silibus Builder)</h2>
@@ -361,9 +360,8 @@
             </div>
         </section>
 
-        <!-- BOTTOM NAVIGATION BAR -->
         <div id="bottom-nav" class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t border-gray-100 grid grid-cols-4 py-2 text-center text-gray-400 z-50 hide">
-            <button onclick="switchView('dashboard')" id="bnav-dashboard" class="flex flex-col items-center">
+            <button onclick="switchView('dashboard')" id="bnav-dashboard" class="flex flex-col items-center text-soft-pink">
                 <i class="fa-solid fa-house text-sm"></i>
                 <span class="text-[10px] mt-1 font-semibold">Utama</span>
             </button>
@@ -388,6 +386,7 @@
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getDatabase, ref, set, get, child, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
+        // Konfigurasi Firebase Pengguna
         const firebaseConfig = {
             apiKey: "AIzaSyCsFCvkBLuLHzUVGokE82jRWshbsTsavVI",
             authDomain: "math-journey-2fd87.firebaseapp.com",
@@ -398,19 +397,22 @@
             appId: "1:543463983297:web:fb733a9457b5ca355aec40"
         };
 
+        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getDatabase(app);
 
+        // State System Global Global
         let currentUser = null;
-        let currentAuthMode = 'login'; 
-        let appSilibusData = {}; 
+        let currentAuthMode = 'login'; // login atau register
+        let appSilibusData = {}; // Store custom silibus fetched from firebase
         let currentSelectedForm = null;
         let currentSelectedChapterKey = null;
         let activeQuizQuestions = [];
         let activeQuizIndex = 0;
         let activeQuizScore = 0;
 
+        // Default Silibus Sebagai Pangkalan Data Sandaran (Fallback Data)
         const localFallbackSilibus = {
             3: {
                 "Bab_01_Matematik_Pengguna": {
@@ -437,94 +439,37 @@
                         }
                     }
                 }
+            },
+            4: {
+                "Bab_01_Penaakulan_Logik": {
+                    nama: "Penaakulan Logik",
+                    subtopik: {
+                        "Sub_01_Pernyataan": {
+                            nama: "Pernyataan Benar atau Palsu",
+                            nota: { maksud: "Pernyataan ialah sebaris ayat yang sama ada benar atau palsu, tetapi bukan kedua-duanya.", formula: "Tiada formula khusus, uji nilai kebenaran ayat.", kesilapan: "Keliru antara ayat seruan/perintah dengan pernyataan.", tips: "Kalau ayat itu tak boleh ditentukan betul atau salah, ia BUKAN pernyataan." },
+                            contoh: { soalan: "Tentukan sama ada ayat '7 + 5 = 10' ialah pernyataan atau bukan.", jalan_kerja: "1. Kita periksa jika ia ayat matematik lengkap. Ya.\n2. Kita tahu nilainya adalah salah/palsu.\n3. Oleh sebab kita boleh kata ia palsu, maka ia adalah suatu PERNYATAAN (yang bernilai palsu)." },
+                            latihan: { soalan: "Adakah 'Sila hantar buku latihan' satu pernyataan?", a: "Ya, benar", b: "Ya, palsu", c: "Bukan pernyataan", d: "Semua salah", jawapan: "C", penerangan: "Ayat arahan atau perintah bukan merupakan satu pernyataan kerana tiada nilai logik benar atau palsu." }
+                        }
+                    }
+                }
             }
         };
 
-        // GLOBAL VIEW HANDLER WITH SECURITY AUTH CHECK
-window.switchView = function(viewId) {
-    // PERATURAN 1: Jika belum sah log masuk, halang semua akses selain daripada skrin landing atau login/register
-    if (!currentUser && viewId !== 'landing' && viewId !== 'login') {
-        alert("Sila log masuk terlebih dahulu untuk mengakses Math Journey!");
-        document.getElementById('app-nav').classList.add('hide');
-        document.getElementById('bottom-nav').classList.add('hide'); // Menyembunyikan butang bawah
-        
-        document.querySelectorAll('.view').forEach(el => el.classList.add('hide'));
-        document.getElementById('view-login').classList.remove('hide');
-        return;
-    }
-
-    // PERATURAN 2: Sekatan Ketat Halaman Admin
-    if (viewId === 'admin') {
-        if (!currentUser || currentUser.email.toLowerCase() !== 'komikkehidupan01@gmail.com') {
-            alert("Akses Ditolak! Hanya akaun Admin rasmi sahaja.");
-            viewId = 'dashboard';
-        }
-    }
-
-    document.querySelectorAll('.view').forEach(el => el.classList.add('hide'));
-    const targetView = document.getElementById('view-' + viewId);
-    if (targetView) targetView.classList.remove('hide');
-    
-    // JIKA Berada di skrin landing, login, ATAU register -> SEMBUNYIKAN NAVIGASI ATAS & BAWAH SEPENUHNYA
-    if (viewId === 'landing' || viewId === 'login') {
-        document.getElementById('app-nav').classList.add('hide');
-        document.getElementById('bottom-nav').classList.add('hide'); // Ini akan menyembunyikan butang Utama, Tingkatan, dll.
-    } else {
-        // HANYA dipaparkan apabila berada di skrin dalaman (selepas login/register berjaya)
-        document.getElementById('app-nav').classList.remove('hide');
-        document.getElementById('bottom-nav').classList.remove('hide'); // Tunjukkan semula selepas masuk dashboard
-        
-        document.querySelectorAll('#bottom-nav button').forEach(b => b.classList.remove('text-soft-pink'));
-        const activeBnav = document.getElementById('bnav-' + viewId);
-        if (activeBnav) activeBnav.classList.add('text-soft-pink');
-    }
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-};
-
-// KAWALAN PENUKARAN LOGIN VS REGISTER
-window.toggleAuthMode = function() {
-    // Sembunyikan navigasi secara paksa sekiranya bertukar mod ke Register
-    document.getElementById('app-nav').classList.add('hide');
-    document.getElementById('bottom-nav').classList.add('hide'); // Memastikan butang bawah kekal tersembunyi
-
-    if (currentAuthMode === 'login') {
-        currentAuthMode = 'register';
-        document.getElementById('auth-title').innerText = "Jom Daftar Akaun!";
-        document.getElementById('auth-subtitle').innerText = "Mulakan perjalanan gred A Matematik hari ini.";
-        document.getElementById('auth-submit-btn').innerText = "Daftar Akaun Baharu";
-        document.getElementById('auth-toggle-msg').innerText = "Dah ada akaun?";
-        document.getElementById('auth-toggle-btn').innerText = "Log masuk di sini";
-    } else {
-        currentAuthMode = 'login';
-        document.getElementById('auth-title').innerText = "Selamat Kembali!";
-        document.getElementById('auth-subtitle').innerText = "Log masuk untuk sambung Journey anda.";
-        document.getElementById('auth-submit-btn').innerText = "Log Masuk";
-        document.getElementById('auth-toggle-msg').innerText = "Belum ada akaun?";
-        document.getElementById('auth-toggle-btn').innerText = "Daftar di sini";
-    }
-};
-
-            // PERATURAN 2: Sekatan Ketat Halaman Admin
-            if (viewId === 'admin') {
-                if (!currentUser || currentUser.email.toLowerCase() !== 'komikkehidupan01@gmail.com') {
-                    alert("Akses Ditolak! Hanya akaun Admin rasmi sahaja.");
-                    viewId = 'dashboard';
-                }
-            }
-
+        // Window level registration for view-switching & handlers
+        window.switchView = function(viewId) {
             document.querySelectorAll('.view').forEach(el => el.classList.add('hide'));
             const targetView = document.getElementById('view-' + viewId);
             if (targetView) targetView.classList.remove('hide');
             
-            // JIKA Berada di skrin landing, login, ATAU sedang daftar (register) -> SOROK BAR NAVIGASI SEPENUHNYA
+            // Adjust elements according to login states
             if (viewId === 'landing' || viewId === 'login') {
                 document.getElementById('app-nav').classList.add('hide');
                 document.getElementById('bottom-nav').classList.add('hide');
             } else {
-                // HANYA dipaparkan apabila berada di skrin dalaman (selepas login/register berjaya)
                 document.getElementById('app-nav').classList.remove('hide');
                 document.getElementById('bottom-nav').classList.remove('hide');
                 
+                // Active indicator update on mobile layout
                 document.querySelectorAll('#bottom-nav button').forEach(b => b.classList.remove('text-soft-pink'));
                 const activeBnav = document.getElementById('bnav-' + viewId);
                 if (activeBnav) activeBnav.classList.add('text-soft-pink');
@@ -536,12 +481,7 @@ window.toggleAuthMode = function() {
             document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
         };
 
-        // KAWALAN PENUKARAN LOGIN VS REGISTER (Sembunyikan navigation kekal di sini)
         window.toggleAuthMode = function() {
-            // Sembunyikan navigasi secara paksa sekiranya bertukar mod
-            document.getElementById('app-nav').classList.add('hide');
-            document.getElementById('bottom-nav').classList.add('hide');
-
             if (currentAuthMode === 'login') {
                 currentAuthMode = 'register';
                 document.getElementById('auth-title').innerText = "Jom Daftar Akaun!";
@@ -559,6 +499,7 @@ window.toggleAuthMode = function() {
             }
         };
 
+        // Firebase Auth Handling
         window.handleAuth = function() {
             const email = document.getElementById('auth-email').value.trim();
             const password = document.getElementById('auth-password').value;
@@ -577,15 +518,15 @@ window.toggleAuthMode = function() {
             } else {
                 createUserWithEmailAndPassword(auth, email, password)
                 .then((userCredential) => {
+                    // Create base default metadata profile inside Realtime DB
                     const userRef = ref(db, 'users/' + userCredential.user.uid);
                     set(userRef, {
                         email: email,
                         streak: 1,
                         questionsAnswered: 0,
                         weakestTopic: "Belum dipastikan",
-                        role: email.toLowerCase() === "komikkehidupan01@gmail.com" ? "admin" : "student"
+                        role: email.includes("admin") ? "admin" : "student"
                     }).then(() => {
-                        // Selesai mendaftar masuk pangkalan data, barulah fungsi init dan paparan navigasi bermula
                         initUserData(userCredential.user);
                     });
                 })
@@ -594,25 +535,17 @@ window.toggleAuthMode = function() {
         };
 
         window.handleLogout = function() {
-            currentUser = null;
-            document.getElementById('app-nav').classList.add('hide');
-            document.getElementById('bottom-nav').classList.add('hide');
-            document.getElementById('admin-nav-btn').classList.add('hide');
-
             signOut(auth).then(() => {
-                switchView('landing');
-            }).catch((err) => {
+                currentUser = null;
                 switchView('landing');
             });
         };
 
+        // App Initializations & Tracker syncs
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 initUserData(user);
             } else {
-                currentUser = null;
-                document.getElementById('app-nav').classList.add('hide');
-                document.getElementById('bottom-nav').classList.add('hide');
                 switchView('landing');
             }
         });
@@ -621,6 +554,7 @@ window.toggleAuthMode = function() {
             currentUser = user;
             document.getElementById('dash-username').innerText = user.email.split('@')[0];
             
+            // Sync content from firebase db
             get(ref(db, 'silibus')).then((snapshot) => {
                 if (snapshot.exists()) {
                     appSilibusData = snapshot.val();
@@ -631,13 +565,12 @@ window.toggleAuthMode = function() {
                 appSilibusData = localFallbackSilibus;
             });
 
+            // Fetch profiles tracking record
             get(ref(db, 'users/' + user.uid)).then((snapshot) => {
                 if (snapshot.exists()) {
                     const data = snapshot.val();
-                    if(user.email.toLowerCase() === 'komikkehidupan01@gmail.com') {
+                    if(data.role === 'admin') {
                         document.getElementById('admin-nav-btn').classList.remove('hide');
-                    } else {
-                        document.getElementById('admin-nav-btn').classList.add('hide');
                     }
                     document.getElementById('nav-streak').innerText = data.streak || 1;
                     document.getElementById('dash-stat-streak').innerText = (data.streak || 1) + " Hari";
@@ -649,17 +582,16 @@ window.toggleAuthMode = function() {
             });
 
             renderBadges();
-            // Menukar pandangan ke dashboard dan secara automatik memaparkan navigasi bar semula
             switchView('dashboard');
         }
 
         function renderBadges() {
             const container = document.getElementById('dash-badges');
             const list = [
-                { name: "Formula Master", icon: "📐" },
-                { name: "Quiz Champion", icon: "🏆" },
-                { name: "7 Hari Streak", icon: "🔥" },
-                { name: "Perwira Math", icon: "🚀" }
+                { name: "Formula Master", icon: "📐", desc: "Mula Belajar" },
+                { name: "Quiz Champion", icon: "🏆", desc: "Skor 100%" },
+                { name: "7 Hari Streak", icon: "🔥", desc: "Konsisten" },
+                { name: "Perwira Math", icon: "🚀", desc: "Selesai 1 Bab" }
             ];
             container.innerHTML = list.map(b => `
                 <div class="p-2 border border-slate-100 rounded-xl bg-slate-50">
@@ -669,6 +601,7 @@ window.toggleAuthMode = function() {
             `).join('');
         }
 
+        // Chapters view listing builder
         window.loadChapters = function(formNum) {
             currentSelectedForm = formNum;
             const container = document.getElementById('chapters-container');
@@ -690,7 +623,7 @@ window.toggleAuthMode = function() {
                 item.innerHTML = `
                     <div>
                         <h4 class="font-bold text-sm text-slate-900">${ch.nama}</h4>
-                        <p class="text-[10px] text-soft-pink font-semibold mt-1">📊 Progress Semasa: Sedia Diuji</p>
+                        <p class="text-[10px] text-soft-pink font-semibold mt-1">📊 Progress Semasa: 0% selesai</p>
                     </div>
                     <i class="fa-solid fa-play-circle text-xl text-soft-pink"></i>
                 `;
@@ -699,6 +632,7 @@ window.toggleAuthMode = function() {
             switchView('chapters');
         };
 
+        // Subtopic flow framework controller
         function launchSubtopicFlow(chKey, chData) {
             currentSelectedChapterKey = chKey;
             const select = document.getElementById('flow-subtopic-select');
@@ -717,7 +651,7 @@ window.toggleAuthMode = function() {
             }
 
             switchView('content-flow');
-            switchFlowSubTab('nota'); 
+            switchFlowSubTab('nota'); // Default inside sub nav
         }
 
         window.onSubtopicChange = function() {
@@ -726,63 +660,61 @@ window.toggleAuthMode = function() {
 
         window.switchFlowSubTab = function(subtab) {
             document.querySelectorAll('.flow-subview').forEach(el => el.classList.add('hide'));
+            document.querySelectorAll('#view-content-flow border-b-2').forEach(b => b.classList.remove('text-soft-pink', 'border-soft-pink'));
             
+            // UI tab states styling adjustments
             ['nota','contoh','latihan','kuiz'].forEach(t => {
-                document.getElementById('tab-btn-' + t).className = "py-3 border-b-2 border-transparent text-slate-400 text-xs";
+                document.getElementById('tab-btn-' + t).className = "py-3 border-b-2 border-transparent text-slate-400";
             });
-            document.getElementById('tab-btn-' + subtab).className = "py-3 border-b-2 text-soft-pink border-soft-pink font-bold text-xs";
+            document.getElementById('tab-btn-' + subtab).className = "py-3 border-b-2 text-soft-pink border-soft-pink font-bold";
             
             document.getElementById('flow-section-' + subtab).classList.remove('hide');
 
+            // Render relevant selected engine content item dynamically
             const subKey = document.getElementById('flow-subtopic-select').value;
-            if(!subKey) return;
             const subData = appSilibusData[currentSelectedForm][currentSelectedChapterKey].subtopik[subKey];
 
             if(subtab === 'nota') {
                 document.getElementById('nota-content').innerHTML = `
                     <div class="bg-white p-4 rounded-xl border border-gray-100">
                         <span class="text-xs font-bold text-soft-pink uppercase tracking-widest">Maksud Topik</span>
-                        <p class="text-sm text-slate-800 mt-1">${subData.nota?.maksud || 'Tiada nota maksud'}</p>
+                        <p class="text-sm text-slate-800 mt-1">${subData.nota.maksud}</p>
                     </div>
                     <div class="bg-neon-green p-4 rounded-xl border border-green-200">
                         <span class="text-xs font-bold text-green-700 uppercase tracking-widest">Formula Penting</span>
-                        <p class="text-base font-mono font-bold text-green-900 mt-1">${subData.nota?.formula || 'Tiada formula'}</p>
+                        <p class="text-base font-mono font-bold text-green-900 mt-1">${subData.nota.formula}</p>
                     </div>
                     <div class="bg-red-50 p-4 rounded-xl border border-red-100">
                         <span class="text-xs font-bold text-red-600 uppercase tracking-widest">🚨 Kesilapan Biasa Pelajar</span>
-                        <p class="text-xs text-slate-700 mt-1">${subData.nota?.kesilapan || 'Tiada maklumat'}</p>
+                        <p class="text-xs text-slate-700 mt-1">${subData.nota.kesilapan}</p>
                     </div>
                     <div class="bg-amber-50 p-4 rounded-xl border border-amber-100">
                         <span class="text-xs font-bold text-amber-600 uppercase tracking-widest">💡 Tips Mudah Ingat</span>
-                        <p class="text-xs text-slate-700 mt-1">${subData.nota?.tips || 'Tiada tips'}</p>
+                        <p class="text-xs text-slate-700 mt-1">${subData.nota.tips}</p>
                     </div>
                 `;
             } else if (subtab === 'contoh') {
                 document.getElementById('contoh-content').innerHTML = `
                     <div class="bg-white border p-4 rounded-xl">
                         <span class="bg-slate-900 text-white text-[10px] uppercase font-bold px-2 py-0.5 rounded">Soalan Contoh</span>
-                        <p class="text-sm font-semibold mt-2">${subData.contoh?.soalan || 'Tiada soalan contoh'}</p>
+                        <p class="text-sm font-semibold mt-2">${subData.contoh.soalan}</p>
                     </div>
                     <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl">
                         <span class="text-xs font-bold text-blue-600 block mb-2"><i class="fa-solid fa-chalkboard-user"></i> Penjelasan Cikgu Langkah demi Langkah:</span>
-                        <p class="text-xs text-slate-700 whitespace-pre-line leading-relaxed">${subData.contoh?.jalan_kerja || 'Tiada penerangan'}</p>
+                        <p class="text-xs text-slate-700 whitespace-pre-line leading-relaxed">${subData.contoh.jalan_kerja}</p>
                     </div>
                 `;
             } else if (subtab === 'latihan') {
-                if(!subData.latihan || !subData.latihan.soalan) {
-                    document.getElementById('latihan-content').innerHTML = `<p class="text-xs text-gray-500 text-center">Tiada latihan disediakan.</p>`;
-                    return;
-                }
                 document.getElementById('latihan-content').innerHTML = `
                     <div class="bg-white border p-4 rounded-xl">
                         <span class="text-xs font-bold text-indigo-600 block mb-1">Uji Diri Anda</span>
                         <p class="text-sm font-medium">${subData.latihan.soalan}</p>
                     </div>
                     <div class="grid grid-cols-1 gap-2">
-                        <button onclick="checkLatihanJawapan('A', '${subData.latihan.jawapan}', \`${subData.latihan.penerangan}\`)" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50"><strong>A.</strong> ${subData.latihan.a}</button>
-                        <button onclick="checkLatihanJawapan('B', '${subData.latihan.jawapan}', \`${subData.latihan.penerangan}\`)" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50"><strong>B.</strong> ${subData.latihan.b}</button>
-                        <button onclick="checkLatihanJawapan('C', '${subData.latihan.jawapan}', \`${subData.latihan.penerangan}\`)" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50"><strong>C.</strong> ${subData.latihan.c}</button>
-                        <button onclick="checkLatihanJawapan('D', '${subData.latihan.jawapan}', \`${subData.latihan.penerangan}\`)" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50"><strong>D.</strong> ${subData.latihan.d}</button>
+                        <button onclick="checkLatihanJawapan('A', '${subData.latihan.jawapan}', '${subData.latihan.penerangan}')" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50"><strong>A.</strong> ${subData.latihan.a}</button>
+                        <button onclick="checkLatihanJawapan('B', '${subData.latihan.jawapan}', '${subData.latihan.penerangan}')" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50"><strong>B.</strong> ${subData.latihan.b}</button>
+                        <button onclick="checkLatihanJawapan('C', '${subData.latihan.jawapan}', '${subData.latihan.penerangan}')" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50"><strong>C.</strong> ${subData.latihan.c}</button>
+                        <button onclick="checkLatihanJawapan('D', '${subData.latihan.jawapan}', '${subData.latihan.penerangan}')" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50"><strong>D.</strong> ${subData.latihan.d}</button>
                     </div>
                     <div id="latihan-feedback" class="p-4 rounded-xl text-xs hide"></div>
                 `;
@@ -800,36 +732,26 @@ window.toggleAuthMode = function() {
             if (pilih === betul) {
                 fb.classList.add('bg-green-50', 'text-green-700');
                 fb.innerHTML = `<strong>🎉 Syabas, Betul!</strong><br>${feedbackTeks}`;
+                // Increment question total count profile inside Firebase
                 if(currentUser) {
-                    get(ref(db, 'users/' + currentUser.uid)).then((snap) => {
-                        if(snap.exists()){
-                            let curCount = snap.val().questionsAnswered || 0;
-                            update(ref(db, 'users/' + currentUser.uid), { questionsAnswered: curCount + 1 });
-                            document.getElementById('dash-stat-questions').innerText = curCount + 1;
-                        }
-                    });
+                    update(ref(db, 'users/' + currentUser.uid), { questionsAnswered: 1 });
                 }
             } else {
                 fb.classList.add('bg-red-50', 'text-red-700');
-                fb.innerHTML = `<strong>❌ Ops, Kurang Tepat!</strong><br>Mari baca penjelasan:<br>${feedbackTeks}`;
+                fb.innerHTML = `<strong>❌ Ops, Kurang Tepat!</strong> Kenapa salah? Mari baca penjelasan:<br>${feedbackTeks}`;
             }
         };
 
+        // Quiz Processing Engine
         window.startChapterQuiz = function() {
             document.getElementById('kuiz-intro').classList.add('hide');
             document.getElementById('kuiz-active').classList.remove('hide');
             
+            // Build dynamic quiz collection array using active parsed subtopics lists inside the structural system tree
             activeQuizQuestions = [];
             const subtopics = appSilibusData[currentSelectedForm][currentSelectedChapterKey].subtopik;
             for(let k in subtopics) {
-                if(subtopics[k].latihan && subtopics[k].latihan.soalan) activeQuizQuestions.push(subtopics[k].latihan);
-            }
-
-            if(activeQuizQuestions.length === 0) {
-                alert("Tiada soalan kuiz dijumpai untuk bab ini.");
-                document.getElementById('kuiz-intro').classList.remove('hide');
-                document.getElementById('kuiz-active').classList.add('hide');
-                return;
+                if(subtopics[k].latihan) activeQuizQuestions.push(subtopics[k].latihan);
             }
 
             activeQuizIndex = 0;
@@ -845,10 +767,10 @@ window.toggleAuthMode = function() {
             const q = activeQuizQuestions[activeQuizIndex];
             const container = document.getElementById('kuiz-active');
             container.innerHTML = `
-                <div class="flex justify-between items-center text-xs text-gray-400 font-medium mb-2">
+                <div class="flex justify-between items-center text-xs text-gray-400 font-medium">
                     <span>Soalan ${activeQuizIndex + 1} daripada ${activeQuizQuestions.length}</span>
                 </div>
-                <div class="bg-white p-4 rounded-xl border mb-3">
+                <div class="bg-white p-4 rounded-xl border">
                     <p class="text-sm font-semibold">${q.soalan}</p>
                 </div>
                 <div class="grid grid-cols-1 gap-2">
@@ -886,68 +808,62 @@ window.toggleAuthMode = function() {
             `;
         }
 
+        // Mode Ulang Kaji Mode Engine Trigger
         window.initReviewMode = function() {
-            if (!currentUser) {
-                alert("Sila log masuk terlebih dahulu!");
-                switchView('login');
-                return;
-            }
-            alert("Mod Ulang Kaji: Memaparkan contoh bab untuk pengukuhan.");
-            loadChapters(3);
+            switchView('content-flow');
+            // Mock switch to a fallback weak tracking point
+            setTimeout(() => {
+                alert("Sistem mengesan anda memerlukan pengukuhan pada Bab Matematik Pengguna. Mari kita lihat nota padat.");
+            }, 300);
         };
 
-        // CMS ADMIN SUBMISSION WITH PRE-EXISTING DATA PROTECTION
+        // CMS Admin Panel logic routines backend management
         window.saveContentToFirebase = function() {
-            if (!currentUser || currentUser.email.toLowerCase() !== 'komikkehidupan01@gmail.com') {
-                alert("Ralat keselamatan: Anda tiada kebenaran untuk menulis data.");
-                return;
-            }
-
             const formNum = document.getElementById('adm-form').value;
-            const rawChapter = document.getElementById('adm-chapter').value.trim();
-            const rawSubtopic = document.getElementById('adm-subtopic').value.trim();
+            const chapter = document.getElementById('adm-chapter').value.trim().replace(/\s+/g, '_');
+            const subtopic = document.getElementById('adm-subtopic').value.trim().replace(/\s+/g, '_');
             
-            if(!rawChapter || !rawSubtopic) {
-                alert("Sila isi nama Bab dan nama Subtopik!");
+            if(!chapter || !subtopic) {
+                alert("Sila isi nama Bab dan nama Subtopik.");
                 return;
             }
 
-            const chapterKey = rawChapter.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
-            const subtopicKey = rawSubtopic.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
+            const targetPath = `silibus/${formNum}/${chapter}`;
+            // Structured dataset injection mappings standard payload
+            const payload = {
+                nama: document.getElementById('adm-chapter').value.trim(),
+                subtopik: {}
+            };
 
-            const targetPath = `silibus/${formNum}/${chapterKey}/subtopik/${subtopicKey}`;
-            const chapterNamePath = `silibus/${formNum}/${chapterKey}/nama`;
-
-            const subtopicPayload = {
-                nama: rawSubtopic,
+            payload.subtopik[subtopic] = {
+                nama: document.getElementById('adm-subtopic').value.trim(),
                 nota: {
-                    maksud: document.getElementById('adm-nota-maksud').value.trim(),
-                    formula: document.getElementById('adm-nota-formula').value.trim(),
-                    kesilapan: document.getElementById('adm-nota-kesilapan').value.trim(),
-                    tips: document.getElementById('adm-nota-tips').value.trim(),
+                    maksud: document.getElementById('adm-nota-maksud').value,
+                    formula: document.getElementById('adm-nota-formula').value,
+                    kesilapan: document.getElementById('adm-nota-kesilapan').value,
+                    tips: document.getElementById('adm-nota-tips').value,
                 },
                 contoh: {
-                    soalan: document.getElementById('adm-contoh-soalan').value.trim(),
-                    jalan_kerja: document.getElementById('adm-contoh-jalan').value.trim(),
+                    soalan: document.getElementById('adm-contoh-soalan').value,
+                    jalan_kerja: document.getElementById('adm-contoh-jalan').value,
                 },
                 latihan: {
-                    soalan: document.getElementById('adm-soalan-teks').value.trim(),
-                    a: document.getElementById('adm-opt-a').value.trim(),
-                    b: document.getElementById('adm-opt-b').value.trim(),
-                    c: document.getElementById('adm-opt-c').value.trim(),
-                    d: document.getElementById('adm-opt-d').value.trim(),
+                    soalan: document.getElementById('adm-soalan-teks').value,
+                    a: document.getElementById('adm-opt-a').value,
+                    b: document.getElementById('adm-opt-b').value,
+                    c: document.getElementById('adm-opt-c').value,
+                    d: document.getElementById('adm-opt-d').value,
                     jawapan: document.getElementById('adm-opt-jawapan').value,
-                    penerangan: document.getElementById('adm-soalan-penerangan').value.trim(),
+                    penerangan: document.getElementById('adm-soalan-penerangan').value,
                 }
             };
 
-            set(ref(db, chapterNamePath), rawChapter).then(() => {
-                set(ref(db, targetPath), subtopicPayload).then(() => {
-                    alert("Kandungan berjaya ditambah/dikemaskini ke Firebase database!");
-                    location.reload();
-                }).catch(err => alert("Gagal menyimpan data subtopik: " + err.message));
-            }).catch(err => alert("Gagal menyimpan nama bab: " + err.message));
+            update(ref(db, targetPath), payload).then(() => {
+                alert("Kandungan berjaya ditambah/dikemaskini ke Firebase database!");
+                location.reload();
+            }).catch(err => alert("Gagal menyimpan data: " + err.message));
         };
+
     </script>
 </body>
 </html>
