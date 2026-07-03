@@ -232,6 +232,7 @@
                 <div id="kuiz-intro" class="text-center py-6">
                     <span class="text-4xl">📝</span>
                     <h3 class="font-bold text-lg mt-2">Kuiz Penilaian Bab</h3>
+                    <p class="text-xs text-gray-500 mt-1">Uji pemahaman anda setelah mempelajari semua subtopik.</p>
                     <button onclick="startChapterQuiz()" class="btn-primary text-xs font-bold px-6 py-2.5 rounded-xl mt-4">Mula Kuiz</button>
                 </div>
                 <div id="kuiz-active" class="space-y-5 hide"></div>
@@ -330,19 +331,21 @@
                 <p class="text-[11px] text-purple-600 font-bold"><i class="fa-solid fa-plus-circle"></i> Borang Tambah Kandungan Baru:</p>
 
                 <div class="bg-purple-50 p-3 rounded space-y-2 border">
-                    <p class="font-bold text-[11px] text-purple-700">Nota Ringkas</p>
+                    <p class="font-bold text-[11px] text-purple-700">1. Nota Ringkas</p>
                     <textarea id="adm-nota-maksud" rows="2" class="w-full border p-2 rounded" placeholder="Maksud topik..."></textarea>
                     <input type="text" id="adm-nota-formula" class="w-full border p-2 rounded" placeholder="Formula Utama (e.g. I = PRT)">
                     <textarea id="adm-nota-kesilapan" rows="2" class="w-full border p-2 rounded" placeholder="Kesilapan biasa pelajar..."></textarea>
                     <textarea id="adm-nota-tips" rows="2" class="w-full border p-2 rounded" placeholder="Tips mudah ingat..."></textarea>
                 </div>
+
                 <div class="bg-amber-50 p-3 rounded space-y-2 border border-amber-200">
-                    <p class="font-bold text-[11px] text-amber-700">Contoh Soalan & Langkah Mengajar</p>
+                    <p class="font-bold text-[11px] text-amber-700">2. Contoh Soalan & Langkah Mengajar</p>
                     <textarea id="adm-contoh-soalan" rows="2" class="w-full border p-2 rounded" placeholder="Soalan contoh..."></textarea>
                     <textarea id="adm-contoh-jalan" rows="3" class="w-full border p-2 rounded" placeholder="Jalan kerja bertulis langkah-demi-langkah..."></textarea>
                 </div>
+
                 <div class="bg-emerald-50 p-3 rounded space-y-2 border border-emerald-200">
-                    <p class="font-bold text-[11px] text-emerald-700">Soalan Latihan / Kuiz (Objektif)</p>
+                    <p class="font-bold text-[11px] text-emerald-700">3. Soalan Latihan Interaktif (Objektif)</p>
                     <textarea id="adm-soalan-teks" rows="2" class="w-full border p-2 rounded" placeholder="Soalan objektif..."></textarea>
                     <div class="grid grid-cols-2 gap-2">
                         <input type="text" id="adm-opt-a" class="border p-2 rounded" placeholder="Pilihan A">
@@ -358,6 +361,31 @@
                     </select>
                     <textarea id="adm-soalan-penerangan" rows="2" class="w-full border p-2 rounded" placeholder="Penerangan jawapan (Gaya guru santai)..."></textarea>
                 </div>
+
+                <div class="bg-blue-50 p-3 rounded space-y-2 border border-blue-200">
+                    <p class="font-bold text-[11px] text-blue-700"><i class="fa-solid fa-image"></i> 4. Soalan Kuiz Bab (Format Teks ATAU Gambar/JPEG)</p>
+                    <textarea id="adm-kuiz-teks" rows="2" class="w-full border p-2 rounded" placeholder="Taip soalan kuiz (Boleh dibiarkan kosong jika guna gambar)..."></textarea>
+                    
+                    <div class="bg-white p-2 border rounded">
+                        <label class="block text-[10px] text-gray-500 font-bold mb-1">Muat Naik Gambar Soalan (JPEG/PNG):</label>
+                        <input type="file" id="adm-kuiz-image-file" accept="image/jpeg, image/png" class="w-full text-xs">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="text" id="adm-kuiz-a" class="border p-2 rounded" placeholder="Pilihan A">
+                        <input type="text" id="adm-kuiz-b" class="border p-2 rounded" placeholder="Pilihan B">
+                        <input type="text" id="adm-kuiz-c" class="border p-2 rounded" placeholder="Pilihan C">
+                        <input type="text" id="adm-kuiz-d" class="border p-2 rounded" placeholder="Pilihan D">
+                    </div>
+                    <select id="adm-kuiz-jawapan" class="w-full border p-2 rounded">
+                        <option value="A">Jawapan Kuiz Betul: A</option>
+                        <option value="B">Jawapan Kuiz Betul: B</option>
+                        <option value="C">Jawapan Kuiz Betul: C</option>
+                        <option value="D">Jawapan Kuiz Betul: D</option>
+                    </select>
+                    <textarea id="adm-kuiz-penerangan" rows="2" class="w-full border p-2 rounded" placeholder="Penerangan jawapan kuiz..."></textarea>
+                </div>
+
                 <button onclick="addContentToFirebase()" class="w-full bg-purple-700 text-white font-bold p-3 rounded-xl hover:bg-purple-800 transition">
                     + Tambah Sebagai Kandungan Baru
                 </button>
@@ -385,6 +413,8 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getDatabase, ref, set, get, child, update, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        // Import Firebase Storage untuk pengendalian upload fail imej
+        import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCsFCvkBLuLHzUVGokE82jRWshbsTsavVI",
@@ -399,6 +429,7 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getDatabase(app);
+        const storage = getStorage(app); // Initialize Storage
 
         let currentUser = null;
         let currentAuthMode = 'login';
@@ -527,7 +558,6 @@
             if(!subKey) return;
             const subData = appSilibusData[currentSelectedForm][currentSelectedChapterKey].subtopik[subKey];
 
-            // Papar mengikut struktur gelung (multiple items) untuk pelajar
             if (subtab === 'nota') {
                 const target = document.getElementById('nota-content');
                 target.innerHTML = "";
@@ -578,6 +608,12 @@
                     }
                 } else { target.innerHTML = `<p class="text-xs text-gray-400 text-center">Tiada kandungan latihan.</p>`; }
             }
+            else if (subtab === 'kuiz') {
+                // Sediakan paparan intro kuiz semula
+                document.getElementById('kuiz-intro').classList.remove('hide');
+                document.getElementById('kuiz-active').classList.add('hide');
+                document.getElementById('kuiz-result').classList.add('hide');
+            }
         };
 
         window.checkLatihanJawapan = function(pilih, betul, fbTeks, targetElementId) {
@@ -585,6 +621,92 @@
             fb.classList.remove('hide', 'bg-green-50', 'text-green-700', 'bg-red-50', 'text-red-700');
             if (pilih === betul) { fb.classList.add('bg-green-50', 'text-green-700'); fb.innerHTML = `<strong>🎉 Betul!</strong><br>${fbTeks}`; }
             else { fb.classList.add('bg-red-50', 'text-red-700'); fb.innerHTML = `<strong>❌ Salah!</strong> Jawapan betul ialah ${betul}.<br>${fbTeks}`; }
+        };
+
+        /* LOGIK KUIZ PELAJAR (DENGAN SOKONGAN KANDUNGAN GAMBAR) */
+        window.startChapterQuiz = function() {
+            const subKey = document.getElementById('flow-subtopic-select').value;
+            const subData = appSilibusData[currentSelectedForm][currentSelectedChapterKey].subtopik[subKey];
+            
+            activeQuizQuestions = [];
+            if (subData && subData.kandungan_list) {
+                for (let k in subData.kandungan_list) {
+                    let item = subData.kandungan_list[k];
+                    // Tapis item kandungan yang mempunyai data kuiz
+                    if (item.kuiz && (item.kuiz.soalan || item.kuiz.imageUrl)) {
+                        activeQuizQuestions.push(item.kuiz);
+                    }
+                }
+            }
+
+            if (activeQuizQuestions.length === 0) {
+                return alert("Tiada soalan kuiz yang dimasukkan untuk subtopik ini lagi.");
+            }
+
+            activeQuizIndex = 0;
+            activeQuizScore = 0;
+            document.getElementById('kuiz-intro').classList.add('hide');
+            document.getElementById('kuiz-active').classList.remove('hide');
+            renderQuizQuestion();
+        };
+
+        function renderQuizQuestion() {
+            const container = document.getElementById('kuiz-active');
+            const q = activeQuizQuestions[activeQuizIndex];
+            
+            // Semak jika ada gambar untuk dipaparkan di bahagian soalan
+            let imageTag = q.imageUrl ? `<div class="mb-3 border rounded-xl overflow-hidden bg-black flex justify-center"><img src="${q.imageUrl}" class="max-h-60 object-contain"></div>` : '';
+            let textQuestion = q.soalan ? `<p class="text-sm font-semibold mb-3">${q.soalan}</p>` : '';
+
+            container.innerHTML = `
+                <div class="bg-gray-100 p-2 rounded-lg text-[10px] font-bold text-gray-500 mb-2">Soalan ${activeQuizIndex + 1} daripada ${activeQuizQuestions.length}</div>
+                <div class="bg-white border p-4 rounded-xl">
+                    ${imageTag}
+                    ${textQuestion}
+                </div>
+                <div class="grid grid-cols-1 gap-2">
+                    <button onclick="submitQuizAnswer('A')" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50">A. ${q.a}</button>
+                    <button onclick="submitQuizAnswer('B')" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50">B. ${q.b}</button>
+                    <button onclick="submitQuizAnswer('C')" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50">C. ${q.c}</button>
+                    <button onclick="submitQuizAnswer('D')" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50">D. ${q.d}</button>
+                </div>
+            `;
+        }
+
+        window.submitQuizAnswer = function(chosen) {
+            const q = activeQuizQuestions[activeQuizIndex];
+            if (chosen === q.jawapan) activeQuizScore++;
+
+            activeQuizIndex++;
+            if (activeQuizIndex < activeQuizQuestions.length) {
+                renderQuizQuestion();
+            } else {
+                // Tamat kuiz, papar markah keputusan
+                document.getElementById('kuiz-active').classList.add('hide');
+                const resultDiv = document.getElementById('kuiz-result');
+                resultDiv.classList.remove('hide');
+                const per = Math.round((activeQuizScore / activeQuizQuestions.length) * 100);
+                
+                resultDiv.innerHTML = `
+                    <span class="text-5xl">🎉</span>
+                    <h3 class="font-bold text-lg mt-3">Kuiz Selesai!</h3>
+                    <p class="text-2xl font-black text-soft-pink mt-2">${activeQuizScore} / ${activeQuizQuestions.length} (${per}%)</p>
+                    <p class="text-xs text-gray-500 mt-2">Teruskan usaha dalam memantapkan penguasaan Matematik anda!</p>
+                    <button onclick="switchFlowSubTab('kuiz')" class="bg-slate-900 text-white font-bold text-xs px-5 py-2 rounded-xl mt-4">Kembali</button>
+                `;
+
+                // Kemaskini progress pelajar di Firebase jika log masuk
+                if (currentUser) {
+                    const userRef = ref(db, 'users/' + currentUser.uid);
+                    get(userRef).then(snap => {
+                        if (snap.exists()) {
+                            let curQ = snap.val().questionsAnswered || 0;
+                            update(userRef, { questionsAnswered: curQ + activeQuizQuestions.length });
+                            document.getElementById('dash-stat-questions').innerText = curQ + activeQuizQuestions.length;
+                        }
+                    });
+                }
+            }
         };
 
         // ADMIN CONTROLS INTERACTION
@@ -679,7 +801,7 @@
         }
 
         /* ==========================================================================
-           LOGIK BARU: SISTEM MULTIPLE CONTENT (TAMBAH & PADAM ISI SUBTOPIK)
+           LOGIK: SISTEM MULTIPLE CONTENT (TAMBAH & PADAM ISI SUBTOPIK + STORAGE)
            ========================================================================== */
         
         window.loadSubtopicContentList = function() {
@@ -699,20 +821,46 @@
                 for (let contentKey in list) {
                     let op = document.createElement('option');
                     op.value = contentKey;
-                    let ringkasan = list[contentKey].nota?.maksud || list[contentKey].contoh?.soalan || "Kandungan " + index;
-                    op.innerText = `#${index} - ${ringkasan.substring(0, 40)}...`;
+                    
+                    // Label jenis kandungan mengikut apa yang admin isi
+                    let jenis = "Kandungan";
+                    let ringkasan = "";
+                    if (list[contentKey].nota?.maksud) { jenis = "Nota"; ringkasan = list[contentKey].nota.maksud; }
+                    else if (list[contentKey].contoh?.soalan) { jenis = "Contoh"; ringkasan = list[contentKey].contoh.soalan; }
+                    else if (list[contentKey].latihan?.soalan) { jenis = "Latihan"; ringkasan = list[contentKey].latihan.soalan; }
+                    else if (list[contentKey].kuiz?.soalan || list[contentKey].kuiz?.imageUrl) { 
+                        jenis = "Kuiz Bab"; 
+                        ringkasan = list[contentKey].kuiz.soalan || "[Soalan Gambar]"; 
+                    }
+
+                    op.innerText = `#${index} [${jenis}] - ${ringkasan.substring(0, 30)}...`;
                     selectList.appendChild(op);
                     index++;
                 }
             }
         };
 
-        window.addContentToFirebase = function() {
+        window.addContentToFirebase = async function() {
             const formNum = document.getElementById('adm-form').value;
             const chKey = document.getElementById('adm-chapter-select').value;
             const subKey = document.getElementById('adm-subtopic-select').value;
 
             if(!chKey || !subKey) return alert("Sila pilih Bab dan Subtopik di Bahagian 1 terlebih dahulu.");
+
+            // Ambil fail imej daripada input kuiz jika ada
+            const imageFile = document.getElementById('adm-kuiz-image-file').files[0];
+            let uploadedImageUrl = "";
+
+            // Jika admin memilih gambar untuk kuiz, lakukan proses muat naik ke Storage terlebih dahulu
+            if (imageFile) {
+                try {
+                    const storageRefPath = sRef(storage, `kuiz_images/${Date.now()}_${imageFile.name}`);
+                    const snapshot = await uploadBytes(storageRefPath, imageFile);
+                    uploadedImageUrl = await getDownloadURL(snapshot.ref);
+                } catch (error) {
+                    return alert("Gagal memuat naik gambar: " + error.message);
+                }
+            }
 
             const contentListRef = ref(db, `silibus/${formNum}/${chKey}/subtopik/${subKey}/kandungan_list`);
             
@@ -735,6 +883,16 @@
                     d: document.getElementById('adm-opt-d').value,
                     jawapan: document.getElementById('adm-opt-jawapan').value,
                     penerangan: document.getElementById('adm-soalan-penerangan').value,
+                },
+                kuiz: {
+                    soalan: document.getElementById('adm-kuiz-teks').value,
+                    imageUrl: uploadedImageUrl, // Menyimpan URL gambar yang berjaya di-upload
+                    a: document.getElementById('adm-kuiz-a').value,
+                    b: document.getElementById('adm-kuiz-b').value,
+                    c: document.getElementById('adm-kuiz-c').value,
+                    d: document.getElementById('adm-kuiz-d').value,
+                    jawapan: document.getElementById('adm-kuiz-jawapan').value,
+                    penerangan: document.getElementById('adm-kuiz-penerangan').value,
                 }
             };
 
@@ -742,7 +900,7 @@
             set(newContentRef, payload).then(() => {
                 alert("Isi kandungan baru berjaya ditambah!");
                 
-                // Kosongkan semula borang input
+                // Kosongkan semula borang pengisian input
                 document.getElementById('adm-nota-maksud').value = "";
                 document.getElementById('adm-nota-formula').value = "";
                 document.getElementById('adm-nota-kesilapan').value = "";
@@ -755,7 +913,16 @@
                 document.getElementById('adm-opt-c').value = "";
                 document.getElementById('adm-opt-d').value = "";
                 
-                // Segarkan data tempatan & sinkronkan rujukan element UI
+                // Kosongkan bahagian kuiz bab
+                document.getElementById('adm-kuiz-teks').value = "";
+                document.getElementById('adm-kuiz-image-file').value = "";
+                document.getElementById('adm-kuiz-a').value = "";
+                document.getElementById('adm-kuiz-b').value = "";
+                document.getElementById('adm-kuiz-c').value = "";
+                document.getElementById('adm-kuiz-d').value = "";
+                document.getElementById('adm-kuiz-penerangan').value = "";
+                
+                // Ambil data terbaru & kemaskini dropdown rujukan admin
                 get(ref(db, 'silibus')).then((snapshot) => {
                     appSilibusData = snapshot.exists() ? snapshot.val() : {};
                     loadSubtopicContentList();
@@ -781,6 +948,12 @@
                     });
                 }).catch(e => alert(e.message));
             }
+        };
+
+        const originalUpdateAdminSubtopicOptions = window.updateAdminSubtopicOptions;
+        window.updateAdminSubtopicOptions = function() {
+            originalUpdateAdminSubtopicOptions();
+            loadSubtopicContentList();
         };
     </script>
 </body>
