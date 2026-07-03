@@ -13,7 +13,7 @@
     <style>
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: #FAF8F5; /* Beige lembut */
+            background-color: #FAF8F5;
         }
         .bg-soft-pink { background-color: #FFF0F2; }
         .text-soft-pink { color: #FF6B8B; }
@@ -36,7 +36,6 @@
         .btn-secondary:hover {
             background-color: #D6F7B3;
         }
-        /* DITUKAR: Ditambah !important untuk mengatasi class grid/flex daripada Tailwind */
         .hide { display: none !important; }
     </style>
 </head>
@@ -64,6 +63,7 @@
 
     <main class="max-w-md mx-auto min-h-screen bg-white shadow-xl relative pb-24">
 
+        <!-- LANDING VIEW -->
         <section id="view-landing" class="view">
             <div class="p-6 text-center pt-16">
                 <span class="text-5xl inline-block mb-4 animate-bounce">📐✨</span>
@@ -109,18 +109,9 @@
                     </div>
                 </div>
             </div>
-
-            <div class="p-6 text-center">
-                <p class="text-xs italic text-gray-400">"Dulu selalu sangkut Bab Faedah Mudah, sekarang dah nampak flow dia!"</p>
-                <p class="text-xs font-bold text-gray-600 mt-2">- Amirul, Tingkatan 3</p>
-                
-                <div class="mt-12 bg-soft-pink p-6 rounded-2xl border border-soft-pink text-center">
-                    <p class="text-sm font-bold text-slate-800 mb-3">Mulakan perjalanan Matematik anda hari ini.</p>
-                    <button onclick="switchView('login')" class="btn-primary text-xs font-bold px-6 py-2.5 rounded-xl">Daftar Sekarang</button>
-                </div>
-            </div>
         </section>
 
+        <!-- LOGIN/AUTH VIEW -->
         <section id="view-login" class="view p-6 hide">
             <div class="pt-8 mb-6">
                 <button onclick="switchView('landing')" class="text-gray-500 text-sm"><i class="fa-solid fa-arrow-left"></i> Kembali</button>
@@ -147,9 +138,10 @@
             </div>
         </section>
 
+        <!-- DASHBOARD VIEW -->
         <section id="view-dashboard" class="view p-5 hide">
             <div class="mb-6 bg-gradient-to-r from-rose-50 to-amber-50 p-5 rounded-2xl border border-pink-100">
-                <h2 class="text-lg font-bold text-slate-900">Selamat datang ke Math Journey, <span id="dash-username">Pelajar</span>! 👋</h2>
+                <h2 class="text-lg font-bold text-slate-900">Selamat datang, <span id="dash-username">Pelajar</span>! 👋</h2>
                 <p class="text-xs text-gray-600 mt-1 italic font-medium text-pink-600">
                     "Matematik bukan susah, cuma perlukan langkah yang betul."
                 </p>
@@ -181,31 +173,16 @@
 
             <div class="mb-6 bg-white p-4 rounded-xl border border-gray-100">
                 <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Lencana Pencapaian</h3>
-                <div class="grid grid-cols-4 gap-2 text-center" id="dash-badges">
-                </div>
-            </div>
-
-            <div class="space-y-3">
-                <h3 class="text-sm font-bold text-slate-900">Mod Pembelajaran Khas</h3>
-                <div onclick="initReviewMode()" class="bg-neon-green p-4 rounded-xl border border-green-200 cursor-pointer hover:opacity-90">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <h4 class="font-bold text-sm text-green-800">🎯 Mode Ulang Kaji Topik Lemah</h4>
-                            <p class="text-xs text-green-700 mt-0.5">Sistem akan rekod dan bantu gilap topik yang anda kerap silap.</p>
-                        </div>
-                        <i class="fa-solid fa-circle-play text-xl text-green-600"></i>
-                    </div>
-                </div>
+                <div class="grid grid-cols-4 gap-2 text-center" id="dash-badges"></div>
             </div>
         </section>
 
+        <!-- LEVELS VIEW -->
         <section id="view-levels" class="view p-5 hide">
             <div class="mb-6">
                 <button onclick="switchView('dashboard')" class="text-gray-500 text-sm"><i class="fa-solid fa-arrow-left"></i> Dashboard</button>
                 <h2 class="text-xl font-bold text-slate-900 mt-3">Pilih Tingkatan</h2>
-                <p class="text-xs text-gray-500">Simbus dibina khas mengikut KSSM semasa.</p>
             </div>
-
             <div class="space-y-3">
                 <button onclick="loadChapters(1)" class="w-full bg-white border border-gray-100 p-4 rounded-xl text-left font-bold text-sm flex justify-between items-center shadow-sm hover:border-soft-pink">
                     <span>📐 Tingkatan 1</span> <i class="fa-solid fa-chevron-right text-xs text-gray-400"></i>
@@ -225,16 +202,16 @@
             </div>
         </section>
 
+        <!-- CHAPTERS VIEW -->
         <section id="view-chapters" class="view p-5 hide">
             <div class="mb-6">
                 <button onclick="switchView('levels')" class="text-gray-500 text-sm"><i class="fa-solid fa-arrow-left"></i> Tukar Tingkatan</button>
                 <h2 id="chapters-title" class="text-xl font-bold text-slate-900 mt-3">Senarai Bab</h2>
             </div>
-
-            <div id="chapters-container" class="space-y-3">
-            </div>
+            <div id="chapters-container" class="space-y-3"></div>
         </section>
 
+        <!-- CONTENT FLOW VIEW -->
         <section id="view-content-flow" class="view hide">
             <div class="bg-white border-b border-gray-100 grid grid-cols-4 text-center text-xs font-semibold text-gray-400 sticky top-14 z-40">
                 <button id="tab-btn-nota" onclick="switchFlowSubTab('nota')" class="py-3 border-b-2 border-transparent text-soft-pink border-soft-pink">Nota</button>
@@ -245,49 +222,38 @@
 
             <div class="p-3 bg-slate-50 border-b border-gray-100 flex items-center justify-between">
                 <span class="text-xs font-bold text-gray-500">Subtopik:</span>
-                <select id="flow-subtopic-select" onchange="onSubtopicChange()" class="text-xs bg-white border border-gray-200 rounded p-1.5 font-medium max-w-[250px] outline-none">
-                </select>
+                <select id="flow-subtopic-select" onchange="onSubtopicChange()" class="text-xs bg-white border border-gray-200 rounded p-1.5 font-medium max-w-[250px] outline-none"></select>
             </div>
 
             <div id="flow-section-nota" class="flow-subview p-5">
-                <div id="nota-content" class="space-y-4">
-                </div>
+                <div id="nota-content" class="space-y-4"></div>
             </div>
-
             <div id="flow-section-contoh" class="flow-subview p-5 hide">
-                <div id="contoh-content" class="space-y-5">
-                </div>
+                <div id="contoh-content" class="space-y-5"></div>
             </div>
-
             <div id="flow-section-latihan" class="flow-subview p-5 hide">
-                <div id="latihan-content" class="space-y-5">
-                </div>
+                <div id="latihan-content" class="space-y-5"></div>
             </div>
-
             <div id="flow-section-kuiz" class="flow-subview p-5 hide">
                 <div id="kuiz-intro" class="text-center py-6">
                     <span class="text-4xl">📝</span>
                     <h3 class="font-bold text-lg mt-2">Kuiz Penilaian Bab</h3>
-                    <p class="text-xs text-gray-500 mt-1 mb-4">Uji kefahaman keseluruhan anda untuk bab ini.</p>
-                    <button onclick="startChapterQuiz()" class="btn-primary text-xs font-bold px-6 py-2.5 rounded-xl">Mula Kuiz Sekarang</button>
+                    <button onclick="startChapterQuiz()" class="btn-primary text-xs font-bold px-6 py-2.5 rounded-xl mt-4">Mula Kuiz</button>
                 </div>
-                <div id="kuiz-active" class="space-y-5 hide">
-                </div>
-                <div id="kuiz-result" class="text-center py-6 hide">
-                </div>
+                <div id="kuiz-active" class="space-y-5 hide"></div>
+                <div id="kuiz-result" class="text-center py-6 hide"></div>
             </div>
         </section>
 
+        <!-- PROFILE VIEW -->
         <section id="view-profile" class="view p-5 hide">
             <div class="mb-6 flex justify-between items-center">
                 <h2 class="text-xl font-bold text-slate-900">Profil & Kemajuan</h2>
                 <button onclick="handleLogout()" class="text-xs text-red-500 font-bold bg-red-50 px-3 py-1.5 rounded-lg">Log Keluar</button>
             </div>
-
             <div class="bg-slate-900 text-white p-5 rounded-2xl mb-6">
                 <p class="text-xs text-slate-400 font-medium">Topik Paling Lemah</p>
                 <p id="prof-weakest-topic" class="text-sm font-bold text-amber-300 mb-4">Tiada data lagi</p>
-                
                 <div class="border-t border-slate-800 pt-4 grid grid-cols-2 gap-2 text-center">
                     <div>
                         <p class="text-[10px] text-slate-400 uppercase">Jumlah Selesai</p>
@@ -299,56 +265,101 @@
                     </div>
                 </div>
             </div>
-
-            <div class="bg-soft-pink border border-soft-pink p-4 rounded-xl mb-6">
-                <h4 class="font-bold text-xs text-slate-700 uppercase mb-1">💡 Cadangan Bab Seterusnya</h4>
-                <p id="prof-suggestion" class="text-xs text-gray-600">Sila mulakan mana-mana bab di tab Tingkatan.</p>
-            </div>
         </section>
 
+        <!-- ADMIN VIEW (UPDATED WITH SEPARATE ADD & DELETE LOGICS) -->
         <section id="view-admin" class="view p-5 hide">
-            <div class="mb-6">
-                <h2 class="text-xl font-bold text-purple-900">Admin Panel (Silibus Builder)</h2>
-                <p class="text-xs text-gray-500">Tambah atau padam kandungan di Firebase Realtime Database.</p>
-            </div>
+    <div class="mb-6">
+        <h2 class="text-xl font-bold text-purple-900">Admin Panel (Content Manager)</h2>
+    </div>
 
-            <div class="bg-white border border-gray-200 p-4 rounded-xl space-y-3 mb-6 text-xs">
-                <h3 class="font-bold text-sm text-slate-800 border-b pb-2">Urus Kandungan Subtopik</h3>
-                <div>
-                    <label class="block font-medium text-gray-600 mb-1">Tingkatan (1 - 5)</label>
-                    <input type="number" id="adm-form" min="1" max="5" class="w-full border p-2 rounded" value="3">
-                </div>
+    <div class="bg-white border border-purple-100 p-4 rounded-xl mb-6 shadow-sm">
+        <h3 class="font-bold text-sm text-purple-800 mb-3"><i class="fa-solid fa-database"></i> Senarai Kandungan Firebase</h3>
+        <select id="adm-content-list" class="w-full border p-2 rounded text-xs bg-gray-50 mb-3" onchange="loadContentToForm()">
+            <option value="">-- Pilih kandungan untuk edit/padam --</option>
+        </select>
+        <div class="flex gap-2">
+            <button onclick="refreshContentList()" class="flex-1 bg-blue-600 text-white font-bold py-2 rounded text-xs">Refresh Senarai</button>
+            <button onclick="deleteSelectedContent()" class="flex-1 bg-red-600 text-white font-bold py-2 rounded text-xs">Padam Kandungan</button>
+        </div>
+    </div>
+
+    <div class="bg-white border border-gray-200 p-4 rounded-xl space-y-3 text-xs">
+        <h3 class="font-bold text-sm text-slate-800 border-b pb-2">Tambah / Kemaskini</h3>
+        <input type="number" id="adm-form" placeholder="Tingkatan (1-5)" class="w-full border p-2 rounded">
+        <input type="text" id="adm-chapter" class="w-full border p-2 rounded" placeholder="Nama Bab">
+        <input type="text" id="adm-subtopic" class="w-full border p-2 rounded" placeholder="Nama Subtopik">
+        
+        <textarea id="adm-nota-maksud" rows="2" class="w-full border p-2 rounded" placeholder="Maksud..."></textarea>
+        <input type="text" id="adm-nota-formula" class="w-full border p-2 rounded" placeholder="Formula">
+        <textarea id="adm-nota-kesilapan" rows="2" class="w-full border p-2 rounded" placeholder="Kesilapan..."></textarea>
+        <textarea id="adm-nota-tips" rows="2" class="w-full border p-2 rounded" placeholder="Tips..."></textarea>
+        
+        <textarea id="adm-contoh-soalan" rows="2" class="w-full border p-2 rounded" placeholder="Contoh Soalan..."></textarea>
+        <textarea id="adm-contoh-jalan" rows="2" class="w-full border p-2 rounded" placeholder="Jalan Kerja..."></textarea>
+        
+        <button onclick="saveContentToFirebase()" class="w-full bg-purple-700 text-white font-bold p-3 rounded-xl hover:bg-purple-800">
+            Simpan ke Firebase
+        </button>
+    </div>
+</section>
+
+            <!-- BAHAGIAN 1: URUS STRUKTUR (TAMBAH/PADAM BAB & SUBTOPIK) -->
+            <div class="bg-white border border-purple-200 p-4 rounded-xl space-y-4 mb-6 text-xs shadow-sm">
+                <h3 class="font-bold text-sm text-purple-800 border-b pb-2"><i class="fa-solid fa-folder-tree"></i> 1. Urus Struktur (Bab & Subtopik)</h3>
                 
                 <div>
-                    <label class="block font-medium text-gray-600 mb-1">Nama Bab</label>
-                    <div class="flex flex-col space-y-1">
-                        <select id="adm-chapter-select" class="w-full border p-2 rounded bg-white" onchange="updateAdminSubtopicOptions()">
-                            <option value="">-- Pilih Bab Sedia Ada --</option>
-                        </select>
-                        <input type="text" id="adm-chapter-custom" class="w-full border p-2 rounded" placeholder="Atau taip Bab Baru di sini jika tiada dalam list">
+                    <label class="block font-semibold text-gray-700 mb-1">Pilih Tingkatan (1 - 5)</label>
+                    <input type="number" id="adm-form" min="1" max="5" class="w-full border p-2.5 rounded-lg focus:border-purple-500 focus:outline-none" value="3">
+                </div>
+
+                <div class="border-t pt-2 grid grid-cols-1 gap-3">
+                    <!-- URUSAN BAB -->
+                    <div class="bg-slate-50 p-3 rounded-lg border">
+                        <p class="font-bold text-slate-700 mb-2"><i class="fa-solid fa-book"></i> Pengurusan Nama Bab</p>
+                        <div class="space-y-2">
+                            <select id="adm-chapter-select" class="w-full border p-2 rounded bg-white outline-none" onchange="updateAdminSubtopicOptions()">
+                                <option value="">-- Pilih Bab Sedia Ada --</option>
+                            </select>
+                            <input type="text" id="adm-chapter-custom" class="w-full border p-2 rounded" placeholder="Taip Nama Bab Baru (Untuk Ditambah)">
+                            <div class="grid grid-cols-2 gap-2 pt-1">
+                                <button onclick="manageStructure('add_chapter')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold p-2 rounded flex items-center justify-center space-x-1">
+                                    <i class="fa-solid fa-plus"></i> <span>Tambah Bab</span>
+                                </button>
+                                <button onclick="manageStructure('delete_chapter')" class="bg-red-600 hover:bg-red-700 text-white font-bold p-2 rounded flex items-center justify-center space-x-1">
+                                    <i class="fa-solid fa-trash"></i> <span>Padam Bab</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- URUSAN SUBTOPIK -->
+                    <div class="bg-slate-50 p-3 rounded-lg border">
+                        <p class="font-bold text-slate-700 mb-2"><i class="fa-solid fa-list-ol"></i> Pengurusan Nama Subtopik</p>
+                        <div class="space-y-2">
+                            <select id="adm-subtopic-select" class="w-full border p-2 rounded bg-white outline-none">
+                                <option value="">-- Pilih Subtopik Sedia Ada --</option>
+                            </select>
+                            <input type="text" id="adm-subtopic-custom" class="w-full border p-2 rounded" placeholder="Taip Nama Subtopik Baru (Untuk Ditambah)">
+                            <div class="grid grid-cols-2 gap-2 pt-1">
+                                <button onclick="manageStructure('add_subtopic')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold p-2 rounded flex items-center justify-center space-x-1">
+                                    <i class="fa-solid fa-plus"></i> <span>Tambah Subtopik</span>
+                                </button>
+                                <button onclick="manageStructure('delete_subtopic')" class="bg-red-600 hover:bg-red-700 text-white font-bold p-2 rounded flex items-center justify-center space-x-1">
+                                    <i class="fa-solid fa-trash"></i> <span>Padam Subtopik</span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
+            </div>
 
-                <div>
-                    <label class="block font-medium text-gray-600 mb-1">Nama Subtopik</label>
-                    <div class="flex flex-col space-y-1">
-                        <select id="adm-subtopic-select" class="w-full border p-2 rounded bg-white">
-                            <option value="">-- Pilih Subtopik Sedia Ada --</option>
-                        </select>
-                        <input type="text" id="adm-subtopic-custom" class="w-full border p-2 rounded" placeholder="Atau taip Subtopik Baru di sini jika tiada dalam list">
-                    </div>
-                </div>
-
-                <div class="bg-red-50 p-3 rounded space-y-2 border border-red-200 mt-2">
-                    <p class="font-bold text-[11px] text-red-700 uppercase tracking-wider">Tindakan Pemadaman (Danger Zone)</p>
-                    <p class="text-[10px] text-gray-500">Sila pilih Tingkatan, Bab, atau Subtopik di atas terlebih dahulu sebelum menekan butang padam.</p>
-                    <button onclick="deleteContentFromFirebase()" class="w-full bg-red-600 text-white font-bold p-2.5 rounded-lg hover:bg-red-700 transition duration-200 flex items-center justify-center space-x-2">
-                        <i class="fa-solid fa-trash-can"></i>
-                        <span>Padam Kandungan Daripada Firebase</span>
-                    </button>
-                </div>
-
-                <div class="bg-slate-50 p-3 rounded space-y-2 border mt-4">
+            <!-- BAHAGIAN 2: PENGISIAN ISI KANDUNGAN -->
+            <div class="bg-white border border-gray-200 p-4 rounded-xl space-y-3 mb-6 text-xs shadow-sm">
+                <h3 class="font-bold text-sm text-slate-800 border-b pb-2"><i class="fa-solid fa-file-pen"></i> 2. Isi Kandungan Subtopik</h3>
+                <p class="text-[11px] text-amber-600 font-medium">Nota: Sila pastikan Bab & Subtopik telah dipilih/wujud di Bahagian 1 sebelum mengisi kandungan di bawah.</p>
+                
+                <div class="bg-purple-50 p-3 rounded space-y-2 border">
                     <p class="font-bold text-[11px] text-purple-700">Nota Ringkas</p>
                     <textarea id="adm-nota-maksud" rows="2" class="w-full border p-2 rounded" placeholder="Maksud topik..."></textarea>
                     <input type="text" id="adm-nota-formula" class="w-full border p-2 rounded" placeholder="Formula Utama (e.g. I = PRT)">
@@ -377,12 +388,13 @@
                     </select>
                     <textarea id="adm-soalan-penerangan" rows="2" class="w-full border p-2 rounded" placeholder="Penerangan jawapan (Gaya guru santai)..."></textarea>
                 </div>
-                <button onclick="saveContentToFirebase()" class="w-full bg-purple-700 text-white font-bold p-3 rounded-xl hover:bg-purple-800">
+                <button onclick="saveContentToFirebase()" class="w-full bg-purple-700 text-white font-bold p-3 rounded-xl hover:bg-purple-800 transition">
                     Simpan / Kemaskini Kandungan Ke Firebase
                 </button>
             </div>
         </section>
 
+        <!-- BOTTOM NAVIGATION -->
         <div id="bottom-nav" class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t border-gray-100 grid grid-cols-4 py-2 text-center text-gray-400 z-50 hide">
             <button onclick="switchView('dashboard')" id="bnav-dashboard" class="flex flex-col items-center text-soft-pink">
                 <i class="fa-solid fa-house text-sm"></i>
@@ -391,10 +403,6 @@
             <button onclick="switchView('levels')" id="bnav-levels" class="flex flex-col items-center">
                 <i class="fa-solid fa-graduation-cap text-sm"></i>
                 <span class="text-[10px] mt-1 font-semibold">Tingkatan</span>
-            </button>
-            <button onclick="initReviewMode()" id="bnav-review" class="flex flex-col items-center">
-                <i class="fa-solid fa-bullseye text-sm"></i>
-                <span class="text-[10px] mt-1 font-semibold">Ulang Kaji</span>
             </button>
             <button onclick="switchView('profile')" id="bnav-profile" class="flex flex-col items-center">
                 <i class="fa-solid fa-user text-sm"></i>
@@ -409,7 +417,6 @@
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getDatabase, ref, set, get, child, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        // Konfigurasi Firebase Pengguna
         const firebaseConfig = {
             apiKey: "AIzaSyCsFCvkBLuLHzUVGokE82jRWshbsTsavVI",
             authDomain: "math-journey-2fd87.firebaseapp.com",
@@ -420,79 +427,30 @@
             appId: "1:543463983297:web:fb733a9457b5ca355aec40"
         };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getDatabase(app);
 
-        // State System Global Global
         let currentUser = null;
-        let currentAuthMode = 'login'; // login atau register
-        let appSilibusData = {}; // Store custom silibus fetched from firebase
+        let currentAuthMode = 'login';
+        let appSilibusData = {};
         let currentSelectedForm = null;
         let currentSelectedChapterKey = null;
         let activeQuizQuestions = [];
         let activeQuizIndex = 0;
         let activeQuizScore = 0;
 
-        // Default Silibus Sebagai Pangkalan Data Sandaran (Fallback Data)
-        const localFallbackSilibus = {
-            3: {
-                "Bab_01_Matematik_Pengguna": {
-                    nama: "Matematik Pengguna: Simpanan & Pelaburan",
-                    subtopik: {
-                        "Sub_01_Faedah_Mudah": {
-                            nama: "Faedah Mudah & Kompaun",
-                            nota: {
-                                maksud: "Faedah mudah ialah ganjaran yang diberikan kepada penyimpan mengikut kadar tertentu ke atas amaun prinsipal untuk suatu tempoh masa.",
-                                formula: "I = PRT (I = Amaun Faedah, P = Prinsipal, R = Kadar Faedah Tahunan, T = Bilangan Tahun)",
-                                kesilapan: "Pelajar selalu lupa tukar kadar faedah peratus (R) kepada bentuk perpuluhan atau pecahan per 100 semasa pengiraan.",
-                                tips: "Ingat perkataan 'PRT' macam abang 'Part-Time'. Senang kan?"
-                            },
-                            contoh: {
-                                soalan: "Encik Ali menyimpan RM10,000 di Bank Makmur dengan kadar faedah mudah 3% setahun. Hitung faedah yang diterima selepas 2 tahun.",
-                                jalan_kerja: "1. Mula-mula kita kenal pasti maklumat yang diberi: P = 10000, R = 3% atau 0.03, T = 2.\n2. Lepas itu, kita pilih formula yang sesuai iaitu I = PRT.\n3. Akhir sekali, kita gantikan nilai ke dalam formula:\n   I = 10000 × 0.03 × 2 = RM600.\nJadi, jumlah faedah mudah ialah RM600!"
-                            },
-                            latihan: {
-                                soalan: "Berapakah faedah mudah bagi prinsipal RM5,000 dengan kadar 4% setahun dalam masa 3 tahun?",
-                                a: "RM400", b: "RM500", c: "RM600", d: "RM700",
-                                jawapan: "C",
-                                penerangan: "Gunakan I = PRT. Gantian: 5000 × 0.04 × 3 = RM600. Wah, jawapan anda tepat, bijak sekali!"
-                            }
-                        }
-                    }
-                }
-            },
-            4: {
-                "Bab_01_Penaakulan_Logik": {
-                    nama: "Penaakulan Logik",
-                    subtopik: {
-                        "Sub_01_Pernyataan": {
-                            nama: "Pernyataan Benar atau Palsu",
-                            nota: { maksud: "Pernyataan ialah sebaris ayat yang sama ada benar atau palsu, tetapi bukan kedua-duanya.", formula: "Tiada formula khusus, uji nilai kebenaran ayat.", kesilapan: "Keliru antara ayat seruan/perintah dengan pernyataan.", tips: "Kalau ayat itu tak boleh ditentukan betul atau salah, ia BUKAN pernyataan." },
-                            contoh: { soalan: "Tentukan sama ada ayat '7 + 5 = 10' ialah pernyataan atau bukan.", jalan_kerja: "1. Kita periksa jika ia ayat matematik lengkap. Ya.\n2. Kita tahu nilainya adalah salah/palsu.\n3. Oleh sebab kita boleh kata ia palsu, maka ia adalah suatu PERNYATAAN (yang bernilai palsu)." },
-                            latihan: { soalan: "Adakah 'Sila hantar buku latihan' satu pernyataan?", a: "Ya, benar", b: "Ya, palsu", c: "Bukan pernyataan", d: "Semua salah", jawapan: "C", penerangan: "Ayat arahan atau perintah bukan merupakan satu pernyataan kerana tiada nilai logik benar atau palsu." }
-                        }
-                    }
-                }
-            }
-        };
-
-        // Window level registration for view-switching & handlers
         window.switchView = function(viewId) {
             document.querySelectorAll('.view').forEach(el => el.classList.add('hide'));
             const targetView = document.getElementById('view-' + viewId);
             if (targetView) targetView.classList.remove('hide');
             
-            // Adjust elements according to login states
             if (viewId === 'landing' || viewId === 'login') {
                 document.getElementById('app-nav').classList.add('hide');
                 document.getElementById('bottom-nav').classList.add('hide');
             } else {
                 document.getElementById('app-nav').classList.remove('hide');
                 document.getElementById('bottom-nav').classList.remove('hide');
-                
-                // Active indicator update on mobile layout
                 document.querySelectorAll('#bottom-nav button').forEach(b => b.classList.remove('text-soft-pink'));
                 const activeBnav = document.getElementById('bnav-' + viewId);
                 if (activeBnav) activeBnav.classList.add('text-soft-pink');
@@ -508,457 +466,225 @@
             if (currentAuthMode === 'login') {
                 currentAuthMode = 'register';
                 document.getElementById('auth-title').innerText = "Jom Daftar Akaun!";
-                document.getElementById('auth-subtitle').innerText = "Mulakan perjalanan gred A Matematik hari ini.";
                 document.getElementById('auth-submit-btn').innerText = "Daftar Akaun Baharu";
-                document.getElementById('auth-toggle-msg').innerText = "Dah ada akaun?";
-                document.getElementById('auth-toggle-btn').innerText = "Log masuk di sini";
             } else {
                 currentAuthMode = 'login';
                 document.getElementById('auth-title').innerText = "Selamat Kembali!";
-                document.getElementById('auth-subtitle').innerText = "Log masuk untuk sambung Journey anda.";
                 document.getElementById('auth-submit-btn').innerText = "Log Masuk";
-                document.getElementById('auth-toggle-msg').innerText = "Belum ada akaun?";
-                document.getElementById('auth-toggle-btn').innerText = "Daftar di sini";
             }
         };
 
-        // Firebase Auth Handling
         window.handleAuth = function() {
             const email = document.getElementById('auth-email').value.trim();
             const password = document.getElementById('auth-password').value;
-
-            if(!email || !password) {
-                alert("Sila isi e-mel dan kata laluan anda.");
-                return;
-            }
+            if(!email || !password) return alert("Sila isi e-mel dan kata laluan anda.");
 
             if (currentAuthMode === 'login') {
-                signInWithEmailAndPassword(auth, email, password)
-                .then((userCredential) => {
-                    initUserData(userCredential.user);
-                })
-                .catch((error) => { alert("Gagal log masuk: " + error.message); });
+                signInWithEmailAndPassword(auth, email, password).then((uc) => initUserData(uc.user)).catch((e) => alert(e.message));
             } else {
-                createUserWithEmailAndPassword(auth, email, password)
-                .then((userCredential) => {
-                    // Create base default metadata profile inside Realtime DB
-                    const userRef = ref(db, 'users/' + userCredential.user.uid);
-                    set(userRef, {
-                        email: email,
-                        streak: 1,
-                        questionsAnswered: 0,
-                        weakestTopic: "Belum dipastikan",
-                        role: email.includes("admin") ? "admin" : "student"
-                    }).then(() => {
-                        initUserData(userCredential.user);
-                    });
-                })
-                .catch((error) => { alert("Gagal mendaftar: " + error.message); });
+                createUserWithEmailAndPassword(auth, email, password).then((uc) => {
+                    set(ref(db, 'users/' + uc.user.uid), { email, streak: 1, questionsAnswered: 0, role: email.includes("admin") ? "admin" : "student" })
+                    .then(() => initUserData(uc.user));
+                }).catch((e) => alert(e.message));
             }
         };
 
-        window.handleLogout = function() {
-            signOut(auth).then(() => {
-                currentUser = null;
-                switchView('landing');
-            });
-        };
+        window.handleLogout = function() { signOut(auth).then(() => { currentUser = null; switchView('landing'); }); };
 
-        // App Initializations & Tracker syncs
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                initUserData(user);
-            } else {
-                switchView('landing');
-            }
-        });
+        onAuthStateChanged(auth, (user) => { if (user) initUserData(user); else switchView('landing'); });
 
         function initUserData(user) {
             currentUser = user;
             document.getElementById('dash-username').innerText = user.email.split('@')[0];
             
-            // Sync content from firebase db
             get(ref(db, 'silibus')).then((snapshot) => {
-                if (snapshot.exists()) {
-                    appSilibusData = snapshot.val();
-                } else {
-                    appSilibusData = localFallbackSilibus;
-                }
-                // DITUKAR: Pastikan dropdown diproses sebaik sahaja data silibus dari firebase selesai di-load
+                appSilibusData = snapshot.exists() ? snapshot.val() : {};
                 updateAdminChapterOptions();
-            }).catch(() => {
-                appSilibusData = localFallbackSilibus;
-                updateAdminChapterOptions();
-            });
+            }).catch(() => { updateAdminChapterOptions(); });
 
-            // Fetch profiles tracking record
             get(ref(db, 'users/' + user.uid)).then((snapshot) => {
                 if (snapshot.exists()) {
                     const data = snapshot.val();
-                    if(data.role === 'admin') {
-                        document.getElementById('admin-nav-btn').classList.remove('hide');
-                    }
+                    if(data.role === 'admin') document.getElementById('admin-nav-btn').classList.remove('hide');
                     document.getElementById('nav-streak').innerText = data.streak || 1;
                     document.getElementById('dash-stat-streak').innerText = (data.streak || 1) + " Hari";
                     document.getElementById('dash-stat-questions').innerText = data.questionsAnswered || 0;
-                    document.getElementById('prof-weakest-topic').innerText = data.weakestTopic || "Tiada data";
-                    document.getElementById('prof-completed-count').innerText = (data.completedChapters ? Object.keys(data.completedChapters).length : 0) + " Bab";
-                    document.getElementById('prof-avg-score').innerText = (data.avgScore || 0) + "%";
                 }
             });
-
-            renderBadges();
             switchView('dashboard');
         }
 
-        function renderBadges() {
-            const container = document.getElementById('dash-badges');
-            const list = [
-                { name: "Formula Master", icon: "📐", desc: "Mula Belajar" },
-                { name: "Quiz Champion", icon: "🏆", desc: "Skor 100%" },
-                { name: "7 Hari Streak", icon: "🔥", desc: "Konsisten" },
-                { name: "Perwira Math", icon: "🚀", desc: "Selesai 1 Bab" }
-            ];
-            container.innerHTML = list.map(b => `
-                <div class="p-2 border border-slate-100 rounded-xl bg-slate-50">
-                    <span class="text-xl block">${b.icon}</span>
-                    <p class="text-[9px] font-bold mt-1 text-slate-700 leading-none">${b.name}</p>
-                </div>
-            `).join('');
-        }
-
-        // Chapters view listing builder
         window.loadChapters = function(formNum) {
             currentSelectedForm = formNum;
             const container = document.getElementById('chapters-container');
             document.getElementById('chapters-title').innerText = `Tingkatan ${formNum} - Senarai Bab`;
             container.innerHTML = "";
-
             const chapters = appSilibusData[formNum];
-            if (!chapters || Object.keys(chapters).length === 0) {
-                container.innerHTML = `<p class="text-xs text-gray-500 text-center py-6">Tiada kandungan sedia ada lagi untuk Tingkatan ini. Admin sedang mengemaskini.</p>`;
-                switchView('chapters');
-                return;
+            if (!chapters) {
+                container.innerHTML = `<p class="text-xs text-gray-500 text-center py-6">Tiada bab ditemui.</p>`;
+                return switchView('chapters');
             }
-
             for (let chKey in chapters) {
-                const ch = chapters[chKey];
                 const item = document.createElement('div');
-                item.className = "bg-white border border-gray-100 p-4 rounded-xl flex justify-between items-center shadow-sm cursor-pointer hover:border-soft-pink";
-                item.onclick = () => launchSubtopicFlow(chKey, ch);
-                item.innerHTML = `
-                    <div>
-                        <h4 class="font-bold text-sm text-slate-900">${ch.nama}</h4>
-                        <p class="text-[10px] text-soft-pink font-semibold mt-1">📊 Progress Semasa: 0% selesai</p>
-                    </div>
-                    <i class="fa-solid fa-play-circle text-xl text-soft-pink"></i>
-                `;
+                item.className = "bg-white border p-4 rounded-xl flex justify-between items-center cursor-pointer hover:border-soft-pink shadow-sm";
+                item.onclick = () => launchSubtopicFlow(chKey, chapters[chKey]);
+                item.innerHTML = `<div><h4 class="font-bold text-sm text-slate-900">${chapters[chKey].nama}</h4></div><i class="fa-solid fa-play-circle text-xl text-soft-pink"></i>`;
                 container.appendChild(item);
             }
             switchView('chapters');
         };
 
-        // Subtopic flow framework controller
         function launchSubtopicFlow(chKey, chData) {
             currentSelectedChapterKey = chKey;
             const select = document.getElementById('flow-subtopic-select');
             select.innerHTML = "";
-            
-            if(!chData.subtopik) {
-                alert("Bab ini belum diisi dengan subtopik lagi.");
-                return;
-            }
-
+            if(!chData.subtopik) return alert("Bab ini belum diisi dengan subtopik.");
             for (let subKey in chData.subtopik) {
-                let option = document.createElement('option');
-                option.value = subKey;
-                option.innerText = chData.subtopik[subKey].nama;
-                select.appendChild(option);
+                let op = document.createElement('option'); op.value = subKey; op.innerText = chData.subtopik[subKey].nama; select.appendChild(op);
             }
-
             switchView('content-flow');
-            switchFlowSubTab('nota'); // Default inside sub nav
+            switchFlowSubTab('nota');
         }
 
-        window.onSubtopicChange = function() {
-            switchFlowSubTab('nota');
-        };
+        window.onSubtopicChange = function() { switchFlowSubTab('nota'); };
 
         window.switchFlowSubTab = function(subtab) {
             document.querySelectorAll('.flow-subview').forEach(el => el.classList.add('hide'));
-            document.querySelectorAll('#view-content-flow border-b-2').forEach(b => b.classList.remove('text-soft-pink', 'border-soft-pink'));
-            
-            // UI tab states styling adjustments
-            ['nota','contoh','latihan','kuiz'].forEach(t => {
-                document.getElementById('tab-btn-' + t).className = "py-3 border-b-2 border-transparent text-slate-400";
-            });
-            document.getElementById('tab-btn-' + subtab).className = "py-3 border-b-2 text-soft-pink border-soft-pink font-bold";
-            
+            ['nota','contoh','latihan','kuiz'].forEach(t => document.getElementById('tab-btn-' + t).className = "py-3 text-slate-400 text-xs");
+            document.getElementById('tab-btn-' + subtab).className = "py-3 text-soft-pink border-b-2 border-soft-pink font-bold text-xs";
             document.getElementById('flow-section-' + subtab).classList.remove('hide');
 
-            // Render relevant selected engine content item dynamically
             const subKey = document.getElementById('flow-subtopic-select').value;
+            if(!subKey) return;
             const subData = appSilibusData[currentSelectedForm][currentSelectedChapterKey].subtopik[subKey];
 
-            if(subtab === 'nota') {
-                document.getElementById('nota-content').innerHTML = `
-                    <div class="bg-white p-4 rounded-xl border border-gray-100">
-                        <span class="text-xs font-bold text-soft-pink uppercase tracking-widest">Maksud Topik</span>
-                        <p class="text-sm text-slate-800 mt-1">${subData.nota.maksud}</p>
-                    </div>
-                    <div class="bg-neon-green p-4 rounded-xl border border-green-200">
-                        <span class="text-xs font-bold text-green-700 uppercase tracking-widest">Formula Penting</span>
-                        <p class="text-base font-mono font-bold text-green-900 mt-1">${subData.nota.formula}</p>
-                    </div>
-                    <div class="bg-red-50 p-4 rounded-xl border border-red-100">
-                        <span class="text-xs font-bold text-red-600 uppercase tracking-widest">🚨 Kesilapan Biasa Pelajar</span>
-                        <p class="text-xs text-slate-700 mt-1">${subData.nota.kesilapan}</p>
-                    </div>
-                    <div class="bg-amber-50 p-4 rounded-xl border border-amber-100">
-                        <span class="text-xs font-bold text-amber-600 uppercase tracking-widest">💡 Tips Mudah Ingat</span>
-                        <p class="text-xs text-slate-700 mt-1">${subData.nota.tips}</p>
-                    </div>
-                `;
-            } else if (subtab === 'contoh') {
-                document.getElementById('contoh-content').innerHTML = `
-                    <div class="bg-white border p-4 rounded-xl">
-                        <span class="bg-slate-900 text-white text-[10px] uppercase font-bold px-2 py-0.5 rounded">Soalan Contoh</span>
-                        <p class="text-sm font-semibold mt-2">${subData.contoh.soalan}</p>
-                    </div>
-                    <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl">
-                        <span class="text-xs font-bold text-blue-600 block mb-2"><i class="fa-solid fa-chalkboard-user"></i> Penjelasan Cikgu Langkah demi Langkah:</span>
-                        <p class="text-xs text-slate-700 whitespace-pre-line leading-relaxed">${subData.contoh.jalan_kerja}</p>
-                    </div>
-                `;
-            } else if (subtab === 'latihan') {
-                document.getElementById('latihan-content').innerHTML = `
-                    <div class="bg-white border p-4 rounded-xl">
-                        <span class="text-xs font-bold text-indigo-600 block mb-1">Uji Diri Anda</span>
-                        <p class="text-sm font-medium">${subData.latihan.soalan}</p>
-                    </div>
-                    <div class="grid grid-cols-1 gap-2">
-                        <button onclick="checkLatihanJawapan('A', '${subData.latihan.jawapan}', '${subData.latihan.penerangan}')" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50"><strong>A.</strong> ${subData.latihan.a}</button>
-                        <button onclick="checkLatihanJawapan('B', '${subData.latihan.jawapan}', '${subData.latihan.penerangan}')" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50"><strong>B.</strong> ${subData.latihan.b}</button>
-                        <button onclick="checkLatihanJawapan('C', '${subData.latihan.jawapan}', '${subData.latihan.penerangan}')" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50"><strong>C.</strong> ${subData.latihan.c}</button>
-                        <button onclick="checkLatihanJawapan('D', '${subData.latihan.jawapan}', '${subData.latihan.penerangan}')" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50"><strong>D.</strong> ${subData.latihan.d}</button>
-                    </div>
-                    <div id="latihan-feedback" class="p-4 rounded-xl text-xs hide"></div>
-                `;
-            } else if (subtab === 'kuiz') {
-                document.getElementById('kuiz-intro').classList.remove('hide');
-                document.getElementById('kuiz-active').classList.add('hide');
-                document.getElementById('kuiz-result').classList.add('hide');
+            if(subtab === 'nota' && subData.nota) {
+                document.getElementById('nota-content').innerHTML = `<div class="bg-white p-4 rounded-xl border"><span class="text-xs font-bold text-soft-pink uppercase">Maksud</span><p class="text-sm mt-1">${subData.nota.maksud || ''}</p></div><div class="bg-neon-green p-4 rounded-xl border text-green-900"><span class="text-xs font-bold uppercase">Formula</span><p class="font-mono font-bold mt-1">${subData.nota.formula || 'Tiada'}</p></div>`;
+            } else if (subtab === 'contoh' && subData.contoh) {
+                document.getElementById('contoh-content').innerHTML = `<div class="bg-white border p-4 rounded-xl"><p class="text-sm font-semibold">${subData.contoh.soalan || ''}</p></div><div class="bg-slate-50 border p-4 rounded-xl text-xs"><p class="whitespace-pre-line">${subData.contoh.jalan_kerja || ''}</p></div>`;
+            } else if (subtab === 'latihan' && subData.latihan) {
+                document.getElementById('latihan-content').innerHTML = `<div class="bg-white border p-4 rounded-xl"><p class="text-sm font-medium">${subData.latihan.soalan || ''}</p></div><div class="grid grid-cols-1 gap-2"><button onclick="checkLatihanJawapan('A', '${subData.latihan.jawapan}', '${subData.latihan.penerangan}')" class="w-full text-left p-3 text-xs bg-white border rounded-xl">A. ${subData.latihan.a}</button><button onclick="checkLatihanJawapan('B', '${subData.latihan.jawapan}', '${subData.latihan.penerangan}')" class="w-full text-left p-3 text-xs bg-white border rounded-xl">B. ${subData.latihan.b}</button><button onclick="checkLatihanJawapan('C', '${subData.latihan.jawapan}', '${subData.latihan.penerangan}')" class="w-full text-left p-3 text-xs bg-white border rounded-xl">C. ${subData.latihan.c}</button><button onclick="checkLatihanJawapan('D', '${subData.latihan.jawapan}', '${subData.latihan.penerangan}')" class="w-full text-left p-3 text-xs bg-white border rounded-xl">D. ${subData.latihan.d}</button></div><div id="latihan-feedback" class="p-4 rounded-xl text-xs hide"></div>`;
             }
         };
 
-        window.checkLatihanJawapan = function(pilih, betul, feedbackTeks) {
-            const fb = document.getElementById('latihan-feedback');
-            fb.classList.remove('hide', 'bg-green-50', 'text-green-700', 'bg-red-50', 'text-red-700');
-            
-            if (pilih === betul) {
-                fb.classList.add('bg-green-50', 'text-green-700');
-                fb.innerHTML = `<strong>🎉 Syabas, Betul!</strong><br>${feedbackTeks}`;
-                if(currentUser) {
-                    update(ref(db, 'users/' + currentUser.uid), { questionsAnswered: 1 });
-                }
-            } else {
-                fb.classList.add('bg-red-50', 'text-red-700');
-                fb.innerHTML = `<strong>❌ Ops, Kurang Tepat!</strong> Kenapa salah? Mari baca penjelasan:<br>${feedbackTeks}`;
-            }
+        window.checkLatihanJawapan = function(pilih, betul, fbTeks) {
+            const fb = document.getElementById('latihan-feedback'); fb.classList.remove('hide', 'bg-green-50', 'text-green-700', 'bg-red-50', 'text-red-700');
+            if (pilih === betul) { fb.classList.add('bg-green-50', 'text-green-700'); fb.innerHTML = `<strong>🎉 Betul!</strong><br>${fbTeks}`; }
+            else { fb.classList.add('bg-red-50', 'text-red-700'); fb.innerHTML = `<strong>❌ Salah!</strong><br>${fbTeks}`; }
         };
 
-        // Quiz Processing Engine
-        window.startChapterQuiz = function() {
-            document.getElementById('kuiz-intro').classList.add('hide');
-            document.getElementById('kuiz-active').classList.remove('hide');
-            
-            activeQuizQuestions = [];
-            const subtopics = appSilibusData[currentSelectedForm][currentSelectedChapterKey].subtopik;
-            for(let k in subtopics) {
-                if(subtopics[k].latihan) activeQuizQuestions.push(subtopics[k].latihan);
-            }
+        // ADMIN CONTROLS INTERACTION
+        document.getElementById('adm-form').addEventListener('change', () => updateAdminChapterOptions());
 
-            activeQuizIndex = 0;
-            activeQuizScore = 0;
-            renderQuizQuestion();
-        };
-
-        function renderQuizQuestion() {
-            if(activeQuizIndex >= activeQuizQuestions.length) {
-                showQuizResults();
-                return;
-            }
-            const q = activeQuizQuestions[activeQuizIndex];
-            const container = document.getElementById('kuiz-active');
-            container.innerHTML = `
-                <div class="flex justify-between items-center text-xs text-gray-400 font-medium">
-                    <span>Soalan ${activeQuizIndex + 1} daripada ${activeQuizQuestions.length}</span>
-                </div>
-                <div class="bg-white p-4 rounded-xl border">
-                    <p class="text-sm font-semibold">${q.soalan}</p>
-                </div>
-                <div class="grid grid-cols-1 gap-2">
-                    <button onclick="submitQuizAnswer('A')" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50">A. ${q.a}</button>
-                    <button onclick="submitQuizAnswer('B')" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50">B. ${q.b}</button>
-                    <button onclick="submitQuizAnswer('C')" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50">C. ${q.c}</button>
-                    <button onclick="submitQuizAnswer('D')" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50">D. ${q.d}</button>
-                </div>
-            `;
-        }
-
-        window.submitQuizAnswer = function(ans) {
-            const q = activeQuizQuestions[activeQuizIndex];
-            if(ans === q.jawapan) activeQuizScore++;
-            activeQuizIndex++;
-            renderQuizQuestion();
-        };
-
-        function showQuizResults() {
-            document.getElementById('kuiz-active').classList.add('hide');
-            const res = document.getElementById('kuiz-result');
-            res.classList.remove('hide');
-
-            const percent = Math.round((activeQuizScore / activeQuizQuestions.length) * 100) || 0;
-            let advice = "Sikit-sikit lama-lama faham. Jom buat ulang kaji semula nota subtopik tadi.";
-            if(percent >= 80) advice = "Hebat! Anda sangat memahami bab ini. Teruskan usaha cemerlang!";
-            else if(percent >= 50) advice = "Pencapaian yang baik! Gilap sikit lagi pada bahagian kesilapan biasa.";
-
-            res.innerHTML = `
-                <span class="text-5xl">🎯</span>
-                <h3 class="font-bold text-lg mt-3">Keputusan Kuiz Anda</h3>
-                <div class="text-3xl font-extrabold text-soft-pink my-2">${percent}%</div>
-                <p class="text-xs text-slate-600 px-4 mb-6">${advice}</p>
-                <button onclick="switchView('levels')" class="btn-primary text-xs font-bold px-6 py-2.5 rounded-xl">Selesai & Balik</button>
-            `;
-        }
-
-        // Mode Ulang Kaji Mode Engine Trigger
-        window.initReviewMode = function() {
-            switchView('content-flow');
-            setTimeout(() => {
-                alert("Sistem mengesan anda memerlukan pengukuhan pada Bab Matematik Pengguna. Mari kita lihat nota padat.");
-            }, 300);
-        };
-
-
-        /* ==========================================================================
-           BAHAGIAN MODUL BARU: LOGIK DROPDOWN & UPDATE PANEL ADMIN (SILIUBUS BUILDER)
-           ========================================================================== */
-
-        // Hubungkan event listener pada input tingkatan admin supaya list bertukar mengikut form
-        document.getElementById('adm-form').addEventListener('change', function() {
-            updateAdminChapterOptions();
-        });
-
-        // FUNGSI BARU: Mengemas kini senarai pilihan Bab berdasarkan Tingkatan yang diisi
         window.updateAdminChapterOptions = function() {
             const formNum = document.getElementById('adm-form').value;
-            const chapterSelect = document.getElementById('adm-chapter-select');
-            chapterSelect.innerHTML = '<option value="">-- Pilih Bab Sedia Ada --</option>';
-            
-            // Set semula dropdown subtopik kepada laluan kosong
+            const select = document.getElementById('adm-chapter-select');
+            select.innerHTML = '<option value="">-- Pilih Bab Sedia Ada --</option>';
             document.getElementById('adm-subtopic-select').innerHTML = '<option value="">-- Pilih Subtopik Sedia Ada --</option>';
-
+            
             const chapters = appSilibusData[formNum];
             if (chapters) {
-                for (let chKey in chapters) {
-                    let option = document.createElement('option');
-                    option.value = chKey;
-                    option.innerText = chapters[chKey].nama;
-                    chapterSelect.appendChild(option);
+                for (let k in chapters) {
+                    let op = document.createElement('option'); op.value = k; op.innerText = chapters[k].nama; select.appendChild(op);
                 }
             }
         };
 
-        // FUNGSI BARU: Mengemas kini senarai pilihan Subtopik berdasarkan Bab yang dipilih
         window.updateAdminSubtopicOptions = function() {
             const formNum = document.getElementById('adm-form').value;
             const chKey = document.getElementById('adm-chapter-select').value;
-            const subtopicSelect = document.getElementById('adm-subtopic-select');
-            subtopicSelect.innerHTML = '<option value="">-- Pilih Subtopik Sedia Ada --</option>';
+            const select = document.getElementById('adm-subtopic-select');
+            select.innerHTML = '<option value="">-- Pilih Subtopik Sedia Ada --</option>';
 
             if (chKey && appSilibusData[formNum] && appSilibusData[formNum][chKey] && appSilibusData[formNum][chKey].subtopik) {
                 const subtopics = appSilibusData[formNum][chKey].subtopik;
-                for (let subKey in subtopics) {
-                    let option = document.createElement('option');
-                    option.value = subKey;
-                    option.innerText = subtopics[subKey].nama;
-                    subtopicSelect.appendChild(option);
+                for (let k in subtopics) {
+                    let op = document.createElement('option'); op.value = k; op.innerText = subtopics[k].nama; select.appendChild(op);
                 }
-                // Masukkan nama asal bab ke dalam custom input sebagai bantuan rujukan admin
-                document.getElementById('adm-chapter-custom').value = appSilibusData[formNum][chKey].nama;
-            } else {
-                document.getElementById('adm-chapter-custom').value = '';
             }
         };
 
-        // KEMASKINI FUNGSI: Logik padam kandungan menggunakan gabungan select box dan custom input text
-        window.deleteContentFromFirebase = function() {
+        /* ==========================================================================
+           FUNGSI UTAMA BARU: MENAMBAH & MEMADAM STRUKTUR LIST (BAB / SUBTOPIK)
+           ========================================================================== */
+        window.manageStructure = function(actionType) {
             const formNum = document.getElementById('adm-form').value;
-            
             const selectedChKey = document.getElementById('adm-chapter-select').value;
             const customChName = document.getElementById('adm-chapter-custom').value.trim();
-            const chapterKey = selectedChKey || customChName.replace(/\s+/g, '_');
-            const chapterRealName = getChNameString(formNum, selectedChKey) || customChName;
-
             const selectedSubKey = document.getElementById('adm-subtopic-select').value;
             const customSubName = document.getElementById('adm-subtopic-custom').value.trim();
-            const subtopicKey = selectedSubKey || customSubName.replace(/\s+/g, '_');
-            const subtopicRealName = getSubNameString(formNum, selectedChKey, selectedSubKey) || customSubName;
 
-            if (!chapterKey) {
-                alert("Sila pilih atau masukkan nama Bab untuk menentukan data yang mahu dipadam.");
-                return;
+            if (!formNum) return alert("Sila tetapkan nombor Tingkatan.");
+
+            // 1. TAMBAH BAB BARU
+            if (actionType === 'add_chapter') {
+                if (!customChName) return alert("Sila taip nama Bab Baru di dalam kotak input.");
+                const newChKey = "Bab_" + customChName.replace(/[^a-zA-Z0-9]/g, '_');
+                
+                set(ref(db, `silibus/${formNum}/${newChKey}`), { nama: customChName })
+                .then(() => { alert(`Bab "${customChName}" berjaya ditambah!`); danReload(); })
+                .catch(e => alert(e.message));
+            }
+            
+            // 2. PADAM BAB
+            else if (actionType === 'delete_chapter') {
+                if (!selectedChKey) return alert("Sila pilih Bab Sedia Ada dari dropdown untuk dipadam.");
+                const chName = document.getElementById('adm-chapter-select').options[document.getElementById('adm-chapter-select').selectedIndex].text;
+                
+                if (confirm(`Adakah anda pasti mahu memadam KESELURUHAN Bab "${chName}" beserta semua subtopik di dalamnya?`)) {
+                    set(ref(db, `silibus/${formNum}/${selectedChKey}`), null)
+                    .then(() => { alert("Bab berjaya dipadamkan."); danReload(); })
+                    .catch(e => alert(e.message));
+                }
             }
 
-            let targetPath = `silibus/${formNum}/${chapterKey}`;
-            let mesejPengesahan = `Adakah anda pasti mahu memadam KESELURUHAN Bab "${chapterRealName}" di bawah Tingkatan ${formNum}?`;
+            // 3. TAMBAH SUBTOPIK BARU
+            else if (actionType === 'add_subtopic') {
+                if (!selectedChKey) return alert("Sila pilih Bab utama dari dropdown terlebih dahulu.");
+                if (!customSubName) return alert("Sila taip nama Subtopik Baru di dalam kotak input.");
+                const newSubKey = "Sub_" + customSubName.replace(/[^a-zA-Z0-9]/g, '_');
 
-            if (customSubName || selectedSubKey) {
-                targetPath = `silibus/${formNum}/${chapterKey}/subtopik/${subtopicKey}`;
-                mesejPengesahan = `Adakah anda pasti mahu memadam Subtopik "${subtopicRealName}" di bawah Bab "${chapterRealName}"?`;
+                set(ref(db, `silibus/${formNum}/${selectedChKey}/subtopik/${newSubKey}`), { nama: customSubName })
+                .then(() => { alert(`Subtopik "${customSubName}" berjaya ditambah!`); danReload(); })
+                .catch(e => alert(e.message));
             }
 
-            if (confirm(mesejPengesahan)) {
-                set(ref(db, targetPath), null)
-                .then(() => {
-                    alert("Kandungan tersebut telah berjaya dipadamkan daripada Firebase!");
-                    location.reload();
-                })
-                .catch((error) => {
-                    alert("Gagal memadam kandungan: " + error.message);
-                });
+            // 4. PADAM SUBTOPIK
+            else if (actionType === 'delete_subtopic') {
+                if (!selectedChKey) return alert("Sila pilih Bab berkaitan dari dropdown.");
+                if (!selectedSubKey) return alert("Sila pilih Subtopik dari dropdown untuk dipadam.");
+                const subName = document.getElementById('adm-subtopic-select').options[document.getElementById('adm-subtopic-select').selectedIndex].text;
+
+                if (confirm(`Adakah anda pasti mahu memadam Subtopik "${subName}"?`)) {
+                    set(ref(db, `silibus/${formNum}/${selectedChKey}/subtopik/${selectedSubKey}`), null)
+                    .then(() => { alert("Subtopik berjaya dipadamkan."); danReload(); })
+                    .catch(e => alert(e.message));
+                }
             }
         };
 
-        // KEMASKINI FUNGSI: Logik simpan dengan memisahkan path tulisan agar data subtopik lain tidak overwriting/terpadam
+        function danReload() {
+            get(ref(db, 'silibus')).then((snapshot) => {
+                appSilibusData = snapshot.exists() ? snapshot.val() : {};
+                updateAdminChapterOptions();
+                document.getElementById('adm-chapter-custom').value = "";
+                document.getElementById('adm-subtopic-custom').value = "";
+            });
+        }
+
+        // SIMPAN ISI KANDUNGAN SUBTOPIK
         window.saveContentToFirebase = function() {
             const formNum = document.getElementById('adm-form').value;
-            
-            const selectedChKey = document.getElementById('adm-chapter-select').value;
-            const customChName = document.getElementById('adm-chapter-custom').value.trim();
-            const chapterKey = selectedChKey || customChName.replace(/\s+/g, '_');
-            const chapterNamaPaparan = getChNameString(formNum, selectedChKey) || customChName;
+            const chKey = document.getElementById('adm-chapter-select').value;
+            const subKey = document.getElementById('adm-subtopic-select').value;
 
-            const selectedSubKey = document.getElementById('adm-subtopic-select').value;
-            const customSubName = document.getElementById('adm-subtopic-custom').value.trim();
-            const subtopicKey = selectedSubKey || customSubName.replace(/\s+/g, '_');
-            const subtopicNamaPaparan = getSubNameString(formNum, selectedChKey, selectedSubKey) || customSubName;
-            
-            if(!chapterNamaPaparan || !subtopicNamaPaparan) {
-                alert("Sila pilih atau isi nama Bab dan nama Subtopik.");
-                return;
-            }
+            if(!chKey || !subKey) return alert("Sila pilih Bab dan Subtopik di Bahagian 1 terlebih dahulu.");
 
-            const targetPath = `silibus/${formNum}/${chapterKey}`;
-            const subtopicPath = `silibus/${formNum}/${chapterKey}/subtopik/${subtopicKey}`;
-            
-            const babPayload = {
-                nama: chapterNamaPaparan
-            };
+            const subtopicName = document.getElementById('adm-subtopic-select').options[document.getElementById('adm-subtopic-select').selectedIndex].text;
+            const path = `silibus/${formNum}/${chKey}/subtopik/${subKey}`;
 
-            const subtopicPayload = {
-                nama: subtopicNamaPaparan,
+            const payload = {
+                nama: subtopicName,
                 nota: {
                     maksud: document.getElementById('adm-nota-maksud').value,
                     formula: document.getElementById('adm-nota-formula').value,
@@ -980,24 +706,69 @@
                 }
             };
 
-            // Jalankan update nama Bab terlebih dahulu, kemudian lakukan suntikan data subtopik secara berasingan
-            update(ref(db, targetPath), babPayload).then(() => {
-                return update(ref(db, subtopicPath), subtopicPayload);
-            }).then(() => {
-                alert("Kandungan berjaya ditambah/dikemaskini ke Firebase database!");
-                location.reload();
-            }).catch(err => alert("Gagal menyimpan data: " + err.message));
+            update(ref(db, path), payload).then(() => {
+                alert("Isi kandungan subtopik berjaya disimpan!");
+            }).catch(err => alert(err.message));
         };
-
-        // Fungsi sokongan untuk mendapatkan teks String nama sebenar dari objek state silibus
-        function getChNameString(form, key) {
-            return (appSilibusData[form] && appSilibusData[form][key]) ? appSilibusData[form][key].nama : null;
+        window.refreshContentList = function() {
+    const listSelect = document.getElementById('adm-content-list');
+    listSelect.innerHTML = '<option value="">-- Loading... --</option>';
+    
+    get(ref(db, 'silibus')).then((snapshot) => {
+        listSelect.innerHTML = '<option value="">-- Pilih kandungan untuk edit/padam --</option>';
+        if (snapshot.exists()) {
+            const data = snapshot.val();
+            for(let form in data) {
+                for(let bab in data[form]) {
+                    if(data[form][bab].subtopik) {
+                        for(let sub in data[form][bab].subtopik) {
+                            let option = document.createElement('option');
+                            option.value = `${form}|${bab}|${sub}`;
+                            option.innerText = `[T${form}] ${bab.replace(/_/g, ' ')} > ${data[form][bab].subtopik[sub].nama}`;
+                            listSelect.appendChild(option);
+                        }
+                    }
+                }
+            }
         }
-        
-        function getSubNameString(form, chKey, subKey) {
-            return (appSilibusData[form] && appSilibusData[form][chKey] && appSilibusData[form][chKey].subtopik) ? appSilibusData[form][chKey].subtopik[subKey].nama : null;
-        }
+    });
+};
 
+// FUNGSI AUTO-FILL BORANG BILA ITEM DIPILIH
+window.loadContentToForm = function() {
+    const val = document.getElementById('adm-content-list').value;
+    if(!val) return;
+    const [form, bab, sub] = val.split('|');
+    
+    get(ref(db, `silibus/${form}/${bab}/subtopik/${sub}`)).then((snapshot) => {
+        if(snapshot.exists()) {
+            const data = snapshot.val();
+            document.getElementById('adm-form').value = form;
+            document.getElementById('adm-chapter').value = bab;
+            document.getElementById('adm-subtopic').value = sub;
+            document.getElementById('adm-nota-maksud').value = data.nota?.maksud || '';
+            document.getElementById('adm-nota-formula').value = data.nota?.formula || '';
+            document.getElementById('adm-nota-kesilapan').value = data.nota?.kesilapan || '';
+            document.getElementById('adm-nota-tips').value = data.nota?.tips || '';
+            document.getElementById('adm-contoh-soalan').value = data.contoh?.soalan || '';
+            document.getElementById('adm-contoh-jalan').value = data.contoh?.jalan_kerja || '';
+        }
+    });
+};
+
+// FUNGSI PADAM ITEM TERPILIH
+window.deleteSelectedContent = function() {
+    const val = document.getElementById('adm-content-list').value;
+    if(!val) return alert("Sila pilih item dari senarai!");
+    const [form, bab, sub] = val.split('|');
+    
+    if(confirm("Padam subtopik ini?")) {
+        set(ref(db, `silibus/${form}/${bab}/subtopik/${sub}`), null).then(() => {
+            alert("Berjaya dipadam!");
+            refreshContentList();
+        });
+    }
+};
     </script>
 </body>
 </html>
