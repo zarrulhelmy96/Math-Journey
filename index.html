@@ -441,17 +441,68 @@
         };
 
         // GLOBAL VIEW HANDLER WITH SECURITY AUTH CHECK
-        window.switchView = function(viewId) {
-            // PERATURAN 1: Jika belum sah log masuk, halang semua akses selain daripada skrin landing atau login/register
-            if (!currentUser && viewId !== 'landing' && viewId !== 'login') {
-                alert("Sila log masuk terlebih dahulu untuk mengakses Math Journey!");
-                document.getElementById('app-nav').classList.add('hide');
-                document.getElementById('bottom-nav').classList.add('hide');
-                
-                document.querySelectorAll('.view').forEach(el => el.classList.add('hide'));
-                document.getElementById('view-login').classList.remove('hide');
-                return;
-            }
+window.switchView = function(viewId) {
+    // PERATURAN 1: Jika belum sah log masuk, halang semua akses selain daripada skrin landing atau login/register
+    if (!currentUser && viewId !== 'landing' && viewId !== 'login') {
+        alert("Sila log masuk terlebih dahulu untuk mengakses Math Journey!");
+        document.getElementById('app-nav').classList.add('hide');
+        document.getElementById('bottom-nav').classList.add('hide'); // Menyembunyikan butang bawah
+        
+        document.querySelectorAll('.view').forEach(el => el.classList.add('hide'));
+        document.getElementById('view-login').classList.remove('hide');
+        return;
+    }
+
+    // PERATURAN 2: Sekatan Ketat Halaman Admin
+    if (viewId === 'admin') {
+        if (!currentUser || currentUser.email.toLowerCase() !== 'komikkehidupan01@gmail.com') {
+            alert("Akses Ditolak! Hanya akaun Admin rasmi sahaja.");
+            viewId = 'dashboard';
+        }
+    }
+
+    document.querySelectorAll('.view').forEach(el => el.classList.add('hide'));
+    const targetView = document.getElementById('view-' + viewId);
+    if (targetView) targetView.classList.remove('hide');
+    
+    // JIKA Berada di skrin landing, login, ATAU register -> SEMBUNYIKAN NAVIGASI ATAS & BAWAH SEPENUHNYA
+    if (viewId === 'landing' || viewId === 'login') {
+        document.getElementById('app-nav').classList.add('hide');
+        document.getElementById('bottom-nav').classList.add('hide'); // Ini akan menyembunyikan butang Utama, Tingkatan, dll.
+    } else {
+        // HANYA dipaparkan apabila berada di skrin dalaman (selepas login/register berjaya)
+        document.getElementById('app-nav').classList.remove('hide');
+        document.getElementById('bottom-nav').classList.remove('hide'); // Tunjukkan semula selepas masuk dashboard
+        
+        document.querySelectorAll('#bottom-nav button').forEach(b => b.classList.remove('text-soft-pink'));
+        const activeBnav = document.getElementById('bnav-' + viewId);
+        if (activeBnav) activeBnav.classList.add('text-soft-pink');
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+// KAWALAN PENUKARAN LOGIN VS REGISTER
+window.toggleAuthMode = function() {
+    // Sembunyikan navigasi secara paksa sekiranya bertukar mod ke Register
+    document.getElementById('app-nav').classList.add('hide');
+    document.getElementById('bottom-nav').classList.add('hide'); // Memastikan butang bawah kekal tersembunyi
+
+    if (currentAuthMode === 'login') {
+        currentAuthMode = 'register';
+        document.getElementById('auth-title').innerText = "Jom Daftar Akaun!";
+        document.getElementById('auth-subtitle').innerText = "Mulakan perjalanan gred A Matematik hari ini.";
+        document.getElementById('auth-submit-btn').innerText = "Daftar Akaun Baharu";
+        document.getElementById('auth-toggle-msg').innerText = "Dah ada akaun?";
+        document.getElementById('auth-toggle-btn').innerText = "Log masuk di sini";
+    } else {
+        currentAuthMode = 'login';
+        document.getElementById('auth-title').innerText = "Selamat Kembali!";
+        document.getElementById('auth-subtitle').innerText = "Log masuk untuk sambung Journey anda.";
+        document.getElementById('auth-submit-btn').innerText = "Log Masuk";
+        document.getElementById('auth-toggle-msg').innerText = "Belum ada akaun?";
+        document.getElementById('auth-toggle-btn').innerText = "Daftar di sini";
+    }
+};
 
             // PERATURAN 2: Sekatan Ketat Halaman Admin
             if (viewId === 'admin') {
