@@ -309,11 +309,11 @@
         <section id="view-admin" class="view p-5 hide">
             <div class="mb-6">
                 <h2 class="text-xl font-bold text-purple-900">Admin Panel (Silibus Builder)</h2>
-                <p class="text-xs text-gray-500">Tambah kandungan Terus ke Firebase Realtime Database.</p>
+                <p class="text-xs text-gray-500">Tambah atau padam kandungan di Firebase Realtime Database.</p>
             </div>
 
             <div class="bg-white border border-gray-200 p-4 rounded-xl space-y-3 mb-6 text-xs">
-                <h3 class="font-bold text-sm text-slate-800 border-b pb-2">Tambah / Kemaskini Subtopik</h3>
+                <h3 class="font-bold text-sm text-slate-800 border-b pb-2">Urus Kandungan Subtopik</h3>
                 <div>
                     <label class="block font-medium text-gray-600 mb-1">Tingkatan (1 - 5)</label>
                     <input type="number" id="adm-form" min="1" max="5" class="w-full border p-2 rounded" value="3">
@@ -326,7 +326,17 @@
                     <label class="block font-medium text-gray-600 mb-1">Nama Subtopik</label>
                     <input type="text" id="adm-subtopic" class="w-full border p-2 rounded" placeholder="Contoh: Faedah Mudah">
                 </div>
-                <div class="bg-slate-50 p-3 rounded space-y-2 border">
+
+                <div class="bg-red-50 p-3 rounded space-y-2 border border-red-200 mt-2">
+                    <p class="font-bold text-[11px] text-red-700 uppercase tracking-wider">Tindakan Pemadaman (Danger Zone)</p>
+                    <p class="text-[10px] text-gray-500">Sila masukkan Tingkatan, Nama Bab, atau Nama Subtopik di atas terlebih dahulu sebelum menekan butang padam.</p>
+                    <button onclick="deleteContentFromFirebase()" class="w-full bg-red-600 text-white font-bold p-2.5 rounded-lg hover:bg-red-700 transition duration-200 flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-trash-can"></i>
+                        <span>Padam Kandungan Daripada Firebase</span>
+                    </button>
+                </div>
+
+                <div class="bg-slate-50 p-3 rounded space-y-2 border mt-4">
                     <p class="font-bold text-[11px] text-purple-700">Nota Ringkas</p>
                     <textarea id="adm-nota-maksud" rows="2" class="w-full border p-2 rounded" placeholder="Maksud topik..."></textarea>
                     <input type="text" id="adm-nota-formula" class="w-full border p-2 rounded" placeholder="Formula Utama (e.g. I = PRT)">
@@ -356,7 +366,7 @@
                     <textarea id="adm-soalan-penerangan" rows="2" class="w-full border p-2 rounded" placeholder="Penerangan jawapan (Gaya guru santai)..."></textarea>
                 </div>
                 <button onclick="saveContentToFirebase()" class="w-full bg-purple-700 text-white font-bold p-3 rounded-xl hover:bg-purple-800">
-                    Simpan Kandungan Ke Firebase Realtime DB
+                    Simpan / Kemaskini Kandungan Ke Firebase
                 </button>
             </div>
         </section>
@@ -816,6 +826,42 @@
             setTimeout(() => {
                 alert("Sistem mengesan anda memerlukan pengukuhan pada Bab Matematik Pengguna. Mari kita lihat nota padat.");
             }, 300);
+        };
+
+        // FUNGSI BARU: Untuk membolehkan admin delete data silibus secara spesifik
+        window.deleteContentFromFirebase = function() {
+            const formNum = document.getElementById('adm-form').value;
+            const chapterInput = document.getElementById('adm-chapter').value.trim();
+            const subtopicInput = document.getElementById('adm-subtopic').value.trim();
+            
+            const chapter = chapterInput.replace(/\s+/g, '_');
+            const subtopic = subtopicInput.replace(/\s+/g, '_');
+
+            if (!chapterInput) {
+                alert("Sila masukkan sekurang-kurangnya nama Bab untuk menentukan data yang mahu dipadam.");
+                return;
+            }
+
+            let targetPath = `silibus/${formNum}/${chapter}`;
+            let mesejPengesahan = `Adakah anda pasti mahu memadam KESELURUHAN Bab "${chapterInput}" di bawah Tingkatan ${formNum}?`;
+
+            // Jika subtopik turut diisi, padam subtopik itu sahaja secara spesifik
+            if (subtopicInput) {
+                targetPath = `silibus/${formNum}/${chapter}/subtopik/${subtopic}`;
+                mesejPengesahan = `Adakah anda pasti mahu memadam Subtopik "${subtopicInput}" di bawah Bab "${chapterInput}"?`;
+            }
+
+            // Minta pengesahan daripada admin terlebih dahulu
+            if (confirm(mesejPengesahan)) {
+                set(ref(db, targetPath), null)
+                .then(() => {
+                    alert("Kandungan tersebut telah berjaya dipadamkan daripada Firebase!");
+                    location.reload();
+                })
+                .catch((error) => {
+                    alert("Gagal memadam kandungan: " + error.message);
+                });
+            }
         };
 
         // CMS Admin Panel logic routines backend management
