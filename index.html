@@ -384,7 +384,8 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getDatabase, ref, set, get, child, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, set, get, child, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"; // Note: Sourced mapping kept as requested, adjust if import path breaks.
+        import { getDatabase as getDb, ref as dbRef } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         // Konfigurasi Firebase Pengguna
         const firebaseConfig = {
@@ -400,7 +401,7 @@
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const db = getDatabase(app);
+        const db = getDb(app);
 
         // State System Global Global
         let currentUser = null;
@@ -461,13 +462,13 @@
             const targetView = document.getElementById('view-' + viewId);
             if (targetView) targetView.classList.remove('hide');
             
-            // Adjust elements according to login states
+            // Logik Sekatan Paparan Mengikut Halaman Sedia Ada (PENTING!)
             if (viewId === 'landing' || viewId === 'login') {
                 document.getElementById('app-nav').classList.add('hide');
-                document.getElementById('bottom-nav').classList.add('hide');
+                document.getElementById('bottom-nav').classList.add('hide'); // Memastikan nav bawah hilang di page hadapan & register/login
             } else {
                 document.getElementById('app-nav').classList.remove('hide');
-                document.getElementById('bottom-nav').classList.remove('hide');
+                document.getElementById('bottom-nav').classList.remove('hide'); // Hanya dipaparkan selepas berjaya masuk ke dashboard / halaman dalaman
                 
                 // Active indicator update on mobile layout
                 document.querySelectorAll('#bottom-nav button').forEach(b => b.classList.remove('text-soft-pink'));
@@ -482,6 +483,10 @@
         };
 
         window.toggleAuthMode = function() {
+            // Memastikan navigasi bawah kekal tersembunyi semasa bertukar mod login/register
+            document.getElementById('app-nav').classList.add('hide');
+            document.getElementById('bottom-nav').classList.add('hide');
+
             if (currentAuthMode === 'login') {
                 currentAuthMode = 'register';
                 document.getElementById('auth-title').innerText = "Jom Daftar Akaun!";
@@ -519,7 +524,7 @@
                 createUserWithEmailAndPassword(auth, email, password)
                 .then((userCredential) => {
                     // Create base default metadata profile inside Realtime DB
-                    const userRef = ref(db, 'users/' + userCredential.user.uid);
+                    const userRef = dbRef(db, 'users/' + userCredential.user.uid);
                     set(userRef, {
                         email: email,
                         streak: 1,
@@ -555,7 +560,7 @@
             document.getElementById('dash-username').innerText = user.email.split('@')[0];
             
             // Sync content from firebase db
-            get(ref(db, 'silibus')).then((snapshot) => {
+            get(dbRef(db, 'silibus')).then((snapshot) => {
                 if (snapshot.exists()) {
                     appSilibusData = snapshot.val();
                 } else {
@@ -566,7 +571,7 @@
             });
 
             // Fetch profiles tracking record
-            get(ref(db, 'users/' + user.uid)).then((snapshot) => {
+            get(dbRef(db, 'users/' + user.uid)).then((snapshot) => {
                 if (snapshot.exists()) {
                     const data = snapshot.val();
                     if(data.role === 'admin') {
@@ -582,7 +587,7 @@
             });
 
             renderBadges();
-            switchView('dashboard');
+            switchView('dashboard'); // Membawa pengguna ke dashboard dan membuka paparan butang navigasi utama
         }
 
         function renderBadges() {
@@ -732,9 +737,8 @@
             if (pilih === betul) {
                 fb.classList.add('bg-green-50', 'text-green-700');
                 fb.innerHTML = `<strong>🎉 Syabas, Betul!</strong><br>${feedbackTeks}`;
-                // Increment question total count profile inside Firebase
                 if(currentUser) {
-                    update(ref(db, 'users/' + currentUser.uid), { questionsAnswered: 1 });
+                    update(dbRef(db, 'users/' + currentUser.uid), { questionsAnswered: 1 });
                 }
             } else {
                 fb.classList.add('bg-red-50', 'text-red-700');
@@ -747,7 +751,6 @@
             document.getElementById('kuiz-intro').classList.add('hide');
             document.getElementById('kuiz-active').classList.remove('hide');
             
-            // Build dynamic quiz collection array using active parsed subtopics lists inside the structural system tree
             activeQuizQuestions = [];
             const subtopics = appSilibusData[currentSelectedForm][currentSelectedChapterKey].subtopik;
             for(let k in subtopics) {
@@ -811,7 +814,6 @@
         // Mode Ulang Kaji Mode Engine Trigger
         window.initReviewMode = function() {
             switchView('content-flow');
-            // Mock switch to a fallback weak tracking point
             setTimeout(() => {
                 alert("Sistem mengesan anda memerlukan pengukuhan pada Bab Matematik Pengguna. Mari kita lihat nota padat.");
             }, 300);
@@ -829,7 +831,6 @@
             }
 
             const targetPath = `silibus/${formNum}/${chapter}`;
-            // Structured dataset injection mappings standard payload
             const payload = {
                 nama: document.getElementById('adm-chapter').value.trim(),
                 subtopik: {}
@@ -858,7 +859,7 @@
                 }
             };
 
-            update(ref(db, targetPath), payload).then(() => {
+            update(dbRef(db, targetPath), payload).then(() => {
                 alert("Kandungan berjaya ditambah/dikemaskini ke Firebase database!");
                 location.reload();
             }).catch(err => alert("Gagal menyimpan data: " + err.message));
