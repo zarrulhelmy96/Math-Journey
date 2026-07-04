@@ -66,6 +66,36 @@
 
     <main class="max-w-md mx-auto min-h-screen bg-white shadow-xl relative pb-24">
 
+        <div id="payment-modal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hide">
+            <div class="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl border border-gray-100 transform transition-all p-6 text-center">
+                <div class="w-16 h-16 bg-pink-50 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
+                    👑
+                </div>
+                <h3 class="text-xl font-bold text-slate-900 mb-2">Akses Premium</h3>
+                <p class="text-sm text-gray-500 mb-6 leading-relaxed">Dapatkan akses penuh dengan harga <span class="font-bold text-slate-900">RM99</span> seumur hidup</p>
+                
+                <div class="space-y-2 mb-6">
+                    <button onclick="payLifetimeNow()" class="w-full btn-primary font-bold py-3.5 rounded-2xl shadow-lg shadow-pink-100 text-sm flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-credit-card"></i> <span>Bayar RM99 Sekarang</span>
+                    </button>
+                </div>
+
+                <div class="border-t border-gray-100 pt-5 text-left">
+                    <label class="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2">Punya Kod Baucar?</label>
+                    <div class="flex space-x-2">
+                        <input type="text" id="voucher-input" placeholder="Masukkan kod di sini" class="flex-1 border border-gray-200 p-2.5 rounded-xl text-sm uppercase focus:outline-none focus:border-soft-pink font-semibold tracking-wider">
+                        <button onclick="claimVoucherCode()" class="bg-slate-900 text-white text-xs font-bold px-4 rounded-xl hover:bg-slate-800 transition">
+                            Tebus
+                        </button>
+                    </div>
+                </div>
+
+                <button onclick="closePaymentModal()" class="mt-6 text-xs font-semibold text-gray-400 hover:text-gray-600 transition">
+                    Tutup
+                </button>
+            </div>
+        </div>
+
         <section id="view-landing" class="view">
             <div class="p-6 text-center pt-16">
                 <span class="text-5xl inline-block mb-4 animate-bounce">📐✨</span>
@@ -178,7 +208,7 @@
             </div>
 
             <div class="mb-6">
-                <button onclick="switchView('levels')" class="w-full bg-slate-900 text-white font-bold p-4 rounded-xl flex justify-between items-center shadow-md">
+                <button onclick="handleAccessToLevels()" class="w-full bg-slate-900 text-white font-bold p-4 rounded-xl flex justify-between items-center shadow-md">
                     <span>📚 Pilih Tingkatan & Mula Belajar</span>
                     <i class="fa-solid fa-chevron-right text-xs"></i>
                 </button>
@@ -323,6 +353,33 @@
             <div class="mb-6">
                 <h2 class="text-xl font-bold text-purple-900">Admin Panel (Silibus Builder)</h2>
                 <p class="text-xs text-gray-500">Urus struktur silibus dan isi kandungan data secara fleksibel.</p>
+            </div>
+
+            <div class="bg-purple-900 text-white p-4 rounded-xl space-y-3 mb-6 text-xs shadow-sm">
+                <h3 class="font-bold text-sm border-b pb-2"><i class="fa-solid fa-ticket"></i> Voucher Manager</h3>
+                <div class="space-y-2">
+                    <label class="block font-semibold text-purple-200">Tambah Kod Baucar Baru</label>
+                    <div class="flex space-x-2 text-slate-800">
+                        <input type="text" id="adm-voucher-code" placeholder="CONTOH: COUPO99" class="flex-1 border p-2 rounded-lg text-xs font-bold uppercase tracking-wider focus:outline-none">
+                        <button onclick="addNewVoucherFromAdmin()" class="bg-emerald-600 text-white px-4 rounded-lg font-bold hover:bg-emerald-700 transition">
+                            Tambah
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="pt-2">
+                    <p class="font-bold text-purple-200 mb-2">Senarai Kod Baucar:</p>
+                    <div class="bg-purple-950/50 rounded-lg p-2 max-h-48 overflow-y-auto space-y-2" id="adm-voucher-list">
+                        <p class="text-[10px] text-purple-300 text-center py-2">Memuatkan data baucar...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-800 text-white p-4 rounded-xl space-y-3 mb-6 text-xs shadow-sm">
+                <h3 class="font-bold text-sm border-b pb-2"><i class="fa-solid fa-clock-rotate-left"></i> Voucher Attempt Logs</h3>
+                <div class="bg-slate-900/50 rounded-lg p-2 max-h-48 overflow-y-auto space-y-2" id="adm-voucher-logs-list">
+                    <p class="text-[10px] text-slate-400 text-center py-2">Memuatkan data log...</p>
+                </div>
             </div>
 
             <div class="bg-amber-50 border border-amber-300 p-4 rounded-xl space-y-3 mb-6 text-xs shadow-sm">
@@ -476,7 +533,7 @@
                 <i class="fa-solid fa-house text-sm"></i>
                 <span class="text-[10px] mt-1 font-semibold">Utama</span>
             </button>
-            <button onclick="switchView('levels')" id="bnav-levels" class="flex flex-col items-center">
+            <button onclick="handleAccessToLevels()" id="bnav-levels" class="flex flex-col items-center">
                 <i class="fa-solid fa-graduation-cap text-sm"></i>
                 <span class="text-[10px] mt-1 font-semibold">Tingkatan</span>
             </button>
@@ -522,6 +579,10 @@
         let activeQuizIndex = 0;
         let activeQuizScore = 0;
         
+        // VARIABLE AKSES PREMIUM BARU
+        let currentUserHasAccess = false;
+        const PAYMENT_LINK = "https://toyyibpay.com/Math-Journey";
+
         // PEMBIAK/PEMBLOK DATA BAGI MENGIRA PERCUBAAN SALAH KATA LALUAN
         let wrongPasswordAttempts = 0;
 
@@ -594,7 +655,8 @@
                         questionsAnswered: 0, 
                         role: email.includes("admin") ? "admin" : "student",
                         fullName: "",
-                        nickname: ""
+                        nickname: "",
+                        hasAccess: email.includes("admin") ? true : false
                     })
                     .then(() => initUserData(uc.user));
                 }).catch((e) => alert(e.message));
@@ -655,6 +717,7 @@
             signOut(auth).then(() => { 
                 currentUser = null; 
                 wrongPasswordAttempts = 0;
+                currentUserHasAccess = false;
                 document.getElementById('admin-nav-btn').classList.add('hide');
                 switchView('landing'); 
             }); 
@@ -690,8 +753,12 @@
                 if (snapshot.exists()) {
                     const data = snapshot.val();
                     
+                    // SEMAK AKSES PREMIUM USER
+                    currentUserHasAccess = data.hasAccess === true || data.role === "admin";
+
                     if(data.role === 'admin') {
                         document.getElementById('admin-nav-btn').classList.remove('hide');
+                        listenToVoucherData(); // Load senarai voucher untuk admin
                     } else {
                         document.getElementById('admin-nav-btn').classList.add('hide');
                     }
@@ -708,10 +775,217 @@
                 } else {
                     document.getElementById('admin-nav-btn').classList.add('hide');
                     document.getElementById('dash-username').innerText = user.email.split('@')[0];
+                    currentUserHasAccess = false;
                 }
             });
             switchView('dashboard');
         }
+
+        // FUNGSI KAWALAN AKSES KE PERINGKAT TINGKATAN
+        window.handleAccessToLevels = function() {
+            if (currentUserHasAccess) {
+                switchView('levels');
+            } else {
+                showPaymentModal();
+            }
+        };
+
+        // FUNGSI MODAL PEMBAYARAN & REKOD LOG VOUCHER
+        window.showPaymentModal = function() {
+            document.getElementById('voucher-input').value = "";
+            document.getElementById('payment-modal').classList.remove('hide');
+        };
+
+        window.closePaymentModal = function() {
+            document.getElementById('payment-modal').classList.add('hide');
+        };
+
+        window.payLifetimeNow = function() {
+            window.open(PAYMENT_LINK, '_blank');
+        };
+
+        window.claimVoucherCode = function() {
+            const codeInput = document.getElementById('voucher-input').value.trim().toUpperCase();
+            if (!codeInput) return alert("Sila masukkan kod baucar terlebih dahulu.");
+
+            if (!currentUser) return alert("Ralat: Sila log masuk semula.");
+
+            const voucherRef = ref(db, `voucherCodes/${codeInput}`);
+
+            get(voucherRef).then((snapshot) => {
+                let statusLog = "invalid";
+                
+                if (!snapshot.exists()) {
+                    alert("Voucher tidak sah.");
+                    saveVoucherAttempt(codeInput, "invalid");
+                    return;
+                }
+
+                const vData = snapshot.val();
+
+                if (vData.active === false) {
+                    alert("Voucher telah dinyahaktifkan.");
+                    saveVoucherAttempt(codeInput, "inactive");
+                    return;
+                }
+
+                if (vData.used === true) {
+                    alert("Voucher telah digunakan.");
+                    saveVoucherAttempt(codeInput, "already_used");
+                    return;
+                }
+
+                // JIKA KOD SAH & VALID
+                const timestampNow = Date.now();
+                
+                const userUpdate = {
+                    hasAccess: true,
+                    paymentStatus: "voucher",
+                    purchaseType: "lifetime",
+                    voucherCode: codeInput,
+                    paidAt: timestampNow
+                };
+
+                const voucherUpdate = {
+                    used: true,
+                    usedBy: currentUser.uid,
+                    usedByEmail: currentUser.email,
+                    usedAt: timestampNow
+                };
+
+                // Hantar data serentak ke Firebase
+                Promise.all([
+                    update(ref(db, `users/${currentUser.uid}`), userUpdate),
+                    update(voucherRef, voucherUpdate)
+                ]).then(() => {
+                    currentUserHasAccess = true;
+                    saveVoucherAttempt(codeInput, "success");
+                    closePaymentModal();
+                    switchView('levels');
+                    alert("Tahniah! Voucher berjaya ditebus.");
+                }).catch(err => alert("Ralat tebusan: " + err.message));
+
+            }).catch(err => alert(err.message));
+        };
+
+        function saveVoucherAttempt(code, status) {
+            const attemptRef = ref(db, `voucherAttempts/${currentUser.uid}`);
+            const newAttempt = push(attemptRef);
+            set(newAttempt, {
+                code: code,
+                status: status,
+                uid: currentUser.uid,
+                userEmail: currentUser.email,
+                attemptedAt: Date.now()
+            });
+        }
+
+        // FUNGSI PANEL MANAGEMENT ADMIN BAGI VOUCHER (REALTIME)
+        function listenToVoucherData() {
+            // 1. Dapatkan list voucher
+            onValue(ref(db, 'voucherCodes'), (snapshot) => {
+                const listEl = document.getElementById('adm-voucher-list');
+                listEl.innerHTML = "";
+                if (!snapshot.exists()) {
+                    listEl.innerHTML = `<p class="text-[10px] text-purple-300 text-center py-2">Tiada kod baucar diwujudkan lagi.</p>`;
+                    return;
+                }
+
+                const data = snapshot.val();
+                for (let code in data) {
+                    const info = data[code];
+                    const statusActive = info.active ? '<span class="text-emerald-400">Active</span>' : '<span class="text-red-400">Inactive</span>';
+                    const statusUsed = info.used ? `<span class="text-amber-400">Digunakan oleh (${info.usedByEmail})</span>` : '<span class="text-gray-400">Belum Digunakan</span>';
+                    
+                    const div = document.createElement('div');
+                    div.className = "bg-purple-950/60 p-2 rounded border border-purple-800 text-[11px] space-y-1";
+                    div.innerHTML = `
+                        <div class="flex justify-between font-bold">
+                            <span class="tracking-wider text-amber-300">${code}</span>
+                            <span>${statusActive} | ${statusUsed}</span>
+                        </div>
+                        <div class="flex justify-end space-x-2 pt-1">
+                            ${info.active ? `<button onclick="toggleVoucherActive('${code}', false)" class="bg-amber-600 text-[10px] px-2 py-0.5 rounded text-white font-semibold">Deactivate</button>` : `<button onclick="toggleVoucherActive('${code}', true)" class="bg-emerald-600 text-[10px] px-2 py-0.5 rounded text-white font-semibold">Activate</button>`}
+                            <button onclick="deleteVoucherCode('${code}')" class="bg-red-600 text-[10px] px-2 py-0.5 rounded text-white font-semibold">Delete</button>
+                        </div>
+                    `;
+                    listEl.appendChild(div);
+                }
+            });
+
+            // 2. Dapatkan list attempts logs
+            onValue(ref(db, 'voucherAttempts'), (snapshot) => {
+                const logsEl = document.getElementById('adm-voucher-logs-list');
+                logsEl.innerHTML = "";
+                if (!snapshot.exists()) {
+                    logsEl.innerHTML = `<p class="text-[10px] text-slate-400 text-center py-2">Tiada rekod percubaan tebusan.</p>`;
+                    return;
+                }
+
+                const rootData = snapshot.val();
+                let allLogs = [];
+                
+                // Unpack nested uid objects
+                for (let uid in rootData) {
+                    for (let attId in rootData[uid]) {
+                        allLogs.push(rootData[uid][attId]);
+                    }
+                }
+
+                // Susun log dari yang paling terbaru ke lama
+                allLogs.sort((a,b) => b.attemptedAt - a.attemptedAt);
+
+                allLogs.forEach(log => {
+                    const timeStr = new Date(log.attemptedAt).toLocaleString('ms-MY');
+                    let badgeColor = "bg-red-500/20 text-red-300";
+                    if (log.status === "success") badgeColor = "bg-emerald-500/20 text-emerald-300";
+                    if (log.status === "inactive" || log.status === "already_used") badgeColor = "bg-amber-500/20 text-amber-300";
+
+                    const div = document.createElement('div');
+                    div.className = "bg-slate-900 p-2 rounded border border-slate-700 text-[10px] space-y-0.5";
+                    div.innerHTML = `
+                        <div class="flex justify-between font-medium">
+                            <span class="text-slate-300 font-bold">${log.userEmail}</span>
+                            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wide ${badgeColor}">${log.status}</span>
+                        </div>
+                        <div class="flex justify-between text-slate-400">
+                            <span>Cuba kod: <span class="text-amber-400 font-mono font-bold">${log.code}</span></span>
+                            <span>${timeStr}</span>
+                        </div>
+                    `;
+                    logsEl.appendChild(div);
+                });
+            });
+        }
+
+        window.addNewVoucherFromAdmin = function() {
+            const code = document.getElementById('adm-voucher-code').value.trim().toUpperCase();
+            if(!code) return alert("Sila masukkan teks kod baucar.");
+
+            set(ref(db, `voucherCodes/${code}`), {
+                active: true,
+                used: false,
+                type: "lifetime",
+                createdAt: Date.now()
+            }).then(() => {
+                alert(`Baucar "${code}" berjaya ditambah!`);
+                document.getElementById('adm-voucher-code').value = "";
+            }).catch(err => alert(err.message));
+        };
+
+        window.toggleVoucherActive = function(code, targetStatus) {
+            update(ref(db, `voucherCodes/${code}`), { active: targetStatus })
+            .then(() => alert(`Status baucar ${code} dikemas kini.`))
+            .catch(err => alert(err.message));
+        };
+
+        window.deleteVoucherCode = function(code) {
+            if(confirm(`Adakah anda pasti ingin memadam kod baucar ${code}?`)) {
+                set(ref(db, `voucherCodes/${code}`), null)
+                .then(() => alert(`Baucar ${code} berjaya dipadam.`))
+                .catch(err => alert(err.message));
+            }
+        };
 
         window.updateGlobalAnnouncement = function() {
             const txt = document.getElementById('adm-announcement-input').value.trim();
