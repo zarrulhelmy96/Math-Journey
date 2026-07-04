@@ -377,8 +377,8 @@
                     <textarea id="adm-nota-kesilapan" rows="2" class="w-full border p-2 rounded" placeholder="Kesilapan biasa pelajar..."></textarea>
                     <textarea id="adm-nota-tips" rows="2" class="w-full border p-2 rounded" placeholder="Tips mudah ingat..."></textarea>
                     <div class="bg-white p-2 border rounded">
-                        <label class="block text-[10px] text-gray-500 font-bold mb-1">Gambar Nota Utama:</label>
-                        <input type="file" id="adm-nota-image-file" accept="image/jpeg, image/jpg" class="w-full text-xs">
+                        <label class="block text-[10px] text-gray-500 font-bold mb-1">Gambar Nota (.jpg, .jpeg sahaja):</label>
+                        <input type="file" id="adm-nota-image-file" accept=".jpg, .jpeg" class="w-full text-xs">
                     </div>
                 </div>
 
@@ -683,26 +683,19 @@
                 if (subData && subData.kandungan_list) {
                     for (let k in subData.kandungan_list) {
                         let item = subData.kandungan_list[k];
-                        if(item.nota && (item.nota.maksud || item.nota.formula || item.nota.imageUrl)) {
-                            
-                            // KEMAS KINI: Dipasangkan sebagai tag gambar sahaja (seperti di bahagian latihan/contoh)
-                            let imgTag = item.nota.imageUrl ? `<div class="mt-2 rounded-lg overflow-hidden border"><img src="${item.nota.imageUrl}" class="w-full h-auto object-contain"></div>` : '';
-
+                        // HANYA PAPARKAN JIKA ADA GAMBAR NOTA YANG DIUPLOAD
+                        if(item.nota && item.nota.imageUrl) {
                             target.innerHTML += `
-                                <div class="bg-white p-4 rounded-xl border mb-3">
-                                    <span class="text-xs font-bold text-soft-pink uppercase">Maksud</span>
-                                    <p class="text-sm mt-1">${item.nota.maksud || ''}</p>
-                                    ${imgTag}
-                                </div>
-                                <div class="bg-neon-green p-4 rounded-xl border text-green-900 mb-4">
-                                    <span class="text-xs font-bold uppercase">Formula / Tips</span>
-                                    <p class="font-mono font-bold mt-1">${item.nota.formula || 'Tiada'}</p>
-                                    <p class="text-xs text-gray-600 mt-1 italic">${item.nota.tips || ''}</p>
+                                <div class="bg-white p-2 border border-gray-100 rounded-2xl mb-3 overflow-hidden shadow-sm">
+                                    <img src="${item.nota.imageUrl}" class="w-full h-auto object-contain rounded-xl">
                                 </div>
                             `;
                         }
                     }
-                } else { target.innerHTML = `<p class="text-xs text-gray-400 text-center">Tiada kandungan nota.</p>`; }
+                    if (target.innerHTML === "") {
+                        target.innerHTML = `<p class="text-xs text-gray-400 text-center py-6">Tiada kandungan gambar nota untuk subtopik ini.</p>`;
+                    }
+                } else { target.innerHTML = `<p class="text-xs text-gray-400 text-center py-6">Tiada kandungan gambar nota untuk subtopik ini.</p>`; }
             } 
             else if (subtab === 'contoh') {
                 const target = document.getElementById('contoh-content');
@@ -1010,8 +1003,9 @@
             
             const file = fileEl.files[0];
             try {
+                const metadata = {};
                 const storageRefPath = sRef(storage, `${folderName}/${Date.now()}_${file.name}`);
-                const snapshot = await uploadBytes(storageRefPath, file);
+                const snapshot = await uploadBytes(storageRefPath, file, metadata);
                 return await getDownloadURL(snapshot.ref);
             } catch (error) {
                 console.error("Gagal upload bagi " + fileElementId, error);
