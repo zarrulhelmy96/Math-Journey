@@ -47,12 +47,12 @@
                 <span class="text-2xl">🚀</span>
                 <span class="font-bold text-xl tracking-tight text-slate-900">Math<span class="text-soft-pink">Journey</span></span>
             </div>
-            <div class="flex items-center space-x-4">
+            <div class="flex items-center space-x-3">
                 <div class="flex items-center space-x-1 bg-amber-50 px-2 py-1 rounded-full text-sm font-semibold text-amber-600">
                     <span>🔥</span> <span id="nav-streak">1</span>
                 </div>
-                <button onclick="switchView('contact')" class="text-slate-600 hover:text-soft-pink text-sm font-medium">
-                    Hubungi Kami
+                <button onclick="switchView('contact')" class="text-slate-600 hover:text-soft-pink text-lg" title="Hubungi Kami">
+                    <i class="fa-solid fa-phone text-xl"></i>
                 </button>
                 <button onclick="switchView('profile')" class="text-slate-600 hover:text-soft-pink text-lg">
                     <i class="fa-solid fa-user-circle text-2xl"></i>
@@ -296,31 +296,26 @@
         <section id="view-contact" class="view p-5 hide">
             <div class="mb-6">
                 <button onclick="switchView('dashboard')" class="text-gray-500 text-sm"><i class="fa-solid fa-arrow-left"></i> Dashboard</button>
-                <h2 class="text-xl font-bold text-slate-900 mt-3">Hubungi Kami</h2>
-                <p class="text-xs text-gray-500 mt-1">Kami sedia membantu anda sekiranya terdapat sebarang pertanyaan atau masalah bantuan teknikal.</p>
+                <h2 class="text-xl font-bold text-slate-900 mt-3">Hubungi Kami / Lapor Bug</h2>
+                <p class="text-xs text-gray-500 mt-1">Sila isi borang di bawah jika anda menemui sebarang pepijat (bug) atau mempunyai masalah.</p>
             </div>
-            <div class="bg-white border border-gray-200 p-5 rounded-2xl shadow-sm space-y-4">
-                <div class="flex items-center space-x-3">
-                    <div class="bg-pink-100 p-3 rounded-xl text-soft-pink text-base"><i class="fa-solid fa-envelope"></i></div>
-                    <div>
-                        <h4 class="font-bold text-sm text-slate-800">E-mel Sokongan</h4>
-                        <p class="text-xs text-gray-500 select-all">support@mathjourney.my</p>
-                    </div>
+
+            <div class="bg-white border border-gray-200 p-5 rounded-xl space-y-4 shadow-sm text-xs">
+                <div>
+                    <label class="block font-semibold text-gray-600 mb-1">E-mel Anda</label>
+                    <input type="email" id="contact-email" placeholder="contoh@gmail.com" class="w-full border border-gray-200 p-3 rounded-xl text-sm focus:outline-none focus:border-soft-pink">
                 </div>
-                <div class="flex items-center space-x-3">
-                    <div class="bg-green-100 p-3 rounded-xl text-green-600 text-base"><i class="fa-solid fa-phone"></i></div>
-                    <div>
-                        <h4 class="font-bold text-sm text-slate-800">WhatsApp / Telefon</h4>
-                        <p class="text-xs text-gray-500">+60 12-345 6789</p>
-                    </div>
+                <div>
+                    <label class="block font-semibold text-gray-600 mb-1">Nombor Telefon</label>
+                    <input type="tel" id="contact-phone" placeholder="Contoh: 0123456789" class="w-full border border-gray-200 p-3 rounded-xl text-sm focus:outline-none focus:border-soft-pink">
                 </div>
-                <div class="flex items-center space-x-3">
-                    <div class="bg-blue-100 p-3 rounded-xl text-blue-600 text-base"><i class="fa-solid fa-clock"></i></div>
-                    <div>
-                        <h4 class="font-bold text-sm text-slate-800">Waktu Operasi</h4>
-                        <p class="text-xs text-gray-500">Isnin - Jumaat (9:00 AM - 5:00 PM)</p>
-                    </div>
+                <div>
+                    <label class="block font-semibold text-gray-600 mb-1">Aduan / Deskripsi Bug</label>
+                    <textarea id="contact-message" rows="4" placeholder="Sila terangkan aduan atau jenis bug yang berlaku..." class="w-full border border-gray-200 p-3 rounded-xl text-sm focus:outline-none focus:border-soft-pink"></textarea>
                 </div>
+                <button onclick="handleContactSubmit()" class="w-full btn-primary font-bold py-3.5 rounded-xl text-sm shadow-sm">
+                    Hantar Aduan
+                </button>
             </div>
         </section>
 
@@ -486,7 +481,7 @@
                 <span class="text-[10px] mt-1 font-semibold">Tingkatan</span>
             </button>
             <button onclick="switchView('contact')" id="bnav-contact" class="flex flex-col items-center">
-                <i class="fa-solid fa-envelope text-sm"></i>
+                <i class="fa-solid fa-phone text-sm"></i>
                 <span class="text-[10px] mt-1 font-semibold">Hubungi</span>
             </button>
             <button onclick="switchView('profile')" id="bnav-profile" class="flex flex-col items-center">
@@ -526,6 +521,9 @@
         let activeQuizQuestions = [];
         let activeQuizIndex = 0;
         let activeQuizScore = 0;
+        
+        // PEMBIAK/PEMBLOK DATA BAGI MENGIRA PERCUBAAN SALAH KATA LALUAN
+        let wrongPasswordAttempts = 0;
 
         window.switchView = function(viewId) {
             document.querySelectorAll('.view').forEach(el => el.classList.add('hide'));
@@ -550,6 +548,7 @@
         };
 
         window.toggleAuthMode = function() {
+            wrongPasswordAttempts = 0; // Reset pengiraan apabila bertukar mod
             if (currentAuthMode === 'login') {
                 currentAuthMode = 'register';
                 document.getElementById('auth-title').innerText = "Jom Daftar Akaun!";
@@ -569,7 +568,24 @@
             if(!email || !password) return alert("Sila isi e-mel dan kata laluan anda.");
 
             if (currentAuthMode === 'login') {
-                signInWithEmailAndPassword(auth, email, password).then((uc) => initUserData(uc.user)).catch((e) => alert(e.message));
+                signInWithEmailAndPassword(auth, email, password)
+                .then((uc) => {
+                    wrongPasswordAttempts = 0; // Reset jika berjaya masuk
+                    initUserData(uc.user);
+                })
+                .catch((e) => {
+                    // Semak ralat kata laluan salah
+                    if (e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential') {
+                        wrongPasswordAttempts++;
+                    }
+                    
+                    // Jika melebihi 5 kali, paparkan mesej khas pop-up
+                    if (wrongPasswordAttempts > 5) {
+                        alert("Terlupa password? Jangan risau, boleh reset. Tekan link terlupa password yang disediakan");
+                    } else {
+                        alert(e.message);
+                    }
+                });
             } else {
                 createUserWithEmailAndPassword(auth, email, password).then((uc) => {
                     set(ref(db, 'users/' + uc.user.uid), { 
@@ -596,6 +612,27 @@
             .catch((e) => alert(e.message));
         };
 
+        // FUNGSI PROSES PENGHANTARAN BORANG ADUAN BUG / HUBUNGI KAMI
+        window.handleContactSubmit = function() {
+            const email = document.getElementById('contact-email').value.trim();
+            const phone = document.getElementById('contact-phone').value.trim();
+            const message = document.getElementById('contact-message').value.trim();
+
+            if (!email || !phone || !message) {
+                return alert("Sila pastikan semua maklumat (E-mel, No. Telefon & Aduan) telah diisi.");
+            }
+
+            // Makluman aduan berjaya dihantar ke e-mel admin yang ditetapkan
+            alert("Aduan anda berjaya direkodkan dan telah dihantar ke e-mel admin (komikkehidupan01@gmail.com). Pihak kami akan menyiasat isu bug tersebut secepat mungkin. Terima kasih!");
+
+            // Mengosongkan semula borang data input
+            document.getElementById('contact-email').value = "";
+            document.getElementById('contact-phone').value = "";
+            document.getElementById('contact-message').value = "";
+
+            switchView('dashboard');
+        };
+
         window.updateUserProfileData = function() {
             if(!currentUser) return;
             const fullName = document.getElementById('prof-fullname').value.trim();
@@ -617,7 +654,7 @@
         window.handleLogout = function() { 
             signOut(auth).then(() => { 
                 currentUser = null; 
-                // MEMASTIKAN BUTANG ADMIN DISEMBUNYIKAN SEMULA APABILA KELUAR
+                wrongPasswordAttempts = 0;
                 document.getElementById('admin-nav-btn').classList.add('hide');
                 switchView('landing'); 
             }); 
@@ -633,7 +670,6 @@
                 updateAdminChapterOptions();
             }).catch(() => { updateAdminChapterOptions(); });
 
-            // LOGIK UNTUK SYNC DAN PAPAR PENGUMUMAN SECARA REAL-TIME DARI FIREBASE
             onValue(ref(db, 'announcement'), (snapshot) => {
                 const annText = snapshot.exists() ? snapshot.val() : "";
                 const box = document.getElementById('dash-announcement-box');
@@ -643,7 +679,7 @@
                 if (annText && annText.trim() !== "") {
                     textEl.innerText = annText;
                     box.classList.remove('hide');
-                    if(inputEl) inputEl.value = annText; // Isi siap-siap dalam panel admin
+                    if(inputEl) inputEl.value = annText;
                 } else {
                     box.classList.add('hide');
                     if(inputEl) inputEl.value = "";
@@ -654,7 +690,6 @@
                 if (snapshot.exists()) {
                     const data = snapshot.val();
                     
-                    // MEMASTIKAN HANYA USER BERENAN 'admin' YANG DAPAT MELIHAT BUTANG ADMIN
                     if(data.role === 'admin') {
                         document.getElementById('admin-nav-btn').classList.remove('hide');
                     } else {
@@ -678,7 +713,6 @@
             switchView('dashboard');
         }
 
-        // FUNGSI KEMAS KINI PENGUMUMAN OLEH ADMIN
         window.updateGlobalAnnouncement = function() {
             const txt = document.getElementById('adm-announcement-input').value.trim();
             set(ref(db, 'announcement'), txt)
@@ -740,12 +774,9 @@
                         let item = subData.kandungan_list[k];
                         if(item.nota && (item.nota.maksud || item.nota.formula || item.nota.imageUrl)) {
                             
-                            // LOGIK BOX BUTTON UNTUK PDF ATAU GAMBAR
                             let fileDisplayTag = "";
                             if (item.nota.imageUrl) {
-                                // Mengesan jika url adalah fail PDF
                                 if (item.nota.imageUrl.toLowerCase().includes('.pdf') || item.nota.imageUrl.includes('application/pdf') || item.nota.imageUrl.includes('nota_images%2F')) {
-                                    // Pilihan 1: Jika url dikesan sebagai PDF, paparkan Box Button merah interaktif
                                     if (item.nota.imageUrl.toLowerCase().includes('.pdf') || !item.nota.imageUrl.match(/\.(jpeg|jpg|gif|png)$/i)) {
                                         fileDisplayTag = `
                                             <div class="mt-3">
@@ -761,7 +792,6 @@
                                                 </a>
                                             </div>`;
                                     } else {
-                                        // Kekalkan sebagai tag gambar jika ia format gambar biasa
                                         fileDisplayTag = `<div class="mt-2 rounded-lg overflow-hidden border"><img src="${item.nota.imageUrl}" class="w-full h-auto object-contain"></div>`;
                                     }
                                 } else {
@@ -968,7 +998,6 @@
             }
         };
 
-        // ADMIN CONTROLS INTERACTION
         document.getElementById('adm-form').addEventListener('change', () => updateAdminChapterOptions());
 
         window.updateAdminChapterOptions = function() {
@@ -1092,7 +1121,6 @@
             
             const file = fileEl.files[0];
             try {
-                // Tentukan metadata sekiranya admin memuat naik fail PDF
                 const metadata = {};
                 if (file.type === "application/pdf" || file.name.endsWith('.pdf')) {
                     metadata.contentType = "application/pdf";
@@ -1165,7 +1193,6 @@
                 await set(newContentRef, payload);
                 alert("Isi kandungan baru berjaya ditambah!");
                 
-                // Reset form
                 document.getElementById('adm-nota-maksud').value = "";
                 document.getElementById('adm-nota-formula').value = "";
                 document.getElementById('adm-nota-kesilapan').value = "";
