@@ -592,7 +592,7 @@
             <button onclick="switchView('dashboard')" id="nav-btn-dashboard" class="flex flex-col items-center space-y-1 text-soft-pink">
                 <i class="fa-solid fa-compass text-lg"></i> <span>Mula</span>
             </button>
-            <button onclick="switchView('levels')" id="nav-btn-levels" class="flex flex-col items-center space-y-1">
+            <button onclick="handleAccessToLevels()" id="nav-btn-levels" class="flex flex-col items-center space-y-1">
                 <i class="fa-solid fa-book-bookmark text-lg"></i> <span>Silibus</span>
             </button>
             <button onclick="switchView('profile')" id="nav-btn-profile" class="flex flex-col items-center space-y-1">
@@ -676,7 +676,7 @@
                     await set(ref(db, `users/${currentUser.uid}`), udata);
                 }
 
-                isPremiumUser = udata.premium || false;
+                isPremiumUser = udata.premium === true || udata.hasAccess === true || udata.role === 'admin';
                 document.getElementById('dash-username').innerText = udata.nickname || udata.fullname || "Pelajar";
                 document.getElementById('nav-streak').innerText = udata.streak || 1;
                 document.getElementById('dash-stat-streak').innerText = `${udata.streak || 1} Hari`;
@@ -723,6 +723,10 @@
         }
 
         window.switchView = function(viewId) {
+            if ((viewId === 'levels' || viewId === 'chapters' || viewId === 'content-flow') && !isPremiumUser) {
+                document.getElementById('payment-modal').classList.remove('hide');
+                return;
+            }
             document.querySelectorAll('.view').forEach(s => s.classList.add('hide'));
             document.getElementById(`view-${viewId}`).classList.remove('hide');
             
@@ -847,6 +851,10 @@
         };
 
         window.loadChapters = function(formNum) {
+            if(!isPremiumUser) {
+                document.getElementById('payment-modal').classList.remove('hide');
+                return;
+            }
             currentLevel = formNum;
             document.getElementById('chapters-title').innerText = `Tingkatan ${formNum} - Senarai Bab`;
             
