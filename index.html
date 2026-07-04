@@ -685,18 +685,14 @@
                         let item = subData.kandungan_list[k];
                         if(item.nota && (item.nota.maksud || item.nota.formula || item.nota.imageUrl)) {
                             
-                            let fileDisplayTag = "";
-                            if (item.nota.imageUrl) {
-                                if (!item.nota.imageUrl.toLowerCase().includes('.pdf') && !item.nota.imageUrl.includes('application/pdf') && !item.nota.imageUrl.includes('nota_images%2F')) {
-                                    fileDisplayTag = `<div class="mt-2 rounded-lg overflow-hidden border"><img src="${item.nota.imageUrl}" class="w-full h-auto object-contain"></div>`;
-                                }
-                            }
+                            // KEMAS KINI: Dipasangkan sebagai tag gambar sahaja (seperti di bahagian latihan/contoh)
+                            let imgTag = item.nota.imageUrl ? `<div class="mt-2 rounded-lg overflow-hidden border"><img src="${item.nota.imageUrl}" class="w-full h-auto object-contain"></div>` : '';
 
                             target.innerHTML += `
                                 <div class="bg-white p-4 rounded-xl border mb-3">
                                     <span class="text-xs font-bold text-soft-pink uppercase">Maksud</span>
                                     <p class="text-sm mt-1">${item.nota.maksud || ''}</p>
-                                    ${fileDisplayTag}
+                                    ${imgTag}
                                 </div>
                                 <div class="bg-neon-green p-4 rounded-xl border text-green-900 mb-4">
                                     <span class="text-xs font-bold uppercase">Formula / Tips</span>
@@ -1008,7 +1004,6 @@
             }
         };
 
-        // KEMAS KINI: Logik pembantu muat naik dibersihkan daripada metadata PDF
         async function uploadFileHelper(fileElementId, folderName) {
             const fileEl = document.getElementById(fileElementId);
             if (!fileEl || !fileEl.files || fileEl.files.length === 0) return "";
