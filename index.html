@@ -939,6 +939,75 @@
             `;
         }
 
+        function guessContentType(item) {
+            if (!item || typeof item !== "object") return "";
+            if (item.type) return item.type;
+            if (item.nota) return "nota";
+            if (item.contoh) return "contoh";
+            if (item.latihan) return "latihan";
+            if (item.kuiz) return "kuiz";
+            return "";
+        }
+
+        function hasAnyValue(obj) {
+            if (!obj || typeof obj !== "object") return false;
+            return Object.values(obj).some(v => {
+                if (Array.isArray(v)) return v.length > 0;
+                if (v && typeof v === "object") return hasAnyValue(v);
+                return String(v || "").trim() !== "";
+            });
+        }
+
+        function getKandunganListFromSubtopic(subtopicData) {
+            if (!subtopicData || typeof subtopicData !== "object") return {};
+            return subtopicData.kandungan_list || subtopicData.kandunganList || subtopicData.contents || subtopicData.content_list || {};
+        }
+
+        function normalizeContentItem(item, key = "") {
+            if (!item || typeof item !== "object") return { type: "", _key: key };
+
+            const type = guessContentType(item);
+            const normalized = { ...item, type: type, _key: key };
+
+            if (item.contoh) {
+                normalized.contoh = {
+                    ...item.contoh,
+                    langkah: item.contoh.langkah || item.contoh.jalan_kerja || item.contoh.jalan || ""
+                };
+            }
+
+            return normalized;
+        }
+
+        function expandKandunganItems(kandunganList) {
+            const expanded = [];
+
+            Object.keys(kandunganList || {}).forEach(k => {
+                const raw = kandunganList[k] || {};
+                const explicitType = raw.type;
+
+                if (explicitType) {
+                    expanded.push(normalizeContentItem(raw, k));
+                    return;
+                }
+
+                if (raw.nota && hasAnyValue(raw.nota)) {
+                    expanded.push(normalizeContentItem({ type: "nota", nota: raw.nota }, k));
+                }
+                if (raw.contoh && hasAnyValue(raw.contoh)) {
+                    expanded.push(normalizeContentItem({ type: "contoh", contoh: raw.contoh }, k));
+                }
+                if (raw.latihan && hasAnyValue(raw.latihan)) {
+                    expanded.push(normalizeContentItem({ type: "latihan", latihan: raw.latihan }, k));
+                }
+                if (raw.kuiz && hasAnyValue(raw.kuiz)) {
+                    expanded.push(normalizeContentItem({ type: "kuiz", kuiz: raw.kuiz }, k));
+                }
+            });
+
+            return expanded;
+        }
+
         window.switchFlowSubTab = function(tabName) {
             currentFlowTab = tabName;
             document.querySelectorAll('#view-content-flow .bg-white button').forEach(b => {
@@ -953,8 +1022,8 @@
             if(!subKey) return;
 
             const subtopicData = appSilibusData[currentLevel][currentChapterKey].subtopik[subKey] || {};
-            const kandunganList = subtopicData.kandungan_list || {};
-            const items = Object.values(kandunganList);
+            const kandunganList = getKandunganListFromSubtopic(subtopicData);
+            const items = expandKandunganItems(kandunganList);
 
             if(tabName === 'nota') {
                 const divNota = document.getElementById('nota-content');
@@ -1029,7 +1098,7 @@
                     </div>
                     <div class="border-t border-dashed pt-3 bg-slate-50/80 p-3 rounded-xl border">
                         <span class="text-slate-500 font-bold block mb-1.5"><i class="fa-solid fa-code-fork"></i> Penyelesaian / Langkah Kerja:</span>
-                        <p class="text-slate-700 font-medium whitespace-pre-line leading-relaxed">${cntObj.langkah || 'Tiada penerangan langkah kerja.'}</p>
+                        <p class="text-slate-700 font-medium whitespace-pre-line leading-relaxed">${cntObj.langkah || cntObj.jalan_kerja || 'Tiada penerangan langkah kerja.'}</p>
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-3 mt-5">
@@ -1187,13 +1256,12 @@
             
             let allQuizQuestions = [];
             Object.values(subtopikObj).forEach(sub => {
-                if(sub.kandungan_list) {
-                    Object.values(sub.kandungan_list).forEach(item => {
-                        if(item.type === 'kuiz' && item.kuiz) {
-                            allQuizQuestions.push(item.kuiz);
-                        }
-                    });
-                }
+                const kandunganList = getKandunganListFromSubtopic(sub);
+                expandKandunganItems(kandunganList).forEach(item => {
+                    if(item.type === 'kuiz' && item.kuiz) {
+                        allQuizQuestions.push(item.kuiz);
+                    }
+                });
             });
 
             if(allQuizQuestions.length === 0) {
@@ -1390,23 +1458,51 @@
             const subKey = document.getElementById('adm-subtopic-select').value;
             const selectList = document.getElementById('adm-content-list-select');
 
+            if (!selectList) return;
             selectList.innerHTML = '<option value="">-- Tiada Kandungan Dipilih --</option>';
-            if(!chKey || !subKey || !appSilibusData[formNum] || !appSilibusData[formNum][chKey] || !appSilibusData[formNum][chKey].subtopik[subKey]) return;
 
-            const kandunganList = appSilibusData[formNum][chKey].subtopik[subKey].kandungan_list || {};
-            Object.keys(kandunganList).forEach(k => {
-                const item = kandunganList[k];
-                let title = `[${item.type.toUpperCase()}] `;
-                if(item.type === 'nota') title += (item.nota.maksud || item.nota.formula || k).substring(0, 40);
-                if(item.type === 'contoh') title += (item.contoh.soalan || k).substring(0, 40);
-                if(item.type === 'latihan') title += (item.latihan.soalan || k).substring(0, 40);
-                if(item.type === 'kuiz') title += (item.kuiz.soalan || k).substring(0, 40);
+            try {
+                const subtopicData = appSilibusData?.[formNum]?.[chKey]?.subtopik?.[subKey];
+                if(!chKey || !subKey || !subtopicData) return;
 
-                const opt = document.createElement('option');
-                opt.value = k;
-                opt.innerText = title;
-                selectList.appendChild(opt);
-            });
+                const kandunganList = getKandunganListFromSubtopic(subtopicData);
+                const keys = Object.keys(kandunganList || {});
+
+                if(keys.length === 0) {
+                    selectList.innerHTML = '<option value="">-- Belum ada isi kandungan --</option>';
+                    return;
+                }
+
+                keys.forEach(k => {
+                    const rawItem = kandunganList[k] || {};
+                    const expanded = expandKandunganItems({ [k]: rawItem });
+
+                    let title = "";
+                    if (expanded.length > 0) {
+                        title = expanded.map(item => {
+                            const type = item.type || "kandungan";
+                            let label = `[${type.toUpperCase()}] `;
+                            if(type === 'nota') label += ((item.nota?.maksud || item.nota?.formula || item.nota?.tips || k) + "").substring(0, 45);
+                            else if(type === 'contoh') label += ((item.contoh?.soalan || k) + "").substring(0, 45);
+                            else if(type === 'latihan') label += ((item.latihan?.soalan || k) + "").substring(0, 45);
+                            else if(type === 'kuiz') label += ((item.kuiz?.soalan || k) + "").substring(0, 45);
+                            else label += k;
+                            return label;
+                        }).join(" | ");
+                    } else {
+                        const fallbackType = guessContentType(rawItem) || "kandungan";
+                        title = `[${fallbackType.toUpperCase()}] ${k}`;
+                    }
+
+                    const opt = document.createElement('option');
+                    opt.value = k;
+                    opt.innerText = title;
+                    selectList.appendChild(opt);
+                });
+            } catch (err) {
+                console.error("loadSubtopicContentList error:", err);
+                selectList.innerHTML = '<option value="">-- Ralat baca kandungan, sila semak console --</option>';
+            }
         };
 
         window.manageStructure = function(action) {
