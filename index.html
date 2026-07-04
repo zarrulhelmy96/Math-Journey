@@ -489,11 +489,9 @@
         let activeQuizIndex = 0;
         let activeQuizScore = 0;
 
-        // VARIABEL PENJEJAK INDEKS UNTUK CONTOH DAN LATIHAN PAGINATION
+        // PEMBOLEHUBAH BARU UNTUK NAVIGASI CONTOH & LATIHAN
         let currentContohIndex = 0;
-        let activeContohList = [];
         let currentLatihanIndex = 0;
-        let activeLatihanList = [];
 
         window.switchView = function(viewId) {
             document.querySelectorAll('.view').forEach(el => el.classList.add('hide'));
@@ -609,7 +607,7 @@
                 if (annText && annText.trim() !== "") {
                     textEl.innerText = annText;
                     box.classList.remove('hide');
-                    if(inputEl) inputEl.value = annText; 
+                    if(inputEl) inputEl.value = annText;
                 } else {
                     box.classList.add('hide');
                     if(inputEl) inputEl.value = "";
@@ -680,89 +678,29 @@
             for (let subKey in chData.subtopik) {
                 let op = document.createElement('option'); op.value = subKey; op.innerText = chData.subtopik[subKey].nama; select.appendChild(op);
             }
+            // Reset indeks navigasi setiap kali menukar subtopik
+            currentContohIndex = 0;
+            currentLatihanIndex = 0;
             switchView('content-flow');
             switchFlowSubTab('nota');
         }
 
-        window.onSubtopicChange = function() { switchFlowSubTab('nota'); };
-
-        // FUNGSI RENDER SATU CONTOH BERDASARKAN INDEKS AKTIF
-        function renderSingleContoh() {
-            const target = document.getElementById('contoh-content');
-            if (activeContohList.length === 0) {
-                target.innerHTML = `<p class="text-xs text-gray-400 text-center">Tiada kandungan contoh soalan.</p>`;
-                return;
-            }
-            
-            const item = activeContohList[currentContohIndex];
-            let imgTag = item.contoh.imageUrl ? `<div class="mt-2 rounded-lg overflow-hidden border"><img src="${item.contoh.imageUrl}" class="w-full h-auto object-contain"></div>` : '';
-            
-            let prevBtnAttr = currentContohIndex === 0 ? "disabled class='px-4 py-2 bg-gray-200 text-gray-400 text-xs font-bold rounded-xl cursor-not-allowed'" : "onclick='navigateContoh(-1)' class='px-4 py-2 bg-red-500 text-white text-xs font-bold rounded-xl hover:bg-red-600'";
-            let nextBtnAttr = currentContohIndex === activeContohList.length - 1 ? "disabled class='px-4 py-2 bg-gray-200 text-gray-400 text-xs font-bold rounded-xl cursor-not-allowed'" : "onclick='navigateContoh(1)' class='px-4 py-2 bg-green-500 text-white text-xs font-bold rounded-xl hover:bg-green-600'";
-
-            target.innerHTML = `
-                <div class="bg-gray-100 p-2 rounded-lg text-[10px] font-bold text-gray-500 mb-2 text-center">
-                    Contoh ${currentContohIndex + 1} daripada ${activeContohList.length}
-                </div>
-                <div class="bg-white border p-4 rounded-xl mb-2">
-                    <p class="text-sm font-semibold">${item.contoh.soalan || ''}</p>
-                    ${imgTag}
-                </div>
-                <div class="bg-slate-50 border p-4 rounded-xl text-xs mb-4">
-                    <p class="whitespace-pre-line">${item.contoh.jalan_kerja || ''}</p>
-                </div>
-                <div class="flex justify-between items-center mt-4 pt-2">
-                    <button ${prevBtnAttr}>Patah Balik</button>
-                    <button ${nextBtnAttr}>Seterusnya</button>
-                </div>
-            `;
-        }
-
-        window.navigateContoh = function(direction) {
-            currentContohIndex += direction;
-            renderSingleContoh();
+        window.onSubtopicChange = function() { 
+            currentContohIndex = 0;
+            currentLatihanIndex = 0;
+            switchFlowSubTab('nota'); 
         };
 
-        // FUNGSI RENDER SATU LATIHAN BERDASARKAN INDEKS AKTIF
-        function renderSingleLatihan() {
-            const target = document.getElementById('latihan-content');
-            if (activeLatihanList.length === 0) {
-                target.innerHTML = `<p class="text-xs text-gray-400 text-center">Tiada kandungan latihan.</p>`;
-                return;
-            }
+        // FUNGSI NAVIGASI BARU UNTUK CONTOH SOALAN
+        window.navigateContoh = function(direction) {
+            currentContohIndex += direction;
+            switchFlowSubTab('contoh');
+        };
 
-            const item = activeLatihanList[currentLatihanIndex].latihan;
-            const latId = activeLatihanList[currentLatihanIndex].id;
-            let imgTag = item.imageUrl ? `<div class="mt-2 rounded-lg overflow-hidden border"><img src="${item.imageUrl}" class="w-full h-auto object-contain"></div>` : '';
-            
-            let prevBtnAttr = currentLatihanIndex === 0 ? "disabled class='px-4 py-2 bg-gray-200 text-gray-400 text-xs font-bold rounded-xl cursor-not-allowed'" : "onclick='navigateLatihan(-1)' class='px-4 py-2 bg-red-500 text-white text-xs font-bold rounded-xl hover:bg-red-600'";
-            let nextBtnAttr = currentLatihanIndex === activeLatihanList.length - 1 ? "disabled class='px-4 py-2 bg-gray-200 text-gray-400 text-xs font-bold rounded-xl cursor-not-allowed'" : "onclick='navigateLatihan(1)' class='px-4 py-2 bg-green-500 text-white text-xs font-bold rounded-xl hover:bg-green-600'";
-
-            target.innerHTML = `
-                <div class="bg-gray-100 p-2 rounded-lg text-[10px] font-bold text-gray-500 mb-2 text-center">
-                    Soalan ${currentLatihanIndex + 1} daripada ${activeLatihanList.length}
-                </div>
-                <div class="bg-white border p-4 rounded-xl mb-2">
-                    <p class="text-sm font-medium">${item.soalan || ''}</p>
-                    ${imgTag}
-                </div>
-                <div class="grid grid-cols-1 gap-2 mb-2" id="latihan-options-group">
-                    <button id="btn-lat-A" onclick="checkLatihanJawapan('A', '${item.jawapan}', '${item.penerangan || ''}', '${latId}')" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50 font-medium">A. ${item.a}</button>
-                    <button id="btn-lat-B" onclick="checkLatihanJawapan('B', '${item.jawapan}', '${item.penerangan || ''}', '${latId}')" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50 font-medium">B. ${item.b}</button>
-                    <button id="btn-lat-C" onclick="checkLatihanJawapan('C', '${item.jawapan}', '${item.penerangan || ''}', '${latId}')" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50 font-medium">C. ${item.c}</button>
-                    <button id="btn-lat-D" onclick="checkLatihanJawapan('D', '${item.jawapan}', '${item.penerangan || ''}', '${latId}')" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50 font-medium">D. ${item.d}</button>
-                </div>
-                <div id="${latId}" class="p-4 rounded-xl text-xs hide mb-4"></div>
-                <div class="flex justify-between items-center mt-4 pt-2">
-                    <button ${prevBtnAttr}>Patah Balik</button>
-                    <button ${nextBtnAttr}>Seterusnya</button>
-                </div>
-            `;
-        }
-
+        // FUNGSI NAVIGASI BARU UNTUK SOALAN LATIHAN
         window.navigateLatihan = function(direction) {
             currentLatihanIndex += direction;
-            renderSingleLatihan();
+            switchFlowSubTab('latihan');
         };
 
         window.switchFlowSubTab = function(subtab) {
@@ -825,30 +763,117 @@
                 } else { target.innerHTML = `<p class="text-xs text-gray-400 text-center">Tiada kandungan nota.</p>`; }
             } 
             else if (subtab === 'contoh') {
-                activeContohList = [];
-                currentContohIndex = 0;
+                const target = document.getElementById('contoh-content');
+                target.innerHTML = "";
+                
+                // Ambil semua senarai contoh yang sah dahulu
+                let contohList = [];
                 if (subData && subData.kandungan_list) {
                     for (let k in subData.kandungan_list) {
                         let item = subData.kandungan_list[k];
-                        if(item.contoh && (item.contoh.soalan || item.contoh.imageUrl)) {
-                            activeContohList.push(item);
+                        if (item.contoh && (item.contoh.soalan || item.contoh.imageUrl)) {
+                            contohList.push(item.contoh);
                         }
                     }
                 }
-                renderSingleContoh();
+
+                if (contohList.length > 0) {
+                    // Pastikan indeks sentiasa berada dalam julat saiz data rujukan
+                    if (currentContohIndex < 0) currentContohIndex = 0;
+                    if (currentContohIndex >= contohList.length) currentContohIndex = contohList.length - 1;
+
+                    let activeContoh = contohList[currentContohIndex];
+                    let imgTag = activeContoh.imageUrl ? `<div class="mt-2 rounded-lg overflow-hidden border"><img src="${activeContoh.imageUrl}" class="w-full h-auto object-contain"></div>` : '';
+                    
+                    // Paparan Info Soalan semasa
+                    let infoTag = `<div class="bg-gray-100 p-2 rounded-lg text-[10px] font-bold text-gray-500 mb-2 text-center">Contoh Soalan ${currentContohIndex + 1} daripada ${contohList.length}</div>`;
+
+                    // Penyediaan butang navigasi Back & Next
+                    let backBtnDisabled = currentContohIndex === 0 ? 'disabled opacity-40' : '';
+                    let nextBtnDisabled = currentContohIndex === contohList.length - 1 ? 'disabled opacity-40' : '';
+
+                    let navigationHtml = `
+                        <div class="grid grid-cols-2 gap-3 mt-4">
+                            <button onclick="navigateContoh(-1)" ${backBtnDisabled} class="bg-red-500 hover:bg-red-600 text-white font-bold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center space-x-1 shadow-sm transition">
+                                <i class="fa-solid fa-arrow-left"></i> <span>Back</span>
+                            </button>
+                            <button onclick="navigateContoh(1)" ${nextBtnDisabled} class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center space-x-1 shadow-sm transition">
+                                <span>Next</span> <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    `;
+
+                    target.innerHTML = `
+                        ${infoTag}
+                        <div class="bg-white border p-4 rounded-xl mb-2">
+                            <p class="text-sm font-semibold">${activeContoh.soalan || ''}</p>
+                            ${imgTag}
+                        </div>
+                        <div class="bg-slate-50 border p-4 rounded-xl text-xs mb-4">
+                            <p class="whitespace-pre-line font-medium text-slate-700"><span class="font-bold text-soft-pink">💬 Jalan Kerja:</span>\n${activeContoh.jalan_kerja || ''}</p>
+                        </div>
+                        ${navigationHtml}
+                    `;
+                } else { target.innerHTML = `<p class="text-xs text-gray-400 text-center">Tiada kandungan contoh soalan.</p>`; }
             } 
             else if (subtab === 'latihan') {
-                activeLatihanList = [];
-                currentLatihanIndex = 0;
+                const target = document.getElementById('latihan-content');
+                target.innerHTML = "";
+
+                // Ambil semua latihan objektif yang sah dahulu
+                let latihanList = [];
+                let originalKeys = []; // Simpan key untuk identifikasi id element maklum balas (feedback)
                 if (subData && subData.kandungan_list) {
                     for (let k in subData.kandungan_list) {
                         let item = subData.kandungan_list[k];
-                        if(item.latihan && (item.latihan.soalan || item.latihan.imageUrl)) {
-                            activeLatihanList.push({ id: `fb-${k}`, latihan: item.latihan });
+                        if (item.latihan && (item.latihan.soalan || item.latihan.imageUrl)) {
+                            latihanList.push(item.latihan);
+                            originalKeys.push(k);
                         }
                     }
                 }
-                renderSingleLatihan();
+
+                if (latihanList.length > 0) {
+                    if (currentLatihanIndex < 0) currentLatihanIndex = 0;
+                    if (currentLatihanIndex >= latihanList.length) currentLatihanIndex = latihanList.length - 1;
+
+                    let activeLatihan = latihanList[currentLatihanIndex];
+                    let activeKey = originalKeys[currentLatihanIndex];
+                    let latId = `fb-${activeKey}`;
+                    let imgTag = activeLatihan.imageUrl ? `<div class="mt-2 rounded-lg overflow-hidden border"><img src="${activeLatihan.imageUrl}" class="w-full h-auto object-contain"></div>` : '';
+                    
+                    let infoTag = `<div class="bg-gray-100 p-2 rounded-lg text-[10px] font-bold text-gray-500 mb-2 text-center">Soalan Latihan ${currentLatihanIndex + 1} daripada ${latihanList.length}</div>`;
+
+                    let backBtnDisabled = currentLatihanIndex === 0 ? 'disabled opacity-40' : '';
+                    let nextBtnDisabled = currentLatihanIndex === latihanList.length - 1 ? 'disabled opacity-40' : '';
+
+                    let navigationHtml = `
+                        <div class="grid grid-cols-2 gap-3 mt-4">
+                            <button onclick="navigateLatihan(-1)" ${backBtnDisabled} class="bg-red-500 hover:bg-red-600 text-white font-bold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center space-x-1 shadow-sm transition">
+                                <i class="fa-solid fa-arrow-left"></i> <span>Back</span>
+                            </button>
+                            <button onclick="navigateLatihan(1)" ${nextBtnDisabled} class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center space-x-1 shadow-sm transition">
+                                <span>Next</span> <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    `;
+
+                    target.innerHTML = `
+                        ${infoTag}
+                        <div class="bg-white border p-4 rounded-xl mb-2">
+                            <p class="text-sm font-medium">Soalan: ${activeLatihan.soalan || ''}</p>
+                            ${imgTag}
+                        </div>
+                        <div class="grid grid-cols-1 gap-2 mb-2">
+                            <button onclick="checkLatihanJawapan('A', '${activeLatihan.jawapan}', '${activeLatihan.penerangan || ''}', '${latId}')" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50">A. ${activeLatihan.a}</button>
+                            <button onclick="checkLatihanJawapan('B', '${activeLatihan.jawapan}', '${activeLatihan.penerangan || ''}', '${latId}')" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50">B. ${activeLatihan.b}</button>
+                            <button onclick="checkLatihanJawapan('C', '${activeLatihan.jawapan}', '${activeLatihan.penerangan || ''}', '${latId}')" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50">C. ${activeLatihan.c}</button>
+                            <button onclick="checkLatihanJawapan('D', '${activeLatihan.jawapan}', '${activeLatihan.penerangan || ''}', '${latId}')" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50">D. ${activeLatihan.d}</button>
+                        </div>
+                        <div id="${latId}" class="p-4 rounded-xl text-xs hide mb-2"></div>
+                        ${navigationHtml}
+                    `;
+                } else { target.innerHTML = `<p class="text-xs text-gray-400 text-center">Tiada kandungan latihan.</p>`; }
             }
             else if (subtab === 'kuiz') {
                 document.getElementById('kuiz-intro').classList.remove('hide');
@@ -860,27 +885,8 @@
         window.checkLatihanJawapan = function(pilih, betul, fbTeks, targetElementId) {
             const fb = document.getElementById(targetElementId); 
             fb.classList.remove('hide', 'bg-green-50', 'text-green-700', 'bg-red-50', 'text-red-700');
-            
-            // MENUKAR WARNA PILIHAN BUTTON & MENDISABLEKAN PILIHAN JAWAPAN
-            const buttons = document.querySelectorAll('#latihan-options-group button');
-            buttons.forEach(btn => {
-                btn.disabled = true;
-                const opt = btn.id.replace('btn-lat-', '');
-                if (opt === betul) {
-                    btn.className = "w-full text-left p-3 text-xs bg-green-100 border-2 border-green-500 rounded-xl text-green-800 font-bold";
-                }
-                if (pilih === opt && pilih !== betul) {
-                    btn.className = "w-full text-left p-3 text-xs bg-red-100 border-2 border-red-500 rounded-xl text-red-800 font-bold";
-                }
-            });
-
-            if (pilih === betul) { 
-                fb.classList.add('bg-green-50', 'text-green-700'); 
-                fb.innerHTML = `<strong>🎉 Betul!</strong><br>${fbTeks}`; 
-            } else { 
-                fb.classList.add('bg-red-50', 'text-red-700'); 
-                fb.innerHTML = `<strong>❌ Salah!</strong> Jawapan betul ialah ${betul}.<br>${fbTeks}`; 
-            }
+            if (pilih === betul) { fb.classList.add('bg-green-50', 'text-green-700'); fb.innerHTML = `<strong>🎉 Betul!</strong><br>${fbTeks}`; }
+            else { fb.classList.add('bg-red-50', 'text-red-700'); fb.innerHTML = `<strong>❌ Salah!</strong> Jawapan betul ialah ${betul}.<br>${fbTeks}`; }
         };
 
         window.startChapterQuiz = function() {
@@ -1003,6 +1009,7 @@
             }
         };
 
+        // ADMIN CONTROLS INTERACTION
         document.getElementById('adm-form').addEventListener('change', () => updateAdminChapterOptions());
 
         window.updateAdminChapterOptions = function() {
@@ -1198,6 +1205,7 @@
                 await set(newContentRef, payload);
                 alert("Isi kandungan baru berjaya ditambah!");
                 
+                // Reset form
                 document.getElementById('adm-nota-maksud').value = "";
                 document.getElementById('adm-nota-formula').value = "";
                 document.getElementById('adm-nota-kesilapan').value = "";
