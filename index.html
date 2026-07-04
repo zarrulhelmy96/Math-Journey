@@ -377,8 +377,8 @@
                     <textarea id="adm-nota-kesilapan" rows="2" class="w-full border p-2 rounded" placeholder="Kesilapan biasa pelajar..."></textarea>
                     <textarea id="adm-nota-tips" rows="2" class="w-full border p-2 rounded" placeholder="Tips mudah ingat..."></textarea>
                     <div class="bg-white p-2 border rounded">
-                        <label class="block text-[10px] text-gray-500 font-bold mb-1">Gambar Nota ATAU Fail PDF Tambahan:</label>
-                        <input type="file" id="adm-nota-image-file" accept="image/jpeg, image/png, application/pdf" class="w-full text-xs">
+                        <label class="block text-[10px] text-gray-500 font-bold mb-1">Gambar Nota Utama:</label>
+                        <input type="file" id="adm-nota-image-file" accept="image/jpeg, image/jpg" class="w-full text-xs">
                     </div>
                 </div>
 
@@ -588,7 +588,6 @@
                 updateAdminChapterOptions();
             }).catch(() => { updateAdminChapterOptions(); });
 
-            // LOGIK UNTUK SYNC DAN PAPAR PENGUMUMAN SECARA REAL-TIME DARI FIREBASE
             onValue(ref(db, 'announcement'), (snapshot) => {
                 const annText = snapshot.exists() ? snapshot.val() : "";
                 const box = document.getElementById('dash-announcement-box');
@@ -598,7 +597,7 @@
                 if (annText && annText.trim() !== "") {
                     textEl.innerText = annText;
                     box.classList.remove('hide');
-                    if(inputEl) inputEl.value = annText; // Isi siap-siap dalam panel admin
+                    if(inputEl) inputEl.value = annText;
                 } else {
                     box.classList.add('hide');
                     if(inputEl) inputEl.value = "";
@@ -625,7 +624,6 @@
             switchView('dashboard');
         }
 
-        // FUNGSI KEMAS KINI PENGUMUMAN OLEH ADMIN
         window.updateGlobalAnnouncement = function() {
             const txt = document.getElementById('adm-announcement-input').value.trim();
             set(ref(db, 'announcement'), txt)
@@ -687,10 +685,8 @@
                         let item = subData.kandungan_list[k];
                         if(item.nota && (item.nota.maksud || item.nota.formula || item.nota.imageUrl)) {
                             
-                            // LOGIK HANYA MEMAPARKAN GAMBAR SAHAJA (PDF DIABAIKAN)
                             let fileDisplayTag = "";
                             if (item.nota.imageUrl) {
-                                // Hanya paparkan tag img jika ia adalah format gambar biasa dan bukan PDF
                                 if (!item.nota.imageUrl.toLowerCase().includes('.pdf') && !item.nota.imageUrl.includes('application/pdf') && !item.nota.imageUrl.includes('nota_images%2F')) {
                                     fileDisplayTag = `<div class="mt-2 rounded-lg overflow-hidden border"><img src="${item.nota.imageUrl}" class="w-full h-auto object-contain"></div>`;
                                 }
@@ -895,7 +891,6 @@
             }
         };
 
-        // ADMIN CONTROLS INTERACTION
         document.getElementById('adm-form').addEventListener('change', () => updateAdminChapterOptions());
 
         window.updateAdminChapterOptions = function() {
@@ -1001,7 +996,7 @@
                     
                     let jenis = "Kandungan";
                     let ringkasan = "";
-                    if (list[contentKey].nota?.maksud || list[contentKey].nota?.imageUrl) { jenis = "Nota"; ringkasan = list[contentKey].nota.maksud || "[Nota/PDF]"; }
+                    if (list[contentKey].nota?.maksud || list[contentKey].nota?.imageUrl) { jenis = "Nota"; ringkasan = list[contentKey].nota.maksud || "[Nota Bergambar]"; }
                     else if (list[contentKey].contoh?.soalan || list[contentKey].contoh?.imageUrl) { jenis = "Contoh"; ringkasan = list[contentKey].contoh.soalan || "[Contoh Bergambar]"; }
                     else if (list[contentKey].latihan?.soalan || list[contentKey].latihan?.imageUrl) { jenis = "Latihan"; ringkasan = list[contentKey].latihan.soalan || "[Latihan Bergambar]"; }
                     else if (list[contentKey].kuiz?.soalan || list[contentKey].kuiz?.imageUrl) { jenis = "Kuiz Bab"; ringkasan = list[contentKey].kuiz.soalan || "[Kuiz Bergambar]"; }
@@ -1013,19 +1008,15 @@
             }
         };
 
+        // KEMAS KINI: Logik pembantu muat naik dibersihkan daripada metadata PDF
         async function uploadFileHelper(fileElementId, folderName) {
             const fileEl = document.getElementById(fileElementId);
             if (!fileEl || !fileEl.files || fileEl.files.length === 0) return "";
             
             const file = fileEl.files[0];
             try {
-                const metadata = {};
-                if (file.type === "application/pdf" || file.name.endsWith('.pdf')) {
-                    metadata.contentType = "application/pdf";
-                }
-
                 const storageRefPath = sRef(storage, `${folderName}/${Date.now()}_${file.name}`);
-                const snapshot = await uploadBytes(storageRefPath, file, metadata);
+                const snapshot = await uploadBytes(storageRefPath, file);
                 return await getDownloadURL(snapshot.ref);
             } catch (error) {
                 console.error("Gagal upload bagi " + fileElementId, error);
@@ -1040,7 +1031,7 @@
 
             if(!chKey || !subKey) return alert("Sila pilih Bab dan Subtopik di Bahagian 1 terlebih dahulu.");
 
-            alert("Sedang memproses dan memuat naik data/gambar/PDF, sila tunggu sehingga mesej selesai dipaparkan...");
+            alert("Sedang memproses dan memuat naik data/gambar, sila tunggu sehingga mesej selesai dipaparkan...");
 
             try {
                 const [notaImgUrl, contohImgUrl, latihanImgUrl, kuizImgUrl] = await Promise.all([
@@ -1091,7 +1082,6 @@
                 await set(newContentRef, payload);
                 alert("Isi kandungan baru berjaya ditambah!");
                 
-                // Reset form
                 document.getElementById('adm-nota-maksud').value = "";
                 document.getElementById('adm-nota-formula').value = "";
                 document.getElementById('adm-nota-kesilapan').value = "";
@@ -1134,4 +1124,19 @@
                 set(ref(db, `silibus/${formNum}/${chKey}/subtopik/${subKey}/kandungan_list/${contentKey}`), null)
                 .then(() => {
                     alert("Kandungan tersebut berjaya dipadamkan!");
-                    get(ref(db, 's
+                    get(ref(db, 'silibus')).then((snapshot) => {
+                        appSilibusData = snapshot.exists() ? snapshot.val() : {};
+                        loadSubtopicContentList();
+                    });
+                }).catch(e => alert(e.message));
+            }
+        };
+
+        const originalUpdateAdminSubtopicOptions = window.updateAdminSubtopicOptions;
+        window.updateAdminSubtopicOptions = function() {
+            originalUpdateAdminSubtopicOptions();
+            loadSubtopicContentList();
+        };
+    </script>
+</body>
+</html>
