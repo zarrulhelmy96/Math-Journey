@@ -51,6 +51,9 @@
                 <div class="flex items-center space-x-1 bg-amber-50 px-2 py-1 rounded-full text-sm font-semibold text-amber-600">
                     <span>🔥</span> <span id="nav-streak">1</span>
                 </div>
+                <button onclick="switchView('contact')" class="text-slate-600 hover:text-soft-pink text-sm font-medium">
+                    Hubungi Kami
+                </button>
                 <button onclick="switchView('profile')" class="text-slate-600 hover:text-soft-pink text-lg">
                     <i class="fa-solid fa-user-circle text-2xl"></i>
                 </button>
@@ -290,6 +293,37 @@
             </div>
         </section>
 
+        <section id="view-contact" class="view p-5 hide">
+            <div class="mb-6">
+                <button onclick="switchView('dashboard')" class="text-gray-500 text-sm"><i class="fa-solid fa-arrow-left"></i> Dashboard</button>
+                <h2 class="text-xl font-bold text-slate-900 mt-3">Hubungi Kami</h2>
+                <p class="text-xs text-gray-500 mt-1">Kami sedia membantu anda sekiranya terdapat sebarang pertanyaan atau masalah bantuan teknikal.</p>
+            </div>
+            <div class="bg-white border border-gray-200 p-5 rounded-2xl shadow-sm space-y-4">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-pink-100 p-3 rounded-xl text-soft-pink text-base"><i class="fa-solid fa-envelope"></i></div>
+                    <div>
+                        <h4 class="font-bold text-sm text-slate-800">E-mel Sokongan</h4>
+                        <p class="text-xs text-gray-500 select-all">support@mathjourney.my</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <div class="bg-green-100 p-3 rounded-xl text-green-600 text-base"><i class="fa-solid fa-phone"></i></div>
+                    <div>
+                        <h4 class="font-bold text-sm text-slate-800">WhatsApp / Telefon</h4>
+                        <p class="text-xs text-gray-500">+60 12-345 6789</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <div class="bg-blue-100 p-3 rounded-xl text-blue-600 text-base"><i class="fa-solid fa-clock"></i></div>
+                    <div>
+                        <h4 class="font-bold text-sm text-slate-800">Waktu Operasi</h4>
+                        <p class="text-xs text-gray-500">Isnin - Jumaat (9:00 AM - 5:00 PM)</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <section id="view-admin" class="view p-5 hide">
             <div class="mb-6">
                 <h2 class="text-xl font-bold text-purple-900">Admin Panel (Silibus Builder)</h2>
@@ -451,6 +485,10 @@
                 <i class="fa-solid fa-graduation-cap text-sm"></i>
                 <span class="text-[10px] mt-1 font-semibold">Tingkatan</span>
             </button>
+            <button onclick="switchView('contact')" id="bnav-contact" class="flex flex-col items-center">
+                <i class="fa-solid fa-envelope text-sm"></i>
+                <span class="text-[10px] mt-1 font-semibold">Hubungi</span>
+            </button>
             <button onclick="switchView('profile')" id="bnav-profile" class="flex flex-col items-center">
                 <i class="fa-solid fa-user text-sm"></i>
                 <span class="text-[10px] mt-1 font-semibold">Profil</span>
@@ -485,17 +523,9 @@
         let appSilibusData = {};
         let currentSelectedForm = null;
         let currentSelectedChapterKey = null;
-        
-        // Simpan indeks soalan aktif untuk navigasi Latihan & Contoh
         let activeQuizQuestions = [];
         let activeQuizIndex = 0;
         let activeQuizScore = 0;
-
-        let activeLatihanQuestions = [];
-        let activeLatihanIndex = 0;
-
-        let activeContohQuestions = [];
-        let activeContohIndex = 0;
 
         window.switchView = function(viewId) {
             document.querySelectorAll('.view').forEach(el => el.classList.add('hide'));
@@ -587,6 +617,7 @@
         window.handleLogout = function() { 
             signOut(auth).then(() => { 
                 currentUser = null; 
+                // MEMASTIKAN BUTANG ADMIN DISEMBUNYIKAN SEMULA APABILA KELUAR
                 document.getElementById('admin-nav-btn').classList.add('hide');
                 switchView('landing'); 
             }); 
@@ -602,6 +633,7 @@
                 updateAdminChapterOptions();
             }).catch(() => { updateAdminChapterOptions(); });
 
+            // LOGIK UNTUK SYNC DAN PAPAR PENGUMUMAN SECARA REAL-TIME DARI FIREBASE
             onValue(ref(db, 'announcement'), (snapshot) => {
                 const annText = snapshot.exists() ? snapshot.val() : "";
                 const box = document.getElementById('dash-announcement-box');
@@ -611,7 +643,7 @@
                 if (annText && annText.trim() !== "") {
                     textEl.innerText = annText;
                     box.classList.remove('hide');
-                    if(inputEl) inputEl.value = annText;
+                    if(inputEl) inputEl.value = annText; // Isi siap-siap dalam panel admin
                 } else {
                     box.classList.add('hide');
                     if(inputEl) inputEl.value = "";
@@ -622,6 +654,7 @@
                 if (snapshot.exists()) {
                     const data = snapshot.val();
                     
+                    // MEMASTIKAN HANYA USER BERENAN 'admin' YANG DAPAT MELIHAT BUTANG ADMIN
                     if(data.role === 'admin') {
                         document.getElementById('admin-nav-btn').classList.remove('hide');
                     } else {
@@ -645,6 +678,7 @@
             switchView('dashboard');
         }
 
+        // FUNGSI KEMAS KINI PENGUMUMAN OLEH ADMIN
         window.updateGlobalAnnouncement = function() {
             const txt = document.getElementById('adm-announcement-input').value.trim();
             set(ref(db, 'announcement'), txt)
@@ -706,9 +740,12 @@
                         let item = subData.kandungan_list[k];
                         if(item.nota && (item.nota.maksud || item.nota.formula || item.nota.imageUrl)) {
                             
+                            // LOGIK BOX BUTTON UNTUK PDF ATAU GAMBAR
                             let fileDisplayTag = "";
                             if (item.nota.imageUrl) {
+                                // Mengesan jika url adalah fail PDF
                                 if (item.nota.imageUrl.toLowerCase().includes('.pdf') || item.nota.imageUrl.includes('application/pdf') || item.nota.imageUrl.includes('nota_images%2F')) {
+                                    // Pilihan 1: Jika url dikesan sebagai PDF, paparkan Box Button merah interaktif
                                     if (item.nota.imageUrl.toLowerCase().includes('.pdf') || !item.nota.imageUrl.match(/\.(jpeg|jpg|gif|png)$/i)) {
                                         fileDisplayTag = `
                                             <div class="mt-3">
@@ -724,6 +761,7 @@
                                                 </a>
                                             </div>`;
                                     } else {
+                                        // Kekalkan sebagai tag gambar jika ia format gambar biasa
                                         fileDisplayTag = `<div class="mt-2 rounded-lg overflow-hidden border"><img src="${item.nota.imageUrl}" class="w-full h-auto object-contain"></div>`;
                                     }
                                 } else {
@@ -748,131 +786,59 @@
                 } else { target.innerHTML = `<p class="text-xs text-gray-400 text-center">Tiada kandungan nota.</p>`; }
             } 
             else if (subtab === 'contoh') {
-                // Sediakan senarai array contoh soalan
-                activeContohQuestions = [];
+                const target = document.getElementById('contoh-content');
+                target.innerHTML = "";
                 if (subData && subData.kandungan_list) {
                     for (let k in subData.kandungan_list) {
                         let item = subData.kandungan_list[k];
                         if(item.contoh && (item.contoh.soalan || item.contoh.imageUrl)) {
-                            activeContohQuestions.push(item.contoh);
+                            let imgTag = item.contoh.imageUrl ? `<div class="mt-2 rounded-lg overflow-hidden border"><img src="${item.contoh.imageUrl}" class="w-full h-auto object-contain"></div>` : '';
+                            target.innerHTML += `
+                                <div class="bg-white border p-4 rounded-xl mb-2">
+                                    <p class="text-sm font-semibold">${item.contoh.soalan || ''}</p>
+                                    ${imgTag}
+                                </div>
+                                <div class="bg-slate-50 border p-4 rounded-xl text-xs mb-4">
+                                    <p class="whitespace-pre-line">${item.contoh.jalan_kerja || ''}</p>
+                                </div>
+                            `;
                         }
                     }
-                }
-                activeContohIndex = 0;
-                renderContohQuestion();
+                } else { target.innerHTML = `<p class="text-xs text-gray-400 text-center">Tiada kandungan contoh soalan.</p>`; }
             } 
             else if (subtab === 'latihan') {
-                // Sediakan senarai array soalan latihan
-                activeLatihanQuestions = [];
+                const target = document.getElementById('latihan-content');
+                target.innerHTML = "";
                 if (subData && subData.kandungan_list) {
+                    let index = 1;
                     for (let k in subData.kandungan_list) {
                         let item = subData.kandungan_list[k];
                         if(item.latihan && (item.latihan.soalan || item.latihan.imageUrl)) {
-                            // Selitkan key asal untuk keperluan ID elemen maklum balas
-                            item.latihan.uid = k; 
-                            activeLatihanQuestions.push(item.latihan);
+                            let latId = `fb-${k}`;
+                            let imgTag = item.latihan.imageUrl ? `<div class="mt-2 rounded-lg overflow-hidden border"><img src="${item.latihan.imageUrl}" class="w-full h-auto object-contain"></div>` : '';
+                            target.innerHTML += `
+                                <div class="bg-white border p-4 rounded-xl mb-2">
+                                    <p class="text-sm font-medium">Soalan ${index}: ${item.latihan.soalan || ''}</p>
+                                    ${imgTag}
+                                </div>
+                                <div class="grid grid-cols-1 gap-2 mb-2">
+                                    <button onclick="checkLatihanJawapan('A', '${item.latihan.jawapan}', '${item.latihan.penerangan || ''}', '${latId}')" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50">A. ${item.latihan.a}</button>
+                                    <button onclick="checkLatihanJawapan('B', '${item.latihan.jawapan}', '${item.latihan.penerangan || ''}', '${latId}')" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50">B. ${item.latihan.b}</button>
+                                    <button onclick="checkLatihanJawapan('C', '${item.latihan.jawapan}', '${item.latihan.penerangan || ''}', '${latId}')" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50">C. ${item.latihan.c}</button>
+                                    <button onclick="checkLatihanJawapan('D', '${item.latihan.jawapan}', '${item.latihan.penerangan || ''}', '${latId}')" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50">D. ${item.latihan.d}</button>
+                                </div>
+                                <div id="${latId}" class="p-4 rounded-xl text-xs hide mb-6"></div>
+                            `;
+                            index++;
                         }
                     }
-                }
-                activeLatihanIndex = 0;
-                renderLatihanQuestion();
+                } else { target.innerHTML = `<p class="text-xs text-gray-400 text-center">Tiada kandungan latihan.</p>`; }
             }
             else if (subtab === 'kuiz') {
                 document.getElementById('kuiz-intro').classList.remove('hide');
                 document.getElementById('kuiz-active').classList.add('hide');
                 document.getElementById('kuiz-result').classList.add('hide');
             }
-        };
-
-        // FUNGSI PAPAR CONTOH SOALAN SATU PER SATU
-        function renderContohQuestion() {
-            const target = document.getElementById('contoh-content');
-            target.innerHTML = "";
-            
-            if (activeContohQuestions.length === 0) {
-                target.innerHTML = `<p class="text-xs text-gray-400 text-center">Tiada kandungan contoh soalan.</p>`;
-                return;
-            }
-
-            const item = activeContohQuestions[activeContohIndex];
-            let imgTag = item.imageUrl ? `<div class="mt-2 rounded-lg overflow-hidden border"><img src="${item.imageUrl}" class="w-full h-auto object-contain"></div>` : '';
-            
-            // Logik sembunyikan butang Kembali di halaman pertama
-            let backButtonHideClass = (activeContohIndex === 0) ? "hide" : "";
-            // Logik sembunyikan butang Seterusnya di halaman terakhir
-            let nextButtonHideClass = (activeContohIndex === activeContohQuestions.length - 1) ? "hide" : "";
-
-            target.innerHTML = `
-                <div class="bg-gray-100 p-2 rounded-lg text-[10px] font-bold text-gray-500">Contoh ${activeContohIndex + 1} daripada ${activeContohQuestions.length}</div>
-                <div class="bg-white border p-4 rounded-xl mb-2">
-                    <p class="text-sm font-semibold">${item.soalan || ''}</p>
-                    ${imgTag}
-                </div>
-                <div class="bg-slate-50 border p-4 rounded-xl text-xs mb-4">
-                    <p class="whitespace-pre-line font-medium text-gray-700">📋 Jalan Kerja / Penerangan:</p>
-                    <p class="whitespace-pre-line mt-2 text-slate-600">${item.jalan_kerja || ''}</p>
-                </div>
-                <div class="flex space-x-2 mt-4">
-                    <button onclick="navigateContoh(-1)" class="w-1/2 bg-red-500 hover:bg-red-600 text-white font-bold p-3 text-xs rounded-xl transition ${backButtonHideClass}">
-                        <i class="fa-solid fa-arrow-left mr-1"></i> Kembali
-                    </button>
-                    <button onclick="navigateContoh(1)" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold p-3 text-xs rounded-xl transition ${nextButtonHideClass}">
-                        Seterusnya <i class="fa-solid fa-arrow-right ml-1"></i>
-                    </button>
-                </div>
-            `;
-        }
-
-        window.navigateContoh = function(direction) {
-            activeContohIndex += direction;
-            renderContohQuestion();
-        };
-
-        // FUNGSI PAPAR SOALAN LATIHAN SATU PER SATU
-        function renderLatihanQuestion() {
-            const target = document.getElementById('latihan-content');
-            target.innerHTML = "";
-
-            if (activeLatihanQuestions.length === 0) {
-                target.innerHTML = `<p class="text-xs text-gray-400 text-center">Tiada kandungan latihan.</p>`;
-                return;
-            }
-
-            const item = activeLatihanQuestions[activeLatihanIndex];
-            let latId = `fb-${item.uid}`;
-            let imgTag = item.imageUrl ? `<div class="mt-2 rounded-lg overflow-hidden border"><img src="${item.imageUrl}" class="w-full h-auto object-contain"></div>` : '';
-            
-            let backButtonHideClass = (activeLatihanIndex === 0) ? "hide" : "";
-            let nextButtonHideClass = (activeLatihanIndex === activeLatihanQuestions.length - 1) ? "hide" : "";
-
-            target.innerHTML = `
-                <div class="bg-gray-100 p-2 rounded-lg text-[10px] font-bold text-gray-500">Soalan Latihan ${activeLatihanIndex + 1} daripada ${activeLatihanQuestions.length}</div>
-                <div class="bg-white border p-4 rounded-xl mb-2">
-                    <p class="text-sm font-medium">Soalan: ${item.soalan || ''}</p>
-                    ${imgTag}
-                </div>
-                <div class="grid grid-cols-1 gap-2 mb-2">
-                    <button onclick="checkLatihanJawapan('A', '${item.jawapan}', '${item.penerangan || ''}', '${latId}')" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50">A. ${item.a}</button>
-                    <button onclick="checkLatihanJawapan('B', '${item.jawapan}', '${item.penerangan || ''}', '${latId}')" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50">B. ${item.b}</button>
-                    <button onclick="checkLatihanJawapan('C', '${item.jawapan}', '${item.penerangan || ''}', '${latId}')" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50">C. ${item.c}</button>
-                    <button onclick="checkLatihanJawapan('D', '${item.jawapan}', '${item.penerangan || ''}', '${latId}')" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50">D. ${item.d}</button>
-                </div>
-                <div id="${latId}" class="p-4 rounded-xl text-xs hide mb-4"></div>
-                
-                <div class="flex space-x-2 mt-4">
-                    <button onclick="navigateLatihan(-1)" class="w-1/2 bg-red-500 hover:bg-red-600 text-white font-bold p-3 text-xs rounded-xl transition ${backButtonHideClass}">
-                        <i class="fa-solid fa-arrow-left mr-1"></i> Kembali
-                    </button>
-                    <button onclick="navigateLatihan(1)" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold p-3 text-xs rounded-xl transition ${nextButtonHideClass}">
-                        Seterusnya <i class="fa-solid fa-arrow-right ml-1"></i>
-                    </button>
-                </div>
-            `;
-        }
-
-        window.navigateLatihan = function(direction) {
-            activeLatihanIndex += direction;
-            renderLatihanQuestion();
         };
 
         window.checkLatihanJawapan = function(pilih, betul, fbTeks, targetElementId) {
@@ -927,7 +893,7 @@
                     <button id="btn-opt-D" onclick="submitQuizAnswer('D')" class="w-full text-left p-3 text-xs bg-white border rounded-xl hover:bg-slate-50 transition font-medium">D. ${q.d}</button>
                 </div>
                 <div id="quiz-feedback-box" class="p-4 rounded-xl text-xs hide mt-3"></div>
-                <button id="btn-quiz-next" onclick="nextQuizQuestion()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold p-3 text-xs rounded-xl mt-4 hide">
+                <button id="btn-quiz-next" onclick="nextQuizQuestion()" class="w-full bg-slate-900 text-white font-bold p-3 text-xs rounded-xl mt-4 hide">
                     Seterusnya <i class="fa-solid fa-arrow-right ml-1"></i>
                 </button>
             `;
@@ -1002,6 +968,7 @@
             }
         };
 
+        // ADMIN CONTROLS INTERACTION
         document.getElementById('adm-form').addEventListener('change', () => updateAdminChapterOptions());
 
         window.updateAdminChapterOptions = function() {
@@ -1125,6 +1092,7 @@
             
             const file = fileEl.files[0];
             try {
+                // Tentukan metadata sekiranya admin memuat naik fail PDF
                 const metadata = {};
                 if (file.type === "application/pdf" || file.name.endsWith('.pdf')) {
                     metadata.contentType = "application/pdf";
@@ -1197,6 +1165,7 @@
                 await set(newContentRef, payload);
                 alert("Isi kandungan baru berjaya ditambah!");
                 
+                // Reset form
                 document.getElementById('adm-nota-maksud').value = "";
                 document.getElementById('adm-nota-formula').value = "";
                 document.getElementById('adm-nota-kesilapan').value = "";
