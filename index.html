@@ -841,13 +841,14 @@
         };
 
         window.payLifetimeNow = function() {
-            alert("Sistem gerbang pembayaran ToyyibPay/Billplz akan dibuka untuk RM99. (Simulasi: Pembayaran berjaya!)");
-            update(ref(db, `users/${currentUser.uid}`), { premium: true })
-            .then(() => {
-                alert("Pembayaran disahkan! Akaun anda kini Premium Seumur Hidup. ✨");
-                closePaymentModal();
-                checkUserPremiumAndLoadDashboard();
-            }).catch(e => alert(e.message));
+            if (!currentUser) {
+                return alert("Sila log masuk dahulu sebelum membuat pembayaran.");
+            }
+
+            const paymentUrl = "https://toyyibpay.com/Math-Journey";
+            window.open(paymentUrl, "_blank", "noopener,noreferrer");
+
+            alert("Anda akan dibawa ke halaman pembayaran ToyyibPay. Selepas bayaran berjaya, akses akaun perlu disahkan oleh admin/sistem terlebih dahulu.");
         };
 
         window.loadChapters = function(formNum) {
