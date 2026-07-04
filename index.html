@@ -377,8 +377,8 @@
                     <textarea id="adm-nota-kesilapan" rows="2" class="w-full border p-2 rounded" placeholder="Kesilapan biasa pelajar..."></textarea>
                     <textarea id="adm-nota-tips" rows="2" class="w-full border p-2 rounded" placeholder="Tips mudah ingat..."></textarea>
                     <div class="bg-white p-2 border rounded">
-                        <label class="block text-[10px] text-gray-500 font-bold mb-1">Gambar Nota (.jpg, .jpeg sahaja):</label>
-                        <input type="file" id="adm-nota-image-file" accept=".jpg, .jpeg" class="w-full text-xs">
+                        <label class="block text-[10px] text-gray-500 font-bold mb-1">Gambar Nota ATAU Fail PDF Tambahan:</label>
+                        <input type="file" id="adm-nota-image-file" accept="image/jpeg, image/png, application/pdf" class="w-full text-xs">
                     </div>
                 </div>
 
@@ -576,7 +576,14 @@
             .catch(e => alert(e.message));
         };
 
-        window.handleLogout = function() { signOut(auth).then(() => { currentUser = null; switchView('landing'); }); };
+        window.handleLogout = function() { 
+            signOut(auth).then(() => { 
+                currentUser = null; 
+                // MEMASTIKAN BUTANG ADMIN DISEMBUNYIKAN SEMULA APABILA KELUAR
+                document.getElementById('admin-nav-btn').classList.add('hide');
+                switchView('landing'); 
+            }); 
+        };
 
         onAuthStateChanged(auth, (user) => { if (user) initUserData(user); else switchView('landing'); });
 
@@ -588,6 +595,7 @@
                 updateAdminChapterOptions();
             }).catch(() => { updateAdminChapterOptions(); });
 
+            // LOGIK UNTUK SYNC DAN PAPAR PENGUMUMAN SECARA REAL-TIME DARI FIREBASE
             onValue(ref(db, 'announcement'), (snapshot) => {
                 const annText = snapshot.exists() ? snapshot.val() : "";
                 const box = document.getElementById('dash-announcement-box');
@@ -597,7 +605,7 @@
                 if (annText && annText.trim() !== "") {
                     textEl.innerText = annText;
                     box.classList.remove('hide');
-                    if(inputEl) inputEl.value = annText;
+                    if(inputEl) inputEl.value = annText; // Isi siap-siap dalam panel admin
                 } else {
                     box.classList.add('hide');
                     if(inputEl) inputEl.value = "";
@@ -607,7 +615,14 @@
             get(ref(db, 'users/' + user.uid)).then((snapshot) => {
                 if (snapshot.exists()) {
                     const data = snapshot.val();
-                    if(data.role === 'admin') document.getElementById('admin-nav-btn').classList.remove('hide');
+                    
+                    // MEMASTIKAN HANYA USER BERENAN 'admin' YANG DAPAT MELIHAT BUTANG ADMIN
+                    if(data.role === 'admin') {
+                        document.getElementById('admin-nav-btn').classList.remove('hide');
+                    } else {
+                        document.getElementById('admin-nav-btn').classList.add('hide');
+                    }
+                    
                     document.getElementById('nav-streak').innerText = data.streak || 1;
                     document.getElementById('dash-stat-streak').innerText = (data.streak || 1) + " Hari";
                     document.getElementById('dash-stat-questions').innerText = data.questionsAnswered || 0;
@@ -618,12 +633,14 @@
                     document.getElementById('prof-fullname').value = data.fullName || "";
                     document.getElementById('prof-nickname').value = data.nickname || "";
                 } else {
+                    document.getElementById('admin-nav-btn').classList.add('hide');
                     document.getElementById('dash-username').innerText = user.email.split('@')[0];
                 }
             });
             switchView('dashboard');
         }
 
+        // FUNGSI KEMAS KINI PENGUMUMAN OLEH ADMIN
         window.updateGlobalAnnouncement = function() {
             const txt = document.getElementById('adm-announcement-input').value.trim();
             set(ref(db, 'announcement'), txt)
@@ -683,19 +700,52 @@
                 if (subData && subData.kandungan_list) {
                     for (let k in subData.kandungan_list) {
                         let item = subData.kandungan_list[k];
-                        // HANYA PAPARKAN JIKA ADA GAMBAR NOTA YANG DIUPLOAD
-                        if(item.nota && item.nota.imageUrl) {
+                        if(item.nota && (item.nota.maksud || item.nota.formula || item.nota.imageUrl)) {
+                            
+                            // LOGIK BOX BUTTON UNTUK PDF ATAU GAMBAR
+                            let fileDisplayTag = "";
+                            if (item.nota.imageUrl) {
+                                // Mengesan jika url adalah fail PDF
+                                if (item.nota.imageUrl.toLowerCase().includes('.pdf') || item.nota.imageUrl.includes('application/pdf') || item.nota.imageUrl.includes('nota_images%2F')) {
+                                    // Pilihan 1: Jika url dikesan sebagai PDF, paparkan Box Button merah interaktif
+                                    if (item.nota.imageUrl.toLowerCase().includes('.pdf') || !item.nota.imageUrl.match(/\.(jpeg|jpg|gif|png)$/i)) {
+                                        fileDisplayTag = `
+                                            <div class="mt-3">
+                                                <a href="${item.nota.imageUrl}" target="_blank" class="w-full flex items-center justify-between bg-red-50 text-red-600 border border-red-200 p-4 rounded-xl font-bold hover:bg-red-100 transition shadow-sm">
+                                                    <div class="flex items-center space-x-3">
+                                                        <i class="fa-solid fa-file-pdf text-2xl"></i>
+                                                        <div class="text-left">
+                                                            <p class="text-sm">Buka Dokumen Rujukan PDF</p>
+                                                            <p class="text-[10px] text-gray-400 font-normal">Klik untuk lihat nota dalam pelayar web</p>
+                                                        </div>
+                                                    </div>
+                                                    <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i>
+                                                </a>
+                                            </div>`;
+                                    } else {
+                                        // Kekalkan sebagai tag gambar jika ia format gambar biasa
+                                        fileDisplayTag = `<div class="mt-2 rounded-lg overflow-hidden border"><img src="${item.nota.imageUrl}" class="w-full h-auto object-contain"></div>`;
+                                    }
+                                } else {
+                                    fileDisplayTag = `<div class="mt-2 rounded-lg overflow-hidden border"><img src="${item.nota.imageUrl}" class="w-full h-auto object-contain"></div>`;
+                                }
+                            }
+
                             target.innerHTML += `
-                                <div class="bg-white p-2 border border-gray-100 rounded-2xl mb-3 overflow-hidden shadow-sm">
-                                    <img src="${item.nota.imageUrl}" class="w-full h-auto object-contain rounded-xl">
+                                <div class="bg-white p-4 rounded-xl border mb-3">
+                                    <span class="text-xs font-bold text-soft-pink uppercase">Maksud</span>
+                                    <p class="text-sm mt-1">${item.nota.maksud || ''}</p>
+                                    ${fileDisplayTag}
+                                </div>
+                                <div class="bg-neon-green p-4 rounded-xl border text-green-900 mb-4">
+                                    <span class="text-xs font-bold uppercase">Formula / Tips</span>
+                                    <p class="font-mono font-bold mt-1">${item.nota.formula || 'Tiada'}</p>
+                                    <p class="text-xs text-gray-600 mt-1 italic">${item.nota.tips || ''}</p>
                                 </div>
                             `;
                         }
                     }
-                    if (target.innerHTML === "") {
-                        target.innerHTML = `<p class="text-xs text-gray-400 text-center py-6">Tiada kandungan gambar nota untuk subtopik ini.</p>`;
-                    }
-                } else { target.innerHTML = `<p class="text-xs text-gray-400 text-center py-6">Tiada kandungan gambar nota untuk subtopik ini.</p>`; }
+                } else { target.innerHTML = `<p class="text-xs text-gray-400 text-center">Tiada kandungan nota.</p>`; }
             } 
             else if (subtab === 'contoh') {
                 const target = document.getElementById('contoh-content');
@@ -880,6 +930,7 @@
             }
         };
 
+        // ADMIN CONTROLS INTERACTION
         document.getElementById('adm-form').addEventListener('change', () => updateAdminChapterOptions());
 
         window.updateAdminChapterOptions = function() {
@@ -985,7 +1036,7 @@
                     
                     let jenis = "Kandungan";
                     let ringkasan = "";
-                    if (list[contentKey].nota?.maksud || list[contentKey].nota?.imageUrl) { jenis = "Nota"; ringkasan = list[contentKey].nota.maksud || "[Nota Bergambar]"; }
+                    if (list[contentKey].nota?.maksud || list[contentKey].nota?.imageUrl) { jenis = "Nota"; ringkasan = list[contentKey].nota.maksud || "[Nota/PDF]"; }
                     else if (list[contentKey].contoh?.soalan || list[contentKey].contoh?.imageUrl) { jenis = "Contoh"; ringkasan = list[contentKey].contoh.soalan || "[Contoh Bergambar]"; }
                     else if (list[contentKey].latihan?.soalan || list[contentKey].latihan?.imageUrl) { jenis = "Latihan"; ringkasan = list[contentKey].latihan.soalan || "[Latihan Bergambar]"; }
                     else if (list[contentKey].kuiz?.soalan || list[contentKey].kuiz?.imageUrl) { jenis = "Kuiz Bab"; ringkasan = list[contentKey].kuiz.soalan || "[Kuiz Bergambar]"; }
@@ -1003,7 +1054,12 @@
             
             const file = fileEl.files[0];
             try {
+                // Tentukan metadata sekiranya admin memuat naik fail PDF
                 const metadata = {};
+                if (file.type === "application/pdf" || file.name.endsWith('.pdf')) {
+                    metadata.contentType = "application/pdf";
+                }
+
                 const storageRefPath = sRef(storage, `${folderName}/${Date.now()}_${file.name}`);
                 const snapshot = await uploadBytes(storageRefPath, file, metadata);
                 return await getDownloadURL(snapshot.ref);
@@ -1020,7 +1076,7 @@
 
             if(!chKey || !subKey) return alert("Sila pilih Bab dan Subtopik di Bahagian 1 terlebih dahulu.");
 
-            alert("Sedang memproses dan memuat naik data/gambar, sila tunggu sehingga mesej selesai dipaparkan...");
+            alert("Sedang memproses dan memuat naik data/gambar/PDF, sila tunggu sehingga mesej selesai dipaparkan...");
 
             try {
                 const [notaImgUrl, contohImgUrl, latihanImgUrl, kuizImgUrl] = await Promise.all([
@@ -1071,6 +1127,7 @@
                 await set(newContentRef, payload);
                 alert("Isi kandungan baru berjaya ditambah!");
                 
+                // Reset form
                 document.getElementById('adm-nota-maksud').value = "";
                 document.getElementById('adm-nota-formula').value = "";
                 document.getElementById('adm-nota-kesilapan').value = "";
