@@ -324,6 +324,16 @@
                     <label class="block font-semibold text-gray-600 mb-1">Nama Panggilan (Nickname)</label>
                     <input type="text" id="prof-nickname" placeholder="Masukkan nama panggilan" class="w-full border border-gray-200 p-2.5 rounded-lg text-sm focus:outline-none focus:border-soft-pink">
                 </div>
+                <div>
+                    <label class="block font-semibold text-gray-600 mb-1">Email Untuk Dihubungi</label>
+                    <input type="email" id="prof-contact-email" placeholder="contoh@gmail.com" class="w-full border border-gray-200 p-2.5 rounded-lg text-sm focus:outline-none focus:border-soft-pink">
+                    <p class="text-[10px] text-gray-400 mt-1">Email ini akan dipaparkan kepada admin jika anda menjadi affiliate.</p>
+                </div>
+                <div>
+                    <label class="block font-semibold text-gray-600 mb-1">Nombor Telefon</label>
+                    <input type="tel" id="prof-phone" placeholder="Contoh: 0123456789" class="w-full border border-gray-200 p-2.5 rounded-lg text-sm focus:outline-none focus:border-soft-pink">
+                    <p class="text-[10px] text-gray-400 mt-1">Nombor ini akan membantu admin hubungi anda tentang affiliate atau withdrawal.</p>
+                </div>
                 <button onclick="updateUserProfileData()" class="w-full bg-slate-900 text-white font-bold py-2.5 rounded-xl text-xs transition hover:bg-slate-800">
                     Kemas Kini Profil
                 </button>
@@ -768,6 +778,10 @@
 
                 document.getElementById('prof-fullname').value = udata.fullname || "";
                 document.getElementById('prof-nickname').value = udata.nickname || "";
+                const profContactEmailEl = document.getElementById('prof-contact-email');
+                const profPhoneEl = document.getElementById('prof-phone');
+                if(profContactEmailEl) profContactEmailEl.value = udata.contactEmail || udata.email || currentUser.email || "";
+                if(profPhoneEl) profPhoneEl.value = udata.phone || udata.phoneNumber || "";
                 document.getElementById('prof-completed-count').innerText = `${udata.completedChaptersCount || 0} Bab`;
                 document.getElementById('prof-avg-score').innerText = `${udata.averageQuizScore || 0}%`;
                 document.getElementById('prof-weakest-topic').innerText = udata.weakestTopic || "Tiada data lagi";
@@ -983,6 +997,8 @@
                     const userData = {
                         uid: newUser.uid,
                         email: newUser.email,
+                        contactEmail: newUser.email,
+                        phone: "",
                         fullname: "Pelajar Baru",
                         nickname: newUser.email.split('@')[0],
                         premium: false,
@@ -1867,17 +1883,32 @@
 
         window.requestAffiliateActivation = async function() {
             if(!currentUser) return alert("Sila log masuk dahulu.");
+
+            const contactEmail = (document.getElementById('prof-contact-email')?.value || '').trim() || currentUser.email;
+            const phone = (document.getElementById('prof-phone')?.value || '').trim();
+            if(!contactEmail || !phone) {
+                return alert("Sila isi Email Untuk Dihubungi dan Nombor Telefon dalam profil sebelum activate affiliate.");
+            }
+
             if(!confirm("Hantar permohonan untuk menjadi affiliate Math Journey?")) return;
 
             try {
                 const requestData = {
                     uid: currentUser.uid,
                     email: currentUser.email,
+                    contactEmail: contactEmail,
+                    phone: phone,
                     status: "pending",
                     requestedAt: Date.now()
                 };
+                await update(ref(db, `users/${currentUser.uid}`), {
+                    contactEmail: contactEmail,
+                    phone: phone
+                });
                 await update(ref(db, `users/${currentUser.uid}/affiliate`), {
                     status: "pending",
+                    contactEmail: contactEmail,
+                    phone: phone,
                     requestedAt: Date.now()
                 });
                 await set(ref(db, `affiliateRequests/${currentUser.uid}`), requestData);
@@ -1966,12 +1997,16 @@
             if(!currentUser) return;
             const fullname = document.getElementById('prof-fullname').value.trim();
             const nickname = document.getElementById('prof-nickname').value.trim();
+            const contactEmail = (document.getElementById('prof-contact-email')?.value || '').trim() || currentUser.email;
+            const phone = (document.getElementById('prof-phone')?.value || '').trim();
 
             if(!fullname || !nickname) return alert("Sila isi semua ruangan nama.");
 
             update(ref(db, `users/${currentUser.uid}`), {
                 fullname: fullname,
-                nickname: nickname
+                nickname: nickname,
+                contactEmail: contactEmail,
+                phone: phone
             }).then(() => {
                 alert("Profil anda berjaya dikemaskini!");
                 checkUserPremiumAndLoadDashboard();
@@ -2497,6 +2532,8 @@
                     } else {
                         pendingRequests.sort((a,b) => (b[1].requestedAt || 0) - (a[1].requestedAt || 0)).forEach(([uid, request]) => {
                             const safeUid = uid.replace(/[^a-zA-Z0-9_-]/g, '_');
+                            const contactEmail = request.contactEmail || users[uid]?.contactEmail || request.email || users[uid]?.email || uid;
+                            const phone = request.phone || users[uid]?.phone || users[uid]?.phoneNumber || '-';
                             const suggestion = makeReferralCodeSuggestion(request.email || users[uid]?.email || '');
                             const card = document.createElement('div');
                             card.className = "bg-white border border-emerald-200 rounded-xl p-3 space-y-2 text-slate-800";
@@ -2504,6 +2541,8 @@
                                 <div class="flex justify-between gap-2">
                                     <div>
                                         <p class="font-bold text-xs">${request.email || users[uid]?.email || uid}</p>
+                                        <p class="text-[11px] text-gray-500">Contact Email: <span class="font-semibold">${contactEmail}</span></p>
+                                        <p class="text-[11px] text-gray-500">No. Telefon: <span class="font-semibold">${phone}</span></p>
                                         <p class="text-[10px] text-gray-400">Request: ${request.requestedAt ? new Date(request.requestedAt).toLocaleString('ms-MY') : '-'}</p>
                                     </div>
                                     <span class="bg-amber-100 text-amber-700 px-2 py-1 rounded-full text-[9px] font-bold h-fit">Pending</span>
@@ -2575,11 +2614,17 @@
                     } else {
                         activeAffiliates.sort((a,b) => (a[1].email || '').localeCompare(b[1].email || '')).forEach(([uid, u]) => {
                             const aff = u.affiliate || {};
+                            const contactEmail = u.contactEmail || aff.contactEmail || u.email || uid;
+                            const phone = u.phone || u.phoneNumber || aff.phone || '-';
                             const card = document.createElement('div');
                             card.className = "bg-white border border-emerald-200 rounded-xl p-3 text-slate-800 text-[11px]";
                             card.innerHTML = `
                                 <p class="font-bold text-xs">${u.email || uid}</p>
-                                <p>Code: <span class="font-mono font-bold text-emerald-700">${aff.referralCode || '-'}</span></p>
+                                <div class="bg-slate-50 border rounded-lg p-2 mt-1 space-y-0.5">
+                                    <p>Contact Email: <span class="font-semibold">${contactEmail}</span></p>
+                                    <p>No. Telefon: <span class="font-semibold">${phone}</span></p>
+                                </div>
+                                <p class="mt-1">Code: <span class="font-mono font-bold text-emerald-700">${aff.referralCode || '-'}</span></p>
                                 <div class="grid grid-cols-2 gap-1 mt-1">
                                     <p>Referral: <span class="font-bold">${aff.referralCount || 0}</span></p>
                                     <p>Paid: <span class="font-bold">${aff.paidReferralCount || 0}</span></p>
@@ -2624,11 +2669,15 @@
                     availableBalance: Number(existingAff.availableBalance || 0),
                     pendingWithdrawal: Number(existingAff.pendingWithdrawal || 0),
                     totalWithdrawn: Number(existingAff.totalWithdrawn || 0),
+                    contactEmail: u.contactEmail || existingAff.contactEmail || u.email || '',
+                    phone: u.phone || u.phoneNumber || existingAff.phone || '',
                     approvedAt: Date.now()
                 });
                 await set(ref(db, `referralCodes/${code}`), {
                     affiliateUid: uid,
                     affiliateEmail: u.email || '',
+                    affiliateContactEmail: u.contactEmail || u.email || '',
+                    affiliatePhone: u.phone || u.phoneNumber || '',
                     active: true,
                     commissionPerSale: commission,
                     createdAt: Date.now()
@@ -2637,6 +2686,8 @@
                     status: "approved",
                     referralCode: code,
                     commissionPerSale: commission,
+                    contactEmail: u.contactEmail || u.email || '',
+                    phone: u.phone || u.phoneNumber || '',
                     approvedAt: Date.now()
                 });
 
@@ -2852,4 +2903,3 @@
     </script>
 </body>
 </html>
-
