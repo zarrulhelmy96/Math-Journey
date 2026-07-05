@@ -448,6 +448,17 @@
                     <select id="adm-content-list-select" class="w-full border p-2 rounded bg-white outline-none">
                         <option value="">-- Tiada Kandungan Dipilih --</option>
                     </select>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button onclick="editSelectedContent()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold p-2 rounded flex items-center justify-center space-x-1">
+                            <i class="fa-solid fa-pen"></i> <span>Edit</span>
+                        </button>
+                        <button onclick="moveSelectedContent('up')" class="bg-slate-700 hover:bg-slate-800 text-white font-bold p-2 rounded flex items-center justify-center space-x-1">
+                            <i class="fa-solid fa-arrow-up"></i> <span>Up</span>
+                        </button>
+                        <button onclick="moveSelectedContent('down')" class="bg-slate-700 hover:bg-slate-800 text-white font-bold p-2 rounded flex items-center justify-center space-x-1">
+                            <i class="fa-solid fa-arrow-down"></i> <span>Down</span>
+                        </button>
+                    </div>
                     <button onclick="deleteSelectedContent()" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold p-2 rounded flex items-center justify-center space-x-1">
                         <i class="fa-solid fa-trash-can"></i> <span>Padam Kandungan Terpilih Saja</span>
                     </button>
@@ -579,8 +590,11 @@
                     </div>
                 </div>
 
-                <button onclick="addContentToFirebase()" class="w-full bg-purple-700 hover:bg-purple-800 text-white font-bold py-3 rounded-xl text-sm flex items-center justify-center space-x-1 shadow-md">
+                <button id="adm-submit-content-btn" onclick="addContentToFirebase()" class="w-full bg-purple-700 hover:bg-purple-800 text-white font-bold py-3 rounded-xl text-sm flex items-center justify-center space-x-1 shadow-md">
                     <i class="fa-solid fa-cloud-arrow-up"></i> <span>Muat Naik Isi Kandungan</span>
+                </button>
+                <button id="adm-cancel-edit-btn" onclick="cancelContentEdit()" class="hide w-full bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold py-2.5 rounded-xl text-xs">
+                    Batal Edit
                 </button>
             </div>
         </section>
@@ -638,6 +652,9 @@
         let latihanItems = [];
         let latihanIndex = 0;
         let latihanAnswered = {};
+
+        // Admin edit / susun turutan kandungan
+        let currentEditingContentKey = null;
 
         window.currentQuizQuestions = [];
         window.currentQuizIndex = 0;
@@ -1001,20 +1018,71 @@
                 }
 
                 if (raw.nota && hasAnyValue(raw.nota)) {
-                    expanded.push(normalizeContentItem({ type: "nota", nota: raw.nota }, k));
+                    expanded.push(normalizeContentItem({ type: "nota", nota: raw.nota, sortOrder: raw.sortOrder, timestamp: raw.timestamp, createdAt: raw.createdAt }, k));
                 }
                 if (raw.contoh && hasAnyValue(raw.contoh)) {
-                    expanded.push(normalizeContentItem({ type: "contoh", contoh: raw.contoh }, k));
+                    expanded.push(normalizeContentItem({ type: "contoh", contoh: raw.contoh, sortOrder: raw.sortOrder, timestamp: raw.timestamp, createdAt: raw.createdAt }, k));
                 }
                 if (raw.latihan && hasAnyValue(raw.latihan)) {
-                    expanded.push(normalizeContentItem({ type: "latihan", latihan: raw.latihan }, k));
+                    expanded.push(normalizeContentItem({ type: "latihan", latihan: raw.latihan, sortOrder: raw.sortOrder, timestamp: raw.timestamp, createdAt: raw.createdAt }, k));
                 }
                 if (raw.kuiz && hasAnyValue(raw.kuiz)) {
-                    expanded.push(normalizeContentItem({ type: "kuiz", kuiz: raw.kuiz }, k));
+                    expanded.push(normalizeContentItem({ type: "kuiz", kuiz: raw.kuiz, sortOrder: raw.sortOrder, timestamp: raw.timestamp, createdAt: raw.createdAt }, k));
                 }
             });
 
             return expanded;
+        }
+        function getContentOrderValue(item, fallbackIndex = 0) {
+            if (!item || typeof item !== "object") return fallbackIndex + 1;
+            if (typeof item.sortOrder === "number") return item.sortOrder;
+            if (typeof item.sortOrder === "string" && item.sortOrder.trim() !== "" && !isNaN(Number(item.sortOrder))) return Number(item.sortOrder);
+            if (typeof item.order === "number") return item.order;
+            if (typeof item.timestamp === "number") return 1000000000000 + item.timestamp;
+            if (typeof item.createdAt === "number") return 1000000000000 + item.createdAt;
+            return 2000000000000 + fallbackIndex;
+        }
+
+        function sortExpandedItems(items) {
+            return (items || []).map((item, index) => ({ item, index }))
+                .sort((a, b) => {
+                    const orderA = getContentOrderValue(a.item, a.index);
+                    const orderB = getContentOrderValue(b.item, b.index);
+                    if (orderA !== orderB) return orderA - orderB;
+                    return a.index - b.index;
+                })
+                .map(entry => entry.item);
+        }
+
+        function getOrderedContentKeys(kandunganList) {
+            return Object.keys(kandunganList || {})
+                .map((key, index) => ({ key, item: kandunganList[key] || {}, index }))
+                .sort((a, b) => {
+                    const orderA = getContentOrderValue(a.item, a.index);
+                    const orderB = getContentOrderValue(b.item, b.index);
+                    if (orderA !== orderB) return orderA - orderB;
+                    return a.index - b.index;
+                })
+                .map(entry => entry.key);
+        }
+
+        function getCurrentSubtopicInfo() {
+            const formNum = document.getElementById('adm-form').value;
+            const chKey = document.getElementById('adm-chapter-select').value;
+            const subKey = document.getElementById('adm-subtopic-select').value;
+            const subtopicData = appSilibusData?.[formNum]?.[chKey]?.subtopik?.[subKey];
+            return { formNum, chKey, subKey, subtopicData, kandunganList: getKandunganListFromSubtopic(subtopicData) };
+        }
+
+        function getImageUrlsForEdit(obj = {}) {
+            let urls = [];
+            if (Array.isArray(obj.imageUrls)) urls = urls.concat(obj.imageUrls.filter(url => typeof url === "string" && url.trim() !== ""));
+            if (obj.imageUrl && typeof obj.imageUrl === "string") {
+                const lower = obj.imageUrl.toLowerCase();
+                const isPdf = lower.includes(".pdf") || lower.includes("pdf?") || lower.includes("application/pdf");
+                if (!isPdf) urls.push(obj.imageUrl);
+            }
+            return [...new Set(urls)];
         }
 
         window.switchFlowSubTab = function(tabName) {
@@ -1032,7 +1100,7 @@
 
             const subtopicData = appSilibusData[currentLevel][currentChapterKey].subtopik[subKey] || {};
             const kandunganList = getKandunganListFromSubtopic(subtopicData);
-            const items = expandKandunganItems(kandunganList);
+            const items = sortExpandedItems(expandKandunganItems(kandunganList));
 
             if(tabName === 'nota') {
                 const divNota = document.getElementById('nota-content');
@@ -1468,6 +1536,7 @@
             const selectList = document.getElementById('adm-content-list-select');
 
             if (!selectList) return;
+            const previouslySelected = selectList.value || currentEditingContentKey || "";
             selectList.innerHTML = '<option value="">-- Tiada Kandungan Dipilih --</option>';
 
             try {
@@ -1475,22 +1544,23 @@
                 if(!chKey || !subKey || !subtopicData) return;
 
                 const kandunganList = getKandunganListFromSubtopic(subtopicData);
-                const keys = Object.keys(kandunganList || {});
+                const keys = getOrderedContentKeys(kandunganList || {});
 
                 if(keys.length === 0) {
                     selectList.innerHTML = '<option value="">-- Belum ada isi kandungan --</option>';
                     return;
                 }
 
-                keys.forEach(k => {
+                keys.forEach((k, index) => {
                     const rawItem = kandunganList[k] || {};
-                    const expanded = expandKandunganItems({ [k]: rawItem });
+                    const expanded = sortExpandedItems(expandKandunganItems({ [k]: rawItem }));
+                    const orderNo = index + 1;
 
                     let title = "";
                     if (expanded.length > 0) {
                         title = expanded.map(item => {
                             const type = item.type || "kandungan";
-                            let label = `[${type.toUpperCase()}] `;
+                            let label = `${orderNo}. [${type.toUpperCase()}] `;
                             if(type === 'nota') label += ((item.nota?.maksud || item.nota?.formula || item.nota?.tips || k) + "").substring(0, 45);
                             else if(type === 'contoh') label += ((item.contoh?.soalan || k) + "").substring(0, 45);
                             else if(type === 'latihan') label += ((item.latihan?.soalan || k) + "").substring(0, 45);
@@ -1500,7 +1570,7 @@
                         }).join(" | ");
                     } else {
                         const fallbackType = guessContentType(rawItem) || "kandungan";
-                        title = `[${fallbackType.toUpperCase()}] ${k}`;
+                        title = `${orderNo}. [${fallbackType.toUpperCase()}] ${k}`;
                     }
 
                     const opt = document.createElement('option');
@@ -1508,6 +1578,10 @@
                     opt.innerText = title;
                     selectList.appendChild(opt);
                 });
+
+                if (previouslySelected && kandunganList[previouslySelected]) {
+                    selectList.value = previouslySelected;
+                }
             } catch (err) {
                 console.error("loadSubtopicContentList error:", err);
                 selectList.innerHTML = '<option value="">-- Ralat baca kandungan, sila semak console --</option>';
@@ -1593,6 +1667,113 @@
             return urls;
         }
 
+        function clearContentForm(type = null) {
+            const clearIds = [
+                'adm-nota-maksud','adm-nota-formula','adm-nota-kesilapan','adm-nota-tips','adm-nota-image-file',
+                'adm-contoh-soalan','adm-contoh-langkah','adm-contoh-image-file',
+                'adm-latihan-soalan','adm-latihan-image-file','adm-latihan-a','adm-latihan-b','adm-latihan-c','adm-latihan-d','adm-latihan-jawapan','adm-latihan-penerangan',
+                'adm-kuiz-soalan','adm-kuiz-image-file','adm-kuiz-a','adm-kuiz-b','adm-kuiz-c','adm-kuiz-d','adm-kuiz-jawapan','adm-kuiz-penerangan'
+            ];
+            clearIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = '';
+            });
+        }
+
+        function setContentEditMode(contentKey = null) {
+            currentEditingContentKey = contentKey;
+            const submitBtn = document.getElementById('adm-submit-content-btn');
+            const cancelBtn = document.getElementById('adm-cancel-edit-btn');
+
+            if (submitBtn) {
+                submitBtn.innerHTML = contentKey
+                    ? '<i class="fa-solid fa-floppy-disk"></i> <span>Simpan Perubahan</span>'
+                    : '<i class="fa-solid fa-cloud-arrow-up"></i> <span>Muat Naik Isi Kandungan</span>';
+                submitBtn.className = contentKey
+                    ? 'w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl text-sm flex items-center justify-center space-x-1 shadow-md'
+                    : 'w-full bg-purple-700 hover:bg-purple-800 text-white font-bold py-3 rounded-xl text-sm flex items-center justify-center space-x-1 shadow-md';
+            }
+
+            if (cancelBtn) {
+                if (contentKey) cancelBtn.classList.remove('hide');
+                else cancelBtn.classList.add('hide');
+            }
+        }
+
+        window.cancelContentEdit = function() {
+            clearContentForm();
+            setContentEditMode(null);
+        };
+
+        function buildContentPayload(type, existingItem = null, newImageUrls = []) {
+            const existingTypeObj = existingItem && existingItem.type === type ? (existingItem[type] || {}) : {};
+            const oldImageUrls = getImageUrlsForEdit(existingTypeObj);
+            const mergedImageUrls = [...new Set([...oldImageUrls, ...newImageUrls])];
+
+            const payload = {
+                type: type,
+                timestamp: existingItem?.timestamp || existingItem?.createdAt || Date.now(),
+                createdAt: existingItem?.createdAt || existingItem?.timestamp || Date.now(),
+                updatedAt: Date.now(),
+                sortOrder: existingItem?.sortOrder || 0
+            };
+
+            if(type === 'nota') {
+                payload.nota = {
+                    maksud: document.getElementById('adm-nota-maksud').value.trim(),
+                    formula: document.getElementById('adm-nota-formula').value.trim(),
+                    kesilapan: document.getElementById('adm-nota-kesilapan').value.trim(),
+                    tips: document.getElementById('adm-nota-tips').value.trim(),
+                    imageUrls: mergedImageUrls
+                };
+            } 
+            else if(type === 'contoh') {
+                payload.contoh = {
+                    soalan: document.getElementById('adm-contoh-soalan').value.trim(),
+                    langkah: document.getElementById('adm-contoh-langkah').value.trim(),
+                    imageUrls: mergedImageUrls
+                };
+            } 
+            else if(type === 'latihan') {
+                payload.latihan = {
+                    soalan: document.getElementById('adm-latihan-soalan').value.trim(),
+                    imageUrls: mergedImageUrls,
+                    a: document.getElementById('adm-latihan-a').value.trim(),
+                    b: document.getElementById('adm-latihan-b').value.trim(),
+                    c: document.getElementById('adm-latihan-c').value.trim(),
+                    d: document.getElementById('adm-latihan-d').value.trim(),
+                    jawapan: document.getElementById('adm-latihan-jawapan').value.trim().toUpperCase(),
+                    penerangan: document.getElementById('adm-latihan-penerangan').value.trim()
+                };
+            }
+            else if(type === 'kuiz') {
+                payload.kuiz = {
+                    soalan: document.getElementById('adm-kuiz-soalan').value.trim(),
+                    imageUrls: mergedImageUrls,
+                    a: document.getElementById('adm-kuiz-a').value.trim(),
+                    b: document.getElementById('adm-kuiz-b').value.trim(),
+                    c: document.getElementById('adm-kuiz-c').value.trim(),
+                    d: document.getElementById('adm-kuiz-d').value.trim(),
+                    jawapan: document.getElementById('adm-kuiz-jawapan').value.trim().toUpperCase(),
+                    penerangan: document.getElementById('adm-kuiz-penerangan').value.trim()
+                };
+            }
+
+            return payload;
+        }
+
+        function getNextSortOrder(kandunganList) {
+            const keys = getOrderedContentKeys(kandunganList || {});
+            if (keys.length === 0) return 1;
+            let maxOrder = 0;
+            keys.forEach((key, index) => {
+                const orderValue = getContentOrderValue(kandunganList[key], index);
+                if (orderValue < 1000000000000) maxOrder = Math.max(maxOrder, orderValue);
+                else maxOrder = Math.max(maxOrder, index + 1);
+            });
+            return Math.floor(maxOrder) + 1;
+        }
+
         window.addContentToFirebase = async function() {
             const formNum = document.getElementById('adm-form').value;
             const chKey = document.getElementById('adm-chapter-select').value;
@@ -1602,99 +1783,131 @@
             if(!chKey || !subKey) return alert("Sila tentukan Bab dan Subtopik sebelum memuat naik kandungan.");
 
             try {
-                let payload = { type: type, timestamp: Date.now() };
+                const info = getCurrentSubtopicInfo();
+                const kandunganList = info.kandunganList || {};
+                const existingRaw = currentEditingContentKey ? (kandunganList[currentEditingContentKey] || null) : null;
+                const existingItem = existingRaw ? normalizeContentItem(existingRaw, currentEditingContentKey) : null;
 
-                if(type === 'nota') {
-                    // Gunakan fungsi upload multiple files helper yang baharu
-                    const notaImageUrls = await uploadMultipleFilesHelper('adm-nota-image-file', 'nota_images');
-                    
-                    payload.nota = {
-                        maksud: document.getElementById('adm-nota-maksud').value.trim(),
-                        formula: document.getElementById('adm-nota-formula').value.trim(),
-                        kesilapan: document.getElementById('adm-nota-kesilapan').value.trim(),
-                        tips: document.getElementById('adm-nota-tips').value.trim(),
-                        imageUrls: notaImageUrls
-                    };
-                } 
-                else if(type === 'contoh') {
-                    const contohImageUrls = await uploadMultipleFilesHelper('adm-contoh-image-file', 'contoh_images');
-                    payload.contoh = {
-                        soalan: document.getElementById('adm-contoh-soalan').value.trim(),
-                        langkah: document.getElementById('adm-contoh-langkah').value.trim(),
-                        imageUrls: contohImageUrls
-                    };
-                } 
-                else if(type === 'latihan') {
-                    const latihanImageUrls = await uploadMultipleFilesHelper('adm-latihan-image-file', 'latihan_images');
-                    payload.latihan = {
-                        soalan: document.getElementById('adm-latihan-soalan').value.trim(),
-                        imageUrls: latihanImageUrls,
-                        a: document.getElementById('adm-latihan-a').value.trim(),
-                        b: document.getElementById('adm-latihan-b').value.trim(),
-                        c: document.getElementById('adm-latihan-c').value.trim(),
-                        d: document.getElementById('adm-latihan-d').value.trim(),
-                        jawapan: document.getElementById('adm-latihan-jawapan').value.trim().toUpperCase(),
-                        penerangan: document.getElementById('adm-latihan-penerangan').value.trim()
-                    };
-                }
-                else if(type === 'kuiz') {
-                    const kuizImageUrls = await uploadMultipleFilesHelper('adm-kuiz-image-file', 'kuiz_images');
-                    payload.kuiz = {
-                        soalan: document.getElementById('adm-kuiz-soalan').value.trim(),
-                        imageUrls: kuizImageUrls,
-                        a: document.getElementById('adm-kuiz-a').value.trim(),
-                        b: document.getElementById('adm-kuiz-b').value.trim(),
-                        c: document.getElementById('adm-kuiz-c').value.trim(),
-                        d: document.getElementById('adm-kuiz-d').value.trim(),
-                        jawapan: document.getElementById('adm-kuiz-jawapan').value.trim().toUpperCase(),
-                        penerangan: document.getElementById('adm-kuiz-penerangan').value.trim()
-                    };
+                let newImageUrls = [];
+                if(type === 'nota') newImageUrls = await uploadMultipleFilesHelper('adm-nota-image-file', 'nota_images');
+                else if(type === 'contoh') newImageUrls = await uploadMultipleFilesHelper('adm-contoh-image-file', 'contoh_images');
+                else if(type === 'latihan') newImageUrls = await uploadMultipleFilesHelper('adm-latihan-image-file', 'latihan_images');
+                else if(type === 'kuiz') newImageUrls = await uploadMultipleFilesHelper('adm-kuiz-image-file', 'kuiz_images');
+
+                let payload = buildContentPayload(type, existingItem, newImageUrls);
+
+                if (currentEditingContentKey) {
+                    if (!payload.sortOrder) {
+                        const currentKeys = getOrderedContentKeys(kandunganList);
+                        const currentIndex = currentKeys.indexOf(currentEditingContentKey);
+                        payload.sortOrder = currentIndex >= 0 ? currentIndex + 1 : getNextSortOrder(kandunganList);
+                    }
+                    await set(ref(db, `silibus/${formNum}/${chKey}/subtopik/${subKey}/kandungan_list/${currentEditingContentKey}`), payload);
+                    alert("Perubahan kandungan berjaya disimpan!");
+                } else {
+                    payload.sortOrder = getNextSortOrder(kandunganList);
+                    const listRef = ref(db, `silibus/${formNum}/${chKey}/subtopik/${subKey}/kandungan_list`);
+                    const newItemRef = push(listRef);
+                    await set(newItemRef, payload);
+                    alert("Kandungan berjaya ditambah ke Firebase Database!");
                 }
 
-                const listRef = ref(db, `silibus/${formNum}/${chKey}/subtopik/${subKey}/kandungan_list`);
-                const newItemRef = push(listRef);
-                await set(newItemRef, payload);
+                clearContentForm(type);
+                setContentEditMode(null);
 
-                alert("Kandungan berjaya ditambah ke Firebase Database!");
-                
-                // Clear inputs
-                if(type === 'nota') {
-                    document.getElementById('adm-nota-maksud').value = '';
-                    document.getElementById('adm-nota-formula').value = '';
-                    document.getElementById('adm-nota-kesilapan').value = '';
-                    document.getElementById('adm-nota-tips').value = '';
-                    document.getElementById('adm-nota-image-file').value = '';
-                } else if(type === 'contoh') {
-                    document.getElementById('adm-contoh-soalan').value = '';
-                    document.getElementById('adm-contoh-langkah').value = '';
-                    document.getElementById('adm-contoh-image-file').value = '';
-                } else if(type === 'latihan') {
-                    document.getElementById('adm-latihan-soalan').value = '';
-                    document.getElementById('adm-latihan-image-file').value = '';
-                    document.getElementById('adm-latihan-a').value = '';
-                    document.getElementById('adm-latihan-b').value = '';
-                    document.getElementById('adm-latihan-c').value = '';
-                    document.getElementById('adm-latihan-d').value = '';
-                    document.getElementById('adm-latihan-jawapan').value = '';
-                    document.getElementById('adm-latihan-penerangan').value = '';
-                } else if(type === 'kuiz') {
-                    document.getElementById('adm-kuiz-soalan').value = '';
-                    document.getElementById('adm-kuiz-image-file').value = '';
-                    document.getElementById('adm-kuiz-a').value = '';
-                    document.getElementById('adm-kuiz-b').value = '';
-                    document.getElementById('adm-kuiz-c').value = '';
-                    document.getElementById('adm-kuiz-d').value = '';
-                    document.getElementById('adm-kuiz-jawapan').value = '';
-                    document.getElementById('adm-kuiz-penerangan').value = '';
-                }
-
-                get(ref(db, 'silibus')).then((snapshot) => {
-                    appSilibusData = snapshot.exists() ? snapshot.val() : {};
-                    loadSubtopicContentList();
-                });
+                const snapshot = await get(ref(db, 'silibus'));
+                appSilibusData = snapshot.exists() ? snapshot.val() : {};
+                loadSubtopicContentList();
+                if (currentLevel && currentChapterKey && currentFlowTab) switchFlowSubTab(currentFlowTab);
 
             } catch (err) {
-                alert("Ralat muat naik kandungan: " + err.message);
+                alert("Ralat simpan kandungan: " + err.message);
+            }
+        };
+
+        window.editSelectedContent = function() {
+            const info = getCurrentSubtopicInfo();
+            const contentKey = document.getElementById('adm-content-list-select').value;
+
+            if(!info.chKey || !info.subKey || !contentKey) return alert("Sila pilih isi kandungan yang mahu diedit.");
+
+            const rawItem = info.kandunganList?.[contentKey];
+            if(!rawItem) return alert("Kandungan tidak ditemui. Sila refresh dan cuba lagi.");
+
+            const item = normalizeContentItem(rawItem, contentKey);
+            const type = item.type || guessContentType(item);
+            if(!type) return alert("Jenis kandungan tidak dapat dikenal pasti.");
+
+            clearContentForm();
+            document.getElementById('adm-content-type').value = type;
+            toggleAdminContentFields();
+
+            if(type === 'nota') {
+                const obj = item.nota || {};
+                document.getElementById('adm-nota-maksud').value = obj.maksud || '';
+                document.getElementById('adm-nota-formula').value = obj.formula || '';
+                document.getElementById('adm-nota-kesilapan').value = obj.kesilapan || '';
+                document.getElementById('adm-nota-tips').value = obj.tips || '';
+            } else if(type === 'contoh') {
+                const obj = item.contoh || {};
+                document.getElementById('adm-contoh-soalan').value = obj.soalan || '';
+                document.getElementById('adm-contoh-langkah').value = obj.langkah || obj.jalan_kerja || obj.jalan || '';
+            } else if(type === 'latihan') {
+                const obj = item.latihan || {};
+                document.getElementById('adm-latihan-soalan').value = obj.soalan || '';
+                document.getElementById('adm-latihan-a').value = obj.a || '';
+                document.getElementById('adm-latihan-b').value = obj.b || '';
+                document.getElementById('adm-latihan-c').value = obj.c || '';
+                document.getElementById('adm-latihan-d').value = obj.d || '';
+                document.getElementById('adm-latihan-jawapan').value = obj.jawapan || '';
+                document.getElementById('adm-latihan-penerangan').value = obj.penerangan || '';
+            } else if(type === 'kuiz') {
+                const obj = item.kuiz || {};
+                document.getElementById('adm-kuiz-soalan').value = obj.soalan || '';
+                document.getElementById('adm-kuiz-a').value = obj.a || '';
+                document.getElementById('adm-kuiz-b').value = obj.b || '';
+                document.getElementById('adm-kuiz-c').value = obj.c || '';
+                document.getElementById('adm-kuiz-d').value = obj.d || '';
+                document.getElementById('adm-kuiz-jawapan').value = obj.jawapan || '';
+                document.getElementById('adm-kuiz-penerangan').value = obj.penerangan || '';
+            }
+
+            setContentEditMode(contentKey);
+            alert("Mode edit dibuka. Gambar lama akan dikekalkan. Jika upload gambar baru, gambar baru akan ditambah bersama gambar lama.");
+            document.getElementById('adm-content-type').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        };
+
+        window.moveSelectedContent = async function(direction) {
+            const info = getCurrentSubtopicInfo();
+            const contentKey = document.getElementById('adm-content-list-select').value;
+
+            if(!info.chKey || !info.subKey || !contentKey) return alert("Sila pilih isi kandungan yang mahu disusun.");
+
+            const kandunganList = info.kandunganList || {};
+            const keys = getOrderedContentKeys(kandunganList);
+            const currentIndex = keys.indexOf(contentKey);
+            if(currentIndex === -1) return alert("Kandungan tidak ditemui.");
+
+            const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+            if(targetIndex < 0 || targetIndex >= keys.length) return alert("Kandungan ini sudah berada di hujung senarai.");
+
+            const reorderedKeys = [...keys];
+            [reorderedKeys[currentIndex], reorderedKeys[targetIndex]] = [reorderedKeys[targetIndex], reorderedKeys[currentIndex]];
+
+            const updates = {};
+            reorderedKeys.forEach((key, index) => {
+                updates[`silibus/${info.formNum}/${info.chKey}/subtopik/${info.subKey}/kandungan_list/${key}/sortOrder`] = index + 1;
+            });
+
+            try {
+                await update(ref(db), updates);
+                const snapshot = await get(ref(db, 'silibus'));
+                appSilibusData = snapshot.exists() ? snapshot.val() : {};
+                loadSubtopicContentList();
+                document.getElementById('adm-content-list-select').value = contentKey;
+                if (currentLevel && currentChapterKey && currentFlowTab) switchFlowSubTab(currentFlowTab);
+            } catch (err) {
+                alert("Ralat susun kandungan: " + err.message);
             }
         };
 
