@@ -647,6 +647,8 @@
         let currentFlowTab = 'nota';
 
         // Variable global baharu
+        let notaItems = [];
+        let notaIndex = 0;
         let contohItems = [];
         let contohIndex = 0;
         let latihanItems = [];
@@ -933,7 +935,9 @@
         };
 
         window.onSubtopicChange = function() {
-            // Reset index dan item contoh/latihan apabila bertukar subtopik
+            // Reset index dan item apabila bertukar subtopik
+            notaIndex = 0;
+            notaItems = [];
             contohIndex = 0;
             contohItems = [];
             latihanIndex = 0;
@@ -984,9 +988,16 @@
             });
         }
 
+        function isRealContentItemValue(value) {
+            if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+            return !!(value.type || value.nota || value.contoh || value.latihan || value.kuiz);
+        }
+
         function getKandunganListFromSubtopic(subtopicData) {
             if (!subtopicData || typeof subtopicData !== "object") return {};
-            return subtopicData.kandungan_list || subtopicData.kandunganList || subtopicData.contents || subtopicData.content_list || {};
+            const list = subtopicData.kandungan_list || subtopicData.kandunganList || subtopicData.contents || subtopicData.content_list || {};
+            if (!list || typeof list !== "object" || Array.isArray(list)) return {};
+            return list;
         }
 
         function normalizeContentItem(item, key = "") {
@@ -1009,7 +1020,8 @@
             const expanded = [];
 
             Object.keys(kandunganList || {}).forEach(k => {
-                const raw = kandunganList[k] || {};
+                const raw = kandunganList[k];
+                if (!isRealContentItemValue(raw)) return;
                 const explicitType = raw.type;
 
                 if (explicitType) {
@@ -1056,6 +1068,7 @@
 
         function getOrderedContentKeys(kandunganList) {
             return Object.keys(kandunganList || {})
+                .filter(key => isRealContentItemValue(kandunganList[key]))
                 .map((key, index) => ({ key, item: kandunganList[key] || {}, index }))
                 .sort((a, b) => {
                     const orderA = getContentOrderValue(a.item, a.index);
@@ -1103,27 +1116,9 @@
             const items = sortExpandedItems(expandKandunganItems(kandunganList));
 
             if(tabName === 'nota') {
-                const divNota = document.getElementById('nota-content');
-                divNota.innerHTML = '';
-                const filtered = items.filter(i => i.type === 'nota');
-                if(filtered.length === 0) {
-                    divNota.innerHTML = `<p class="text-xs text-gray-400 text-center py-6">Tiada nota untuk subtopik ini lagi.</p>`;
-                } else {
-                    filtered.forEach(item => {
-                        const notaObj = item.nota || {};
-                        let htmlContent = `<div class="bg-white border rounded-2xl p-4 shadow-sm space-y-3 text-xs">`;
-                        
-                        if(notaObj.maksud) htmlContent += `<div><span class="font-bold text-slate-900 block mb-1">💡 Maksud / Definisi:</span><p class="text-gray-600 bg-gray-50 p-2.5 rounded-xl leading-relaxed">${notaObj.maksud}</p></div>`;
-                        if(notaObj.formula) htmlContent += `<div><span class="font-bold text-slate-900 block mb-1">📐 Formula Utama:</span><p class="text-gray-700 bg-amber-50/60 p-2.5 rounded-xl border border-amber-100 font-mono">${notaObj.formula}</p></div>`;
-                        if(notaObj.kesilapan) htmlContent += `<div><span class="font-bold text-red-600 block mb-1">⚠️ Kesilapan Lazim Pelajar:</span><p class="text-red-700 bg-red-50 p-2.5 rounded-xl leading-relaxed">${notaObj.kesilapan}</p></div>`;
-                        if(notaObj.tips) htmlContent += `<div><span class="font-bold text-emerald-600 block mb-1">✨ Tips & Trik Memori:</span><p class="text-emerald-700 bg-emerald-50 p-2.5 rounded-xl leading-relaxed">${notaObj.tips}</p></div>`;
-                        
-                        htmlContent += renderImageGallery(notaObj.imageUrls, notaObj.imageUrl || "");
-
-                        htmlContent += `</div>`;
-                        divNota.innerHTML += htmlContent;
-                    });
-                }
+                notaItems = items.filter(i => i.type === 'nota');
+                notaIndex = 0; // Reset ke nota pertama setiap kali dibuka semula
+                renderNotaItem();
             } 
             else if(tabName === 'contoh') {
                 contohItems = items.filter(i => i.type === 'contoh');
@@ -1140,6 +1135,65 @@
                 document.getElementById('kuiz-intro').classList.remove('hide');
                 document.getElementById('kuiz-active').classList.add('hide');
                 document.getElementById('kuiz-result').classList.add('hide');
+            }
+        };
+
+        // Fungsi baharu untuk melukis Item Nota tunggal (Pagination)
+        function renderNotaItem() {
+            const divNota = document.getElementById('nota-content');
+            divNota.innerHTML = '';
+
+            if (notaItems.length === 0) {
+                divNota.innerHTML = `<p class="text-xs text-gray-400 text-center py-6">Tiada nota untuk subtopik ini lagi.</p>`;
+                return;
+            }
+
+            const item = notaItems[notaIndex];
+            const notaObj = item.nota || {};
+            const isFirst = notaIndex === 0;
+            const isLast = notaIndex === notaItems.length - 1;
+
+            const backClass = isFirst ? "bg-gray-200 text-gray-400 cursor-not-allowed" : "bg-red-500 hover:bg-red-600 text-white";
+            const nextClass = "bg-emerald-500 hover:bg-emerald-600 text-white";
+            const nextText = isLast ? "Selesai" : "Next →";
+
+            let htmlContent = `
+                <div class="text-right text-xs font-bold text-gray-400 mb-2">
+                    Nota ${notaIndex + 1} daripada ${notaItems.length}
+                </div>
+                <div class="bg-white border rounded-2xl p-4 shadow-sm space-y-3 text-xs">
+            `;
+
+            if(notaObj.maksud) htmlContent += `<div><span class="font-bold text-slate-900 block mb-1">💡 Maksud / Definisi:</span><p class="text-gray-600 bg-gray-50 p-2.5 rounded-xl leading-relaxed">${notaObj.maksud}</p></div>`;
+            if(notaObj.formula) htmlContent += `<div><span class="font-bold text-slate-900 block mb-1">📐 Formula Utama:</span><p class="text-gray-700 bg-amber-50/60 p-2.5 rounded-xl border border-amber-100 font-mono">${notaObj.formula}</p></div>`;
+            if(notaObj.kesilapan) htmlContent += `<div><span class="font-bold text-red-600 block mb-1">⚠️ Kesilapan Lazim Pelajar:</span><p class="text-red-700 bg-red-50 p-2.5 rounded-xl leading-relaxed">${notaObj.kesilapan}</p></div>`;
+            if(notaObj.tips) htmlContent += `<div><span class="font-bold text-emerald-600 block mb-1">✨ Tips & Trik Memori:</span><p class="text-emerald-700 bg-emerald-50 p-2.5 rounded-xl leading-relaxed">${notaObj.tips}</p></div>`;
+            htmlContent += renderImageGallery(notaObj.imageUrls, notaObj.imageUrl || "");
+
+            htmlContent += `
+                </div>
+                <div class="grid grid-cols-2 gap-3 mt-5">
+                    <button onclick="navigateNota('back')" ${isFirst ? 'disabled' : ''} class="${backClass} font-bold py-3 rounded-xl transition">← Back</button>
+                    <button onclick="navigateNota('next')" class="${nextClass} font-bold py-3 rounded-xl transition">${nextText}</button>
+                </div>
+            `;
+
+            divNota.innerHTML = htmlContent;
+        }
+
+        window.navigateNota = function(direction) {
+            if (direction === 'back') {
+                if (notaIndex > 0) {
+                    notaIndex--;
+                    renderNotaItem();
+                }
+            } else if (direction === 'next') {
+                if (notaIndex < notaItems.length - 1) {
+                    notaIndex++;
+                    renderNotaItem();
+                } else {
+                    alert("Anda telah selesai melihat semua nota bagi subtopik ini! 👍");
+                }
             }
         };
 
@@ -1883,7 +1937,9 @@
 
             if(!info.chKey || !info.subKey || !contentKey) return alert("Sila pilih isi kandungan yang mahu disusun.");
 
-            const kandunganList = info.kandunganList || {};
+            const latestSnap = await get(ref(db, `silibus/${info.formNum}/${info.chKey}/subtopik/${info.subKey}/kandungan_list`));
+            const kandunganList = latestSnap.exists() ? latestSnap.val() : (info.kandunganList || {});
+            if (!isRealContentItemValue(kandunganList[contentKey])) return alert("Kandungan tidak sah untuk disusun.");
             const keys = getOrderedContentKeys(kandunganList);
             const currentIndex = keys.indexOf(contentKey);
             if(currentIndex === -1) return alert("Kandungan tidak ditemui.");
