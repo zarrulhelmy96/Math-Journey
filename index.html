@@ -1962,14 +1962,31 @@
                 const bank = userData.affiliateBank || {};
 
                 if(affiliate.status !== 'approved') return alert("Akaun affiliate anda belum approved.");
+
+                const phoneFromProfileBox = (document.getElementById('prof-phone')?.value || '').trim();
+                const savedPhone = (userData.phone || userData.phoneNumber || affiliate.phone || '').toString().trim();
+                const phoneForWithdrawal = phoneFromProfileBox || savedPhone;
+
+                if(!phoneForWithdrawal) {
+                    return alert("Sila isi nombor telefon di bahagian Profile terlebih dahulu sebelum request withdraw.");
+                }
+
                 if(amount > Number(affiliate.availableBalance || 0)) return alert("Baki commission tidak mencukupi.");
                 if(isSameLocalDay(affiliate.lastWithdrawAt, Date.now())) return alert("Anda hanya boleh request withdraw sekali sehari.");
                 if(!bank.bankName || !bank.accountName || !bank.accountNumber) return alert("Sila lengkapkan dan simpan maklumat bank dahulu.");
+
+                if(phoneFromProfileBox && phoneFromProfileBox !== savedPhone) {
+                    await update(ref(db, `users/${currentUser.uid}`), {
+                        phone: phoneFromProfileBox
+                    });
+                }
 
                 const withdrawalRef = push(ref(db, 'withdrawalRequests'));
                 await set(withdrawalRef, {
                     uid: currentUser.uid,
                     email: currentUser.email,
+                    contactEmail: userData.contactEmail || currentUser.email,
+                    phone: phoneForWithdrawal,
                     amount: amount,
                     status: "pending",
                     bankName: bank.bankName,
