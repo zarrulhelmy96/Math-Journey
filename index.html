@@ -159,6 +159,12 @@
                     <label class="block text-xs font-semibold text-gray-600 mb-1">Kata Laluan</label>
                     <input type="password" id="auth-password" placeholder="Minimal 6 aksara" class="w-full border border-gray-200 p-3 rounded-xl text-sm focus:outline-none focus:border-soft-pink">
                 </div>
+
+                <div id="referral-code-container" class="hide">
+                    <label class="block text-xs font-semibold text-gray-600 mb-1">Kod Referral / Affiliate Code <span class="text-gray-400 font-normal">(optional)</span></label>
+                    <input type="text" id="auth-referral-code" placeholder="Contoh: MMJZARRUL" class="w-full border border-gray-200 p-3 rounded-xl text-sm uppercase focus:outline-none focus:border-soft-pink font-semibold tracking-wider">
+                    <p class="text-[10px] text-gray-400 mt-1">Isi kod referral jika anda dapat kod daripada affiliate Math Journey.</p>
+                </div>
                 
                 <div class="flex justify-end" id="forgot-password-container">
                     <a href="#" onclick="handleForgotPassword()" class="text-xs text-gray-400 hover:text-soft-pink transition font-medium">Terlupa Kata Laluan?</a>
@@ -321,6 +327,12 @@
                     </div>
                 </div>
             </div>
+
+            <div id="affiliate-profile-section" class="mb-6">
+                <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-2xl text-xs text-emerald-900">
+                    <p class="font-bold">Memuatkan Affiliate Dashboard...</p>
+                </div>
+            </div>
         </section>
 
         <section id="view-contact" class="view p-5 hide">
@@ -379,6 +391,34 @@
                 <h3 class="font-bold text-sm border-b pb-2"><i class="fa-solid fa-clock-rotate-left"></i> Voucher Attempt Logs</h3>
                 <div class="bg-slate-900/50 rounded-lg p-2 max-h-48 overflow-y-auto space-y-2" id="adm-voucher-logs-list">
                     <p class="text-[10px] text-slate-400 text-center py-2">Memuatkan data log...</p>
+                </div>
+            </div>
+
+            <div class="bg-emerald-50 border border-emerald-300 p-4 rounded-xl space-y-4 mb-6 text-xs shadow-sm">
+                <h3 class="font-bold text-sm text-emerald-900 border-b border-emerald-200 pb-2"><i class="fa-solid fa-handshake-angle"></i> Affiliate Manager</h3>
+                <div>
+                    <p class="font-bold text-emerald-800 mb-2">Permohonan Affiliate</p>
+                    <div id="adm-affiliate-requests-list" class="space-y-2">
+                        <p class="text-[10px] text-emerald-700 text-center py-2">Memuatkan permohonan...</p>
+                    </div>
+                </div>
+                <div class="border-t border-emerald-200 pt-3">
+                    <p class="font-bold text-emerald-800 mb-2">Commission Pending</p>
+                    <div id="adm-referral-pending-list" class="space-y-2">
+                        <p class="text-[10px] text-emerald-700 text-center py-2">Memuatkan referral pending...</p>
+                    </div>
+                </div>
+                <div class="border-t border-emerald-200 pt-3">
+                    <p class="font-bold text-emerald-800 mb-2">Withdrawal Request</p>
+                    <div id="adm-withdrawal-requests-list" class="space-y-2">
+                        <p class="text-[10px] text-emerald-700 text-center py-2">Memuatkan withdrawal...</p>
+                    </div>
+                </div>
+                <div class="border-t border-emerald-200 pt-3">
+                    <p class="font-bold text-emerald-800 mb-2">Senarai Affiliate Aktif</p>
+                    <div id="adm-active-affiliates-list" class="space-y-2">
+                        <p class="text-[10px] text-emerald-700 text-center py-2">Memuatkan affiliate aktif...</p>
+                    </div>
                 </div>
             </div>
 
@@ -645,6 +685,7 @@
         let currentChapterKey = null;
         let appSilibusData = {};
         let currentFlowTab = 'nota';
+        let currentUserProfileData = {};
 
         // Variable global baharu
         let notaItems = [];
@@ -696,6 +737,7 @@
                 }
 
                 isPremiumUser = udata.premium === true || udata.hasAccess === true || udata.role === 'admin';
+                currentUserProfileData = udata;
                 document.getElementById('dash-username').innerText = udata.nickname || udata.fullname || "Pelajar";
                 document.getElementById('nav-streak').innerText = udata.streak || 1;
                 document.getElementById('dash-stat-streak').innerText = `${udata.streak || 1} Hari`;
@@ -729,7 +771,9 @@
                 const silSnap = await get(ref(db, 'silibus'));
                 appSilibusData = silSnap.exists() ? silSnap.val() : {};
                 
+                renderAffiliateProfileSection(udata);
                 updateAdminVoucherManagerUI();
+                if (udata.role === 'admin') updateAdminAffiliateManagerUI();
                 updateAdminChapterDropdown();
 
                 if(document.getElementById('view-dashboard').classList.contains('hide') && 
@@ -757,6 +801,11 @@
                 document.getElementById('app-footer').classList.remove('hide');
             }
 
+            if(viewId === 'admin' && currentUserProfileData?.role === 'admin') {
+                updateAdminAffiliateManagerUI();
+                updateAdminVoucherManagerUI();
+            }
+
             document.querySelectorAll('#app-footer button').forEach(b => b.classList.remove('text-soft-pink'));
             const activeFooterBtn = document.getElementById(`nav-btn-${viewId}`);
             if(activeFooterBtn) activeFooterBtn.classList.add('text-soft-pink');
@@ -773,6 +822,8 @@
             const toggleMsg = document.getElementById('auth-toggle-msg');
             const forgotContainer = document.getElementById('forgot-password-container');
 
+            const referralContainer = document.getElementById('referral-code-container');
+
             if(btn.innerText === 'Log Masuk') {
                 title.innerText = 'Daftar Akaun Baru';
                 subtitle.innerText = 'Cipta akaun Math Journey anda hari ini.';
@@ -780,6 +831,7 @@
                 toggleMsg.innerText = 'Dah ada akaun?';
                 toggleBtn.innerText = 'Log masuk di sini';
                 forgotContainer.classList.add('hide');
+                if(referralContainer) referralContainer.classList.remove('hide');
             } else {
                 title.innerText = 'Selamat Kembali!';
                 subtitle.innerText = 'Log masuk untuk sambung Journey anda.';
@@ -787,6 +839,7 @@
                 toggleMsg.innerText = 'Belum ada akaun?';
                 toggleBtn.innerText = 'Daftar di sini';
                 forgotContainer.classList.remove('hide');
+                if(referralContainer) referralContainer.classList.add('hide');
             }
         };
 
@@ -803,7 +856,67 @@
                 .catch(err => alert("Gagal log masuk: " + err.message));
             } else {
                 createUserWithEmailAndPassword(auth, email, password)
-                .then(() => switchView('dashboard'))
+                .then(async (uc) => {
+                    const newUser = uc.user;
+                    const referralCodeInput = (document.getElementById('auth-referral-code')?.value || '').trim().toUpperCase();
+                    const userData = {
+                        uid: newUser.uid,
+                        email: newUser.email,
+                        fullname: "Pelajar Baru",
+                        nickname: newUser.email.split('@')[0],
+                        premium: false,
+                        role: newUser.email.includes("admin") ? "admin" : "student",
+                        streak: 1,
+                        answeredCount: 0,
+                        createdAt: Date.now(),
+                        lastActiveTimestamp: Date.now()
+                    };
+
+                    if (referralCodeInput) {
+                        const referralSnap = await get(ref(db, `referralCodes/${referralCodeInput}`));
+                        if (referralSnap.exists() && referralSnap.val().active !== false) {
+                            const referralData = referralSnap.val();
+                            const affiliateUid = referralData.affiliateUid;
+                            const commissionAmount = Number(referralData.commissionPerSale || 20);
+
+                            userData.referredBy = {
+                                referralCode: referralCodeInput,
+                                affiliateUid: affiliateUid,
+                                affiliateEmail: referralData.affiliateEmail || "",
+                                createdAt: Date.now()
+                            };
+
+                            await set(ref(db, `users/${newUser.uid}`), userData);
+                            await set(ref(db, `referrals/${newUser.uid}`), {
+                                newUserUid: newUser.uid,
+                                newUserEmail: newUser.email,
+                                referralCode: referralCodeInput,
+                                affiliateUid: affiliateUid,
+                                affiliateEmail: referralData.affiliateEmail || "",
+                                status: "registered",
+                                commissionStatus: "pending",
+                                commissionAmount: commissionAmount,
+                                createdAt: Date.now()
+                            });
+
+                            if (affiliateUid) {
+                                const affSnap = await get(ref(db, `users/${affiliateUid}/affiliate`));
+                                const aff = affSnap.exists() ? affSnap.val() : {};
+                                await update(ref(db, `users/${affiliateUid}/affiliate`), {
+                                    referralCount: Number(aff.referralCount || 0) + 1
+                                });
+                            }
+                        } else {
+                            await set(ref(db, `users/${newUser.uid}`), userData);
+                            alert("Kod referral tidak sah. Akaun tetap berjaya didaftarkan tanpa referral.");
+                        }
+                    } else {
+                        await set(ref(db, `users/${newUser.uid}`), userData);
+                    }
+
+                    switchView('dashboard');
+                    checkUserPremiumAndLoadDashboard();
+                })
                 .catch(err => alert("Gagal mendaftar: " + err.message));
             }
         };
@@ -1493,6 +1606,213 @@
             }
         }
 
+
+        function formatRM(value) {
+            const num = Number(value || 0);
+            return `RM${num.toFixed(2)}`;
+        }
+
+        function isSameLocalDay(ts1, ts2) {
+            if(!ts1 || !ts2) return false;
+            const a = new Date(ts1);
+            const b = new Date(ts2);
+            return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+        }
+
+        function escapeForAttr(text) {
+            return (text || '').toString().replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, ' ');
+        }
+
+        function renderAffiliateProfileSection(udata = {}) {
+            const box = document.getElementById('affiliate-profile-section');
+            if(!box) return;
+
+            const affiliate = udata.affiliate || {};
+            const bank = udata.affiliateBank || {};
+            const status = affiliate.status || 'none';
+
+            if(status === 'approved') {
+                const referralCode = affiliate.referralCode || '-';
+                const referralCount = Number(affiliate.referralCount || 0);
+                const paidReferralCount = Number(affiliate.paidReferralCount || 0);
+                const availableBalance = Number(affiliate.availableBalance || 0);
+                const pendingWithdrawal = Number(affiliate.pendingWithdrawal || 0);
+                const totalWithdrawn = Number(affiliate.totalWithdrawn || 0);
+                const commissionTotal = Number(affiliate.commissionTotal || 0);
+
+                box.innerHTML = `
+                    <div class="bg-gradient-to-br from-emerald-50 to-lime-50 border border-emerald-200 rounded-2xl p-4 text-xs shadow-sm space-y-4">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="font-bold text-sm text-emerald-900"><i class="fa-solid fa-handshake-angle"></i> Affiliate Dashboard</h3>
+                                <p class="text-[11px] text-emerald-700 mt-1">Teruskan perjuangan anda, jana income bersama Math Journey.</p>
+                            </div>
+                            <span class="bg-emerald-600 text-white px-2 py-1 rounded-full text-[10px] font-bold">Approved</span>
+                        </div>
+
+                        <div class="bg-white border border-emerald-100 rounded-xl p-3">
+                            <p class="text-[10px] text-gray-400 uppercase font-bold mb-1">Referral Code</p>
+                            <div class="flex items-center justify-between gap-2">
+                                <p class="font-mono font-extrabold text-lg text-emerald-800 tracking-wider">${referralCode}</p>
+                                <button onclick="copyReferralCode('${escapeForAttr(referralCode)}')" class="bg-slate-900 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg">Copy</button>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2 text-center">
+                            <div class="bg-white p-3 rounded-xl border border-emerald-100">
+                                <p class="text-[10px] text-gray-400 uppercase font-bold">Jumlah Referral</p>
+                                <p class="font-extrabold text-lg text-slate-900">${referralCount}</p>
+                            </div>
+                            <div class="bg-white p-3 rounded-xl border border-emerald-100">
+                                <p class="text-[10px] text-gray-400 uppercase font-bold">Referral Berbayar</p>
+                                <p class="font-extrabold text-lg text-slate-900">${paidReferralCount}</p>
+                            </div>
+                            <div class="bg-white p-3 rounded-xl border border-emerald-100">
+                                <p class="text-[10px] text-gray-400 uppercase font-bold">Available</p>
+                                <p class="font-extrabold text-lg text-emerald-700">${formatRM(availableBalance)}</p>
+                            </div>
+                            <div class="bg-white p-3 rounded-xl border border-emerald-100">
+                                <p class="text-[10px] text-gray-400 uppercase font-bold">Pending Withdraw</p>
+                                <p class="font-extrabold text-lg text-amber-600">${formatRM(pendingWithdrawal)}</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-3 rounded-xl border border-emerald-100 grid grid-cols-2 gap-2 text-[11px]">
+                            <p>Total Commission: <span class="font-bold text-emerald-700">${formatRM(commissionTotal)}</span></p>
+                            <p>Total Withdrawn: <span class="font-bold text-slate-700">${formatRM(totalWithdrawn)}</span></p>
+                        </div>
+
+                        <div class="bg-white p-3 rounded-xl border border-emerald-100 space-y-2">
+                            <p class="font-bold text-emerald-900">Maklumat Bank Untuk Withdraw</p>
+                            <input type="text" id="aff-bank-name" value="${bank.bankName || ''}" placeholder="Nama Bank, contoh: Maybank" class="w-full border p-2 rounded-lg text-xs">
+                            <input type="text" id="aff-account-name" value="${bank.accountName || ''}" placeholder="Nama pemilik akaun" class="w-full border p-2 rounded-lg text-xs">
+                            <input type="text" id="aff-account-number" value="${bank.accountNumber || ''}" placeholder="Nombor akaun bank" class="w-full border p-2 rounded-lg text-xs">
+                            <button onclick="saveAffiliateBankDetails()" class="w-full bg-slate-900 text-white font-bold py-2 rounded-lg text-xs">Simpan Maklumat Bank</button>
+                        </div>
+
+                        <div class="bg-white p-3 rounded-xl border border-emerald-100 space-y-2">
+                            <p class="font-bold text-emerald-900">Withdraw Commission</p>
+                            <p class="text-[10px] text-gray-500">Minimum RM30, maximum RM500. Hanya 1 request withdrawal sehari.</p>
+                            <input type="number" id="aff-withdraw-amount" min="30" max="500" placeholder="Masukkan jumlah withdraw" class="w-full border p-2 rounded-lg text-xs">
+                            <button onclick="requestAffiliateWithdrawal()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-lg text-xs">Withdraw Commission</button>
+                        </div>
+                    </div>
+                `;
+            } else if(status === 'pending') {
+                box.innerHTML = `
+                    <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-xs shadow-sm">
+                        <h3 class="font-bold text-sm text-amber-900"><i class="fa-solid fa-hourglass-half"></i> Affiliate Pending Approval</h3>
+                        <p class="text-amber-700 mt-1">Permohonan affiliate anda sudah dihantar. Admin akan semak dan approve referral code anda.</p>
+                    </div>
+                `;
+            } else {
+                box.innerHTML = `
+                    <div class="bg-white border border-emerald-200 rounded-2xl p-4 text-xs shadow-sm space-y-3">
+                        <h3 class="font-bold text-sm text-emerald-900"><i class="fa-solid fa-seedling"></i> Jana Income Bersama Math Journey</h3>
+                        <p class="text-gray-600 leading-relaxed">Aktifkan affiliate untuk dapat referral code sendiri. Bila admin approve, anda boleh track jumlah referral dan commission.</p>
+                        <button onclick="requestAffiliateActivation()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl text-xs">Activate Affiliate</button>
+                    </div>
+                `;
+            }
+        }
+
+        window.requestAffiliateActivation = async function() {
+            if(!currentUser) return alert("Sila log masuk dahulu.");
+            if(!confirm("Hantar permohonan untuk menjadi affiliate Math Journey?")) return;
+
+            try {
+                const requestData = {
+                    uid: currentUser.uid,
+                    email: currentUser.email,
+                    status: "pending",
+                    requestedAt: Date.now()
+                };
+                await update(ref(db, `users/${currentUser.uid}/affiliate`), {
+                    status: "pending",
+                    requestedAt: Date.now()
+                });
+                await set(ref(db, `affiliateRequests/${currentUser.uid}`), requestData);
+                alert("Permohonan affiliate berjaya dihantar kepada admin.");
+                checkUserPremiumAndLoadDashboard();
+            } catch (err) {
+                alert("Ralat hantar permohonan affiliate: " + err.message);
+            }
+        };
+
+        window.copyReferralCode = function(code) {
+            navigator.clipboard?.writeText(code).then(() => {
+                alert("Referral code berjaya disalin.");
+            }).catch(() => {
+                prompt("Copy referral code ini:", code);
+            });
+        };
+
+        window.saveAffiliateBankDetails = async function() {
+            if(!currentUser) return;
+            const bankName = document.getElementById('aff-bank-name').value.trim();
+            const accountName = document.getElementById('aff-account-name').value.trim();
+            const accountNumber = document.getElementById('aff-account-number').value.trim();
+
+            if(!bankName || !accountName || !accountNumber) return alert("Sila lengkapkan nama bank, nama pemilik akaun dan nombor akaun.");
+
+            try {
+                await update(ref(db, `users/${currentUser.uid}/affiliateBank`), {
+                    bankName,
+                    accountName,
+                    accountNumber,
+                    updatedAt: Date.now()
+                });
+                alert("Maklumat bank berjaya disimpan.");
+                checkUserPremiumAndLoadDashboard();
+            } catch (err) {
+                alert("Ralat simpan bank: " + err.message);
+            }
+        };
+
+        window.requestAffiliateWithdrawal = async function() {
+            if(!currentUser) return;
+            const amount = Number(document.getElementById('aff-withdraw-amount').value || 0);
+            if(amount < 30) return alert("Minimum withdraw ialah RM30.");
+            if(amount > 500) return alert("Maximum withdraw sehari ialah RM500.");
+
+            try {
+                const userSnap = await get(ref(db, `users/${currentUser.uid}`));
+                const userData = userSnap.exists() ? userSnap.val() : {};
+                const affiliate = userData.affiliate || {};
+                const bank = userData.affiliateBank || {};
+
+                if(affiliate.status !== 'approved') return alert("Akaun affiliate anda belum approved.");
+                if(amount > Number(affiliate.availableBalance || 0)) return alert("Baki commission tidak mencukupi.");
+                if(isSameLocalDay(affiliate.lastWithdrawAt, Date.now())) return alert("Anda hanya boleh request withdraw sekali sehari.");
+                if(!bank.bankName || !bank.accountName || !bank.accountNumber) return alert("Sila lengkapkan dan simpan maklumat bank dahulu.");
+
+                const withdrawalRef = push(ref(db, 'withdrawalRequests'));
+                await set(withdrawalRef, {
+                    uid: currentUser.uid,
+                    email: currentUser.email,
+                    amount: amount,
+                    status: "pending",
+                    bankName: bank.bankName,
+                    accountName: bank.accountName,
+                    accountNumber: bank.accountNumber,
+                    requestedAt: Date.now(),
+                    paidAt: null,
+                    rejectedAt: null
+                });
+
+                await update(ref(db, `users/${currentUser.uid}/affiliate`), {
+                    availableBalance: Number(affiliate.availableBalance || 0) - amount,
+                    pendingWithdrawal: Number(affiliate.pendingWithdrawal || 0) + amount,
+                    lastWithdrawAt: Date.now()
+                });
+
+                alert("Request withdraw berjaya dihantar kepada admin. Admin akan manual transfer selepas semakan.");
+                checkUserPremiumAndLoadDashboard();
+            } catch (err) {
+                alert("Ralat request withdraw: " + err.message);
+            }
+        };
+
         window.updateUserProfileData = function() {
             if(!currentUser) return;
             const fullname = document.getElementById('prof-fullname').value.trim();
@@ -1986,6 +2306,286 @@
                     alert("Baucar berjaya dipadam!");
                     updateAdminVoucherManagerUI();
                 });
+            }
+        };
+
+
+        function makeReferralCodeSuggestion(email = '') {
+            const prefix = (email.split('@')[0] || 'AFF').replace(/[^a-zA-Z0-9]/g, '').substring(0, 8).toUpperCase();
+            return `MMJ${prefix}`;
+        }
+
+        async function getAllUsersData() {
+            const snap = await get(ref(db, 'users'));
+            return snap.exists() ? snap.val() : {};
+        }
+
+        window.updateAdminAffiliateManagerUI = async function() {
+            const reqList = document.getElementById('adm-affiliate-requests-list');
+            const pendingList = document.getElementById('adm-referral-pending-list');
+            const withdrawalList = document.getElementById('adm-withdrawal-requests-list');
+            const activeList = document.getElementById('adm-active-affiliates-list');
+            if(!reqList && !pendingList && !withdrawalList && !activeList) return;
+
+            try {
+                const [usersSnap, requestsSnap, referralsSnap, withdrawalsSnap] = await Promise.all([
+                    get(ref(db, 'users')),
+                    get(ref(db, 'affiliateRequests')),
+                    get(ref(db, 'referrals')),
+                    get(ref(db, 'withdrawalRequests'))
+                ]);
+
+                const users = usersSnap.exists() ? usersSnap.val() : {};
+                const requests = requestsSnap.exists() ? requestsSnap.val() : {};
+                const referrals = referralsSnap.exists() ? referralsSnap.val() : {};
+                const withdrawals = withdrawalsSnap.exists() ? withdrawalsSnap.val() : {};
+
+                if(reqList) {
+                    reqList.innerHTML = '';
+                    const pendingRequests = Object.entries(requests).filter(([uid, r]) => (r.status || 'pending') === 'pending');
+                    if(pendingRequests.length === 0) {
+                        reqList.innerHTML = `<p class="text-[10px] text-emerald-700 text-center py-2">Tiada permohonan affiliate pending.</p>`;
+                    } else {
+                        pendingRequests.sort((a,b) => (b[1].requestedAt || 0) - (a[1].requestedAt || 0)).forEach(([uid, request]) => {
+                            const safeUid = uid.replace(/[^a-zA-Z0-9_-]/g, '_');
+                            const suggestion = makeReferralCodeSuggestion(request.email || users[uid]?.email || '');
+                            const card = document.createElement('div');
+                            card.className = "bg-white border border-emerald-200 rounded-xl p-3 space-y-2 text-slate-800";
+                            card.innerHTML = `
+                                <div class="flex justify-between gap-2">
+                                    <div>
+                                        <p class="font-bold text-xs">${request.email || users[uid]?.email || uid}</p>
+                                        <p class="text-[10px] text-gray-400">Request: ${request.requestedAt ? new Date(request.requestedAt).toLocaleString('ms-MY') : '-'}</p>
+                                    </div>
+                                    <span class="bg-amber-100 text-amber-700 px-2 py-1 rounded-full text-[9px] font-bold h-fit">Pending</span>
+                                </div>
+                                <input id="adm-aff-code-${safeUid}" type="text" value="${suggestion}" placeholder="Referral Code" class="w-full border p-2 rounded-lg text-xs uppercase font-bold tracking-wider">
+                                <input id="adm-aff-commission-${safeUid}" type="number" value="20" min="1" placeholder="Commission per sale RM" class="w-full border p-2 rounded-lg text-xs">
+                                <button onclick="approveAffiliateAccount('${uid}', '${safeUid}')" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-lg text-xs">Approve Affiliate</button>
+                            `;
+                            reqList.appendChild(card);
+                        });
+                    }
+                }
+
+                if(pendingList) {
+                    pendingList.innerHTML = '';
+                    const pendingRefs = Object.entries(referrals).filter(([id, r]) => (r.commissionStatus || 'pending') === 'pending');
+                    if(pendingRefs.length === 0) {
+                        pendingList.innerHTML = `<p class="text-[10px] text-emerald-700 text-center py-2">Tiada commission pending.</p>`;
+                    } else {
+                        pendingRefs.sort((a,b) => (b[1].createdAt || 0) - (a[1].createdAt || 0)).forEach(([referralId, r]) => {
+                            const card = document.createElement('div');
+                            card.className = "bg-white border border-emerald-200 rounded-xl p-3 space-y-2 text-slate-800";
+                            card.innerHTML = `
+                                <p class="font-bold text-xs">New User: ${r.newUserEmail || referralId}</p>
+                                <p class="text-[11px] text-gray-500">Affiliate: <span class="font-semibold">${r.affiliateEmail || r.affiliateUid || '-'}</span></p>
+                                <p class="text-[11px] text-gray-500">Code: <span class="font-mono font-bold text-emerald-700">${r.referralCode || '-'}</span> | Commission: <span class="font-bold">${formatRM(r.commissionAmount || 0)}</span></p>
+                                <button onclick="confirmReferralCommission('${referralId}')" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2 rounded-lg text-xs">Confirm Paid Commission</button>
+                            `;
+                            pendingList.appendChild(card);
+                        });
+                    }
+                }
+
+                if(withdrawalList) {
+                    withdrawalList.innerHTML = '';
+                    const pendingWithdrawals = Object.entries(withdrawals).filter(([id, w]) => (w.status || 'pending') === 'pending');
+                    if(pendingWithdrawals.length === 0) {
+                        withdrawalList.innerHTML = `<p class="text-[10px] text-emerald-700 text-center py-2">Tiada withdrawal pending.</p>`;
+                    } else {
+                        pendingWithdrawals.sort((a,b) => (b[1].requestedAt || 0) - (a[1].requestedAt || 0)).forEach(([wid, w]) => {
+                            const card = document.createElement('div');
+                            card.className = "bg-white border border-emerald-200 rounded-xl p-3 space-y-2 text-slate-800";
+                            card.innerHTML = `
+                                <div class="flex justify-between gap-2">
+                                    <p class="font-bold text-xs">${w.email || w.uid}</p>
+                                    <span class="bg-amber-100 text-amber-700 px-2 py-1 rounded-full text-[9px] font-bold h-fit">${formatRM(w.amount || 0)}</span>
+                                </div>
+                                <div class="bg-slate-50 border rounded-lg p-2 text-[11px] space-y-0.5">
+                                    <p>Bank: <span class="font-bold">${w.bankName || '-'}</span></p>
+                                    <p>Nama Akaun: <span class="font-bold">${w.accountName || '-'}</span></p>
+                                    <p>No Akaun: <span class="font-mono font-bold">${w.accountNumber || '-'}</span></p>
+                                    <p class="text-gray-400">Request: ${w.requestedAt ? new Date(w.requestedAt).toLocaleString('ms-MY') : '-'}</p>
+                                </div>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <button onclick="markWithdrawalPaid('${wid}')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-lg text-xs">Mark as Paid</button>
+                                    <button onclick="rejectWithdrawalRequest('${wid}')" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 rounded-lg text-xs">Reject</button>
+                                </div>
+                            `;
+                            withdrawalList.appendChild(card);
+                        });
+                    }
+                }
+
+                if(activeList) {
+                    activeList.innerHTML = '';
+                    const activeAffiliates = Object.entries(users).filter(([uid, u]) => u.affiliate?.status === 'approved');
+                    if(activeAffiliates.length === 0) {
+                        activeList.innerHTML = `<p class="text-[10px] text-emerald-700 text-center py-2">Belum ada affiliate aktif.</p>`;
+                    } else {
+                        activeAffiliates.sort((a,b) => (a[1].email || '').localeCompare(b[1].email || '')).forEach(([uid, u]) => {
+                            const aff = u.affiliate || {};
+                            const card = document.createElement('div');
+                            card.className = "bg-white border border-emerald-200 rounded-xl p-3 text-slate-800 text-[11px]";
+                            card.innerHTML = `
+                                <p class="font-bold text-xs">${u.email || uid}</p>
+                                <p>Code: <span class="font-mono font-bold text-emerald-700">${aff.referralCode || '-'}</span></p>
+                                <div class="grid grid-cols-2 gap-1 mt-1">
+                                    <p>Referral: <span class="font-bold">${aff.referralCount || 0}</span></p>
+                                    <p>Paid: <span class="font-bold">${aff.paidReferralCount || 0}</span></p>
+                                    <p>Available: <span class="font-bold text-emerald-700">${formatRM(aff.availableBalance || 0)}</span></p>
+                                    <p>Withdrawn: <span class="font-bold">${formatRM(aff.totalWithdrawn || 0)}</span></p>
+                                </div>
+                            `;
+                            activeList.appendChild(card);
+                        });
+                    }
+                }
+            } catch (err) {
+                console.error('updateAdminAffiliateManagerUI error:', err);
+                if(reqList) reqList.innerHTML = `<p class="text-red-600 text-[10px]">Ralat load affiliate manager: ${err.message}</p>`;
+            }
+        };
+
+        window.approveAffiliateAccount = async function(uid, safeUid) {
+            const code = (document.getElementById(`adm-aff-code-${safeUid}`)?.value || '').trim().toUpperCase();
+            const commission = Number(document.getElementById(`adm-aff-commission-${safeUid}`)?.value || 20);
+            if(!uid || !code) return alert("Sila masukkan referral code.");
+            if(commission <= 0) return alert("Commission per sale mesti lebih daripada RM0.");
+
+            try {
+                const userSnap = await get(ref(db, `users/${uid}`));
+                if(!userSnap.exists()) return alert("User tidak ditemui.");
+                const u = userSnap.val();
+
+                const existingCodeSnap = await get(ref(db, `referralCodes/${code}`));
+                if(existingCodeSnap.exists() && existingCodeSnap.val().affiliateUid !== uid) {
+                    return alert("Referral code ini sudah digunakan oleh affiliate lain. Guna code lain.");
+                }
+
+                const existingAff = u.affiliate || {};
+                await update(ref(db, `users/${uid}/affiliate`), {
+                    status: "approved",
+                    referralCode: code,
+                    commissionPerSale: commission,
+                    referralCount: Number(existingAff.referralCount || 0),
+                    paidReferralCount: Number(existingAff.paidReferralCount || 0),
+                    commissionTotal: Number(existingAff.commissionTotal || 0),
+                    availableBalance: Number(existingAff.availableBalance || 0),
+                    pendingWithdrawal: Number(existingAff.pendingWithdrawal || 0),
+                    totalWithdrawn: Number(existingAff.totalWithdrawn || 0),
+                    approvedAt: Date.now()
+                });
+                await set(ref(db, `referralCodes/${code}`), {
+                    affiliateUid: uid,
+                    affiliateEmail: u.email || '',
+                    active: true,
+                    commissionPerSale: commission,
+                    createdAt: Date.now()
+                });
+                await update(ref(db, `affiliateRequests/${uid}`), {
+                    status: "approved",
+                    referralCode: code,
+                    commissionPerSale: commission,
+                    approvedAt: Date.now()
+                });
+
+                alert("Affiliate berjaya approved.");
+                updateAdminAffiliateManagerUI();
+            } catch (err) {
+                alert("Ralat approve affiliate: " + err.message);
+            }
+        };
+
+        window.confirmReferralCommission = async function(referralId) {
+            if(!confirm("Confirm commission untuk referral ini? Pastikan user ini memang sudah bayar / premium.")) return;
+            try {
+                const rSnap = await get(ref(db, `referrals/${referralId}`));
+                if(!rSnap.exists()) return alert("Referral tidak ditemui.");
+                const r = rSnap.val();
+                if((r.commissionStatus || 'pending') !== 'pending') return alert("Commission ini bukan status pending.");
+
+                const affiliateUid = r.affiliateUid;
+                const amount = Number(r.commissionAmount || 0);
+                if(!affiliateUid || amount <= 0) return alert("Data affiliate atau amount tidak lengkap.");
+
+                const affSnap = await get(ref(db, `users/${affiliateUid}/affiliate`));
+                const aff = affSnap.exists() ? affSnap.val() : {};
+
+                await update(ref(db, `users/${affiliateUid}/affiliate`), {
+                    paidReferralCount: Number(aff.paidReferralCount || 0) + 1,
+                    commissionTotal: Number(aff.commissionTotal || 0) + amount,
+                    availableBalance: Number(aff.availableBalance || 0) + amount
+                });
+                await update(ref(db, `referrals/${referralId}`), {
+                    status: "paid",
+                    commissionStatus: "approved",
+                    commissionApprovedAt: Date.now()
+                });
+
+                alert("Commission berjaya dimasukkan ke affiliate balance.");
+                updateAdminAffiliateManagerUI();
+            } catch (err) {
+                alert("Ralat confirm commission: " + err.message);
+            }
+        };
+
+        window.markWithdrawalPaid = async function(withdrawalId) {
+            if(!confirm("Mark withdrawal ini sebagai PAID? Pastikan duit sudah dipindahkan manual.")) return;
+            try {
+                const wSnap = await get(ref(db, `withdrawalRequests/${withdrawalId}`));
+                if(!wSnap.exists()) return alert("Withdrawal request tidak ditemui.");
+                const w = wSnap.val();
+                if((w.status || 'pending') !== 'pending') return alert("Withdrawal ini bukan status pending.");
+
+                const affSnap = await get(ref(db, `users/${w.uid}/affiliate`));
+                const aff = affSnap.exists() ? affSnap.val() : {};
+                const amount = Number(w.amount || 0);
+
+                await update(ref(db, `users/${w.uid}/affiliate`), {
+                    pendingWithdrawal: Math.max(0, Number(aff.pendingWithdrawal || 0) - amount),
+                    totalWithdrawn: Number(aff.totalWithdrawn || 0) + amount
+                });
+                await update(ref(db, `withdrawalRequests/${withdrawalId}`), {
+                    status: "paid",
+                    paidAt: Date.now()
+                });
+
+                alert("Withdrawal sudah ditanda sebagai paid.");
+                updateAdminAffiliateManagerUI();
+            } catch (err) {
+                alert("Ralat mark paid: " + err.message);
+            }
+        };
+
+        window.rejectWithdrawalRequest = async function(withdrawalId) {
+            const reason = prompt("Sebab reject withdrawal ini?", "Semakan admin");
+            if(reason === null) return;
+            try {
+                const wSnap = await get(ref(db, `withdrawalRequests/${withdrawalId}`));
+                if(!wSnap.exists()) return alert("Withdrawal request tidak ditemui.");
+                const w = wSnap.val();
+                if((w.status || 'pending') !== 'pending') return alert("Withdrawal ini bukan status pending.");
+
+                const affSnap = await get(ref(db, `users/${w.uid}/affiliate`));
+                const aff = affSnap.exists() ? affSnap.val() : {};
+                const amount = Number(w.amount || 0);
+
+                await update(ref(db, `users/${w.uid}/affiliate`), {
+                    availableBalance: Number(aff.availableBalance || 0) + amount,
+                    pendingWithdrawal: Math.max(0, Number(aff.pendingWithdrawal || 0) - amount)
+                });
+                await update(ref(db, `withdrawalRequests/${withdrawalId}`), {
+                    status: "rejected",
+                    rejectReason: reason,
+                    rejectedAt: Date.now()
+                });
+
+                alert("Withdrawal rejected dan balance dipulangkan.");
+                updateAdminAffiliateManagerUI();
+            } catch (err) {
+                alert("Ralat reject withdrawal: " + err.message);
             }
         };
 
