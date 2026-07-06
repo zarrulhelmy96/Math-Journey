@@ -687,7 +687,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-auth.js";
-        import { getDatabase, ref, set, get, child, push, remove, update } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-database.js";
+        import { getDatabase, ref, set, get, child, push, remove, update, runTransaction } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-database.js";
         import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-storage.js";
 
         const firebaseConfig = {
@@ -1096,26 +1096,75 @@
             const code = document.getElementById('voucher-input').value.trim().toUpperCase();
             if(!code || !currentUser) return alert("Sila masukkan kod baucar.");
 
+            const timestampNow = Date.now();
+            const voucherRef = ref(db, `vouchers/${code}`);
+
             try {
+                const result = await runTransaction(voucherRef, (voucher) => {
+                    if (voucher === null) return voucher;
+
+                    // Support voucher lama yang disimpan sebagai true
+                    if (voucher === true) {
+                        return {
+                            active: true,
+                            used: true,
+                            usedBy: currentUser.uid,
+                            usedByEmail: currentUser.email,
+                            usedAt: timestampNow
+                        };
+                    }
+
+                    if (voucher.active === false || voucher.used === true) return;
+
+                    return {
+                        ...voucher,
+                        active: true,
+                        used: true,
+                        usedBy: currentUser.uid,
+                        usedByEmail: currentUser.email,
+                        usedAt: timestampNow
+                    };
+                });
+
+                const finalVoucher = result.snapshot.val();
+                let status = "invalid";
+                let message = "Kod baucar tidak sah atau sudah tamat tempoh.";
+
+                if (result.committed && finalVoucher && finalVoucher.usedBy === currentUser.uid) {
+                    await update(ref(db, `users/${currentUser.uid}`), {
+                        premium: true,
+                        paymentStatus: "voucher",
+                        purchaseType: "lifetime",
+                        voucherCode: code,
+                        paidAt: timestampNow
+                    });
+                    status = "success";
+                    message = "Tahniah! Kod baucar sah. Akses Premium Seumur Hidup telah diaktifkan! 🎉";
+                } else if (finalVoucher && finalVoucher.used === true) {
+                    status = "already_used";
+                    message = `Kod baucar ini telah digunakan oleh ${finalVoucher.usedByEmail || 'pengguna lain'}.`;
+                } else if (finalVoucher && finalVoucher.active === false) {
+                    status = "inactive";
+                    message = "Kod baucar ini telah dinyahaktifkan.";
+                }
+
                 const logRef = push(ref(db, 'voucher_logs'));
                 await set(logRef, {
                     uid: currentUser.uid,
                     email: currentUser.email,
                     code: code,
-                    timestamp: Date.now()
+                    status: status,
+                    timestamp: timestampNow
                 });
 
-                const vSnap = await get(ref(db, `vouchers/${code}`));
-                if(vSnap.exists()) {
-                    await update(ref(db, `users/${currentUser.uid}`), { premium: true });
-                    alert("Tahniah! Kod baucar sah. Akses Premium Premium Seumur Hidup telah diaktifkan! 🎉");
+                alert(message);
+
+                if (status === "success") {
                     closePaymentModal();
                     checkUserPremiumAndLoadDashboard();
-                } else {
-                    alert("Kod baucar tidak sah atau sudah tamat tempoh.");
                 }
             } catch (err) {
-                alert(err.message);
+                alert("Ralat tebus baucar: " + err.message);
             }
         };
 
@@ -2492,7 +2541,12 @@
             const vCode = document.getElementById('adm-voucher-code').value.trim().toUpperCase();
             if(!vCode) return alert("Sila masukkan kod.");
 
-            set(ref(db, `vouchers/${vCode}`), true)
+            set(ref(db, `vouchers/${vCode}`), {
+                active: true,
+                used: false,
+                createdAt: Date.now(),
+                createdBy: currentUser?.uid || "admin"
+            })
             .then(() => {
                 alert(`Voucher ${vCode} berjaya ditambah!`);
                 document.getElementById('adm-voucher-code').value = '';
@@ -2815,11 +2869,24 @@
                 if(snap.exists()) {
                     const vouchers = snap.val();
                     Object.keys(vouchers).forEach(code => {
+                        const info = vouchers[code];
+                        const isLegacy = info === true;
+                        const used = !isLegacy && info?.used === true;
+                        const active = isLegacy || info?.active !== false;
+                        const usedText = used ? `Telah digunakan oleh ${info.usedByEmail || info.usedBy || 'pengguna'}` : 'Belum digunakan';
+                        const statusText = active ? (used ? 'USED' : 'ACTIVE') : 'INACTIVE';
+                        const statusClass = used ? 'text-amber-300' : (active ? 'text-emerald-300' : 'text-red-300');
                         const row = document.createElement('div');
-                        row.className = "flex justify-between items-center bg-purple-900/60 p-2 rounded text-xs";
+                        row.className = "bg-purple-900/60 p-2 rounded text-xs space-y-1";
                         row.innerHTML = `
-                            <span class="font-mono font-bold tracking-wider text-amber-300">${code}</span>
-                            <button onclick="deleteVoucherCode('${code}')" class="text-red-400 hover:text-red-600 font-bold text-[10px] bg-red-950/40 px-2 py-0.5 rounded">Padam</button>
+                            <div class="flex justify-between items-center gap-2">
+                                <span class="font-mono font-bold tracking-wider text-amber-300 break-all">${code}</span>
+                                <span class="${statusClass} text-[10px] font-bold">${statusText}</span>
+                            </div>
+                            <div class="flex justify-between items-center gap-2">
+                                <span class="text-purple-200 text-[10px] break-all">${usedText}</span>
+                                <button onclick="deleteVoucherCode('${code}')" class="text-red-400 hover:text-red-600 font-bold text-[10px] bg-red-950/40 px-2 py-0.5 rounded">Padam</button>
+                            </div>
                         `;
                         listContainer.appendChild(row);
                     });
@@ -2842,6 +2909,7 @@
                         card.innerHTML = `
                             <p>User: <span class="text-slate-300 font-semibold">${log.email}</span></p>
                             <p>Code: <span class="text-amber-300 font-bold font-mono text-xs">${log.code}</span></p>
+                            <p>Status: <span class="text-emerald-300 font-semibold">${log.status || 'attempt'}</span></p>
                             <p class="text-[9px] text-slate-500">${dStr}</p>
                         `;
                         logContainer.appendChild(card);
