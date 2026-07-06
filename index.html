@@ -106,7 +106,7 @@
                     Nota ringkas, jalan kerja lengkap, latihan interaktif dan kuiz untuk pelajar sekolah menengah Malaysia.
                 </p>
                 <div class="space-y-3 px-4">
-                    <button onclick="switchView('login')" class="w-full btn-primary font-bold py-3.5 rounded-2xl shadow-lg shadow-pink-100">
+                    <button type="button" onclick="switchView('login')" class="w-full btn-primary font-bold py-3.5 rounded-2xl shadow-lg shadow-pink-100">
                         Mula Belajar
                     </button>
                     <button onclick="smoothScrollTo('landing-features')" class="w-full bg-slate-50 text-slate-700 font-medium py-3.5 rounded-2xl border border-slate-200">
@@ -733,6 +733,29 @@
             </button>
         </div>
     </footer>
+
+
+    <script>
+        // Fallback navigation so landing buttons still work even before Firebase module finishes loading.
+        window.switchView = window.switchView || function(viewId) {
+            document.querySelectorAll('.view').forEach(function(section) {
+                section.classList.add('hide');
+            });
+            var target = document.getElementById('view-' + viewId);
+            if (target) target.classList.remove('hide');
+
+            var nav = document.getElementById('app-nav');
+            var footer = document.getElementById('app-footer');
+            if (viewId === 'landing' || viewId === 'login') {
+                if (nav) nav.classList.add('hide');
+                if (footer) footer.classList.add('hide');
+            } else {
+                if (nav) nav.classList.remove('hide');
+                if (footer) footer.classList.remove('hide');
+            }
+            window.scrollTo(0, 0);
+        };
+    </script>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-app.js";
