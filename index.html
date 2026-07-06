@@ -183,7 +183,7 @@
                 </div>
                 
                 <div class="flex justify-end" id="forgot-password-container">
-                    <a href="#" onclick="handleForgotPassword()" class="text-xs text-gray-400 hover:text-soft-pink transition font-medium">Terlupa Kata Laluan?</a>
+                    <a href="#" onclick="handleForgotPassword(); return false;" class="text-xs text-gray-400 hover:text-soft-pink transition font-medium">Terlupa Kata Laluan?</a>
                 </div>
 
                 <button onclick="handleAuth()" id="auth-submit-btn" class="w-full btn-primary font-bold py-3 rounded-xl text-sm mt-2 shadow-sm">
@@ -191,7 +191,7 @@
                 </button>
                 <p class="text-center text-xs text-gray-500 mt-4">
                     <span id="auth-toggle-msg">Belum ada akaun?</span> 
-                    <a href="#" onclick="toggleAuthMode()" id="auth-toggle-btn" class="text-soft-pink font-bold ml-1">Daftar di sini</a>
+                    <a href="#" onclick="toggleAuthMode(); return false;" id="auth-toggle-btn" class="text-soft-pink font-bold ml-1">Daftar di sini</a>
                 </p>
             </div>
         </section>
@@ -754,6 +754,42 @@
                 if (footer) footer.classList.remove('hide');
             }
             window.scrollTo(0, 0);
+        };
+
+        // Fallback auth UI toggler so Daftar di sini works even while Firebase module loads.
+        window.toggleAuthMode = window.toggleAuthMode || function() {
+            var title = document.getElementById('auth-title');
+            var subtitle = document.getElementById('auth-subtitle');
+            var btn = document.getElementById('auth-submit-btn');
+            var toggleBtn = document.getElementById('auth-toggle-btn');
+            var toggleMsg = document.getElementById('auth-toggle-msg');
+            var forgotContainer = document.getElementById('forgot-password-container');
+            var referralContainer = document.getElementById('referral-code-container');
+            var confirmPasswordContainer = document.getElementById('auth-confirm-password-container');
+            if(!btn) return;
+            if(btn.innerText === 'Log Masuk') {
+                if(title) title.innerText = 'Daftar Akaun Baru';
+                if(subtitle) subtitle.innerText = 'Cipta akaun Math Journey anda hari ini.';
+                btn.innerText = 'Daftar Sekarang';
+                if(toggleMsg) toggleMsg.innerText = 'Dah ada akaun?';
+                if(toggleBtn) toggleBtn.innerText = 'Log masuk di sini';
+                if(forgotContainer) forgotContainer.classList.add('hide');
+                if(referralContainer) referralContainer.classList.remove('hide');
+                if(confirmPasswordContainer) confirmPasswordContainer.classList.remove('hide');
+            } else {
+                if(title) title.innerText = 'Selamat Kembali!';
+                if(subtitle) subtitle.innerText = 'Log masuk untuk sambung Journey anda.';
+                btn.innerText = 'Log Masuk';
+                if(toggleMsg) toggleMsg.innerText = 'Belum ada akaun?';
+                if(toggleBtn) toggleBtn.innerText = 'Daftar di sini';
+                if(forgotContainer) forgotContainer.classList.remove('hide');
+                if(referralContainer) referralContainer.classList.add('hide');
+                if(confirmPasswordContainer) confirmPasswordContainer.classList.add('hide');
+            }
+        };
+
+        window.handleAuth = window.handleAuth || function() {
+            alert('Sistem login sedang dimuatkan. Sila cuba tekan sekali lagi.');
         };
     </script>
 
@@ -2106,14 +2142,6 @@
             }
         };
 
-        function escapeHtml(text = '') {
-            return String(text)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#039;');
-        }
 
         window.loadAdminStandaloneQuizList = async function() {
             const list = document.getElementById('adm-standalone-quiz-list');
