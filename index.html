@@ -1900,6 +1900,7 @@
                 ? []
                 : window.standaloneQuizQuestions.map(q => previousAnswerMap[q.id] || null);
             window.standaloneQuizAnsweredCurrent = false;
+            window.standaloneQuizSelectedChoice = null;
             window.standaloneQuizPreviousAnswerMap = previousAnswerMap;
             window.standaloneQuizNewlyAnsweredCount = 0;
             window.standaloneQuizContext = {
@@ -1922,6 +1923,7 @@
             const idx = window.standaloneQuizIndex;
             const q = window.standaloneQuizQuestions[idx];
             const answered = window.standaloneQuizAnswers[idx];
+            const selectedChoice = window.standaloneQuizSelectedChoice || null;
             const lockedByPreviousAttempt = !!(answered && !window.standaloneQuizContext?.adminMode && window.standaloneQuizPreviousAnswerMap?.[q.id]);
             window.standaloneQuizAnsweredCurrent = !!answered;
             const isFirst = idx === 0;
@@ -1947,6 +1949,7 @@
                 if(!optText) return;
                 let style = 'border-gray-200 bg-white text-slate-700 hover:bg-slate-50';
                 let icon = '';
+
                 if(answered) {
                     if(opt === q.jawapan) {
                         style = 'border-green-500 bg-green-50 text-green-700 font-bold';
@@ -1957,7 +1960,11 @@
                     } else {
                         style = 'border-gray-100 bg-gray-50 text-gray-400';
                     }
+                } else if(selectedChoice === opt) {
+                    style = 'border-blue-500 bg-blue-50 text-blue-700 font-bold';
+                    icon = '<i class="fa-solid fa-circle-dot text-blue-600"></i>';
                 }
+
                 html += `
                     <button ${answered ? 'disabled' : ''} onclick="answerStandaloneQuiz('${opt}')" class="w-full text-left p-3 rounded-xl border ${style} transition text-xs flex items-center justify-between">
                         <span><strong class="mr-1">${opt}.</strong> ${optText}</span>${icon}
@@ -1966,6 +1973,16 @@
             });
 
             html += `</div>`;
+
+            if(!answered) {
+                html += `
+                    <div class="p-3 rounded-xl border bg-blue-50 text-blue-700 border-blue-100">
+                        <p class="font-bold">${selectedChoice ? `Pilihan anda: ${selectedChoice}. Tekan Confirm untuk lock jawapan.` : 'Pilih satu jawapan, kemudian tekan Confirm.'}</p>
+                        <button onclick="confirmStandaloneQuizAnswer()" ${selectedChoice ? '' : 'disabled'} class="mt-2 ${selectedChoice ? 'bg-slate-900 text-white hover:bg-slate-800' : 'bg-gray-100 text-gray-300 cursor-not-allowed'} text-[11px] font-bold px-4 py-2 rounded-lg transition">Confirm</button>
+                    </div>
+                `;
+            }
+
             if(answered) {
                 const msg = answered.correct ? 'Betul! Jawapan anda tepat.' : 'Salah. Jawapan betul sudah ditanda hijau.';
                 const boxStyle = answered.correct ? 'bg-green-50 text-green-700 border-green-100' : 'bg-red-50 text-red-700 border-red-100';
@@ -1995,6 +2012,22 @@
                 alert('Soalan ini sudah pernah dijawab. Anda tidak boleh jawab soalan yang sama dua kali.');
                 return;
             }
+            window.standaloneQuizSelectedChoice = chosen;
+            renderStandaloneQuizQuestion();
+        };
+
+        window.confirmStandaloneQuizAnswer = function() {
+            const idx = window.standaloneQuizIndex;
+            const q = window.standaloneQuizQuestions[idx];
+            const chosen = window.standaloneQuizSelectedChoice;
+
+            if(!chosen) return alert('Sila pilih jawapan dahulu sebelum tekan Confirm.');
+            if(window.standaloneQuizAnswers[idx]) return;
+            if(!window.standaloneQuizContext?.adminMode && window.standaloneQuizPreviousAnswerMap?.[q.id]) {
+                alert('Soalan ini sudah pernah dijawab. Anda tidak boleh jawab soalan yang sama dua kali.');
+                return;
+            }
+
             window.standaloneQuizAnswers[idx] = {
                 questionId: q.id,
                 question: q.soalan || '',
@@ -2004,17 +2037,20 @@
                 answerImageUrls: q.answerImageUrls || [],
                 answeredAt: Date.now()
             };
+
             if(!window.standaloneQuizContext?.adminMode) {
                 window.standaloneQuizNewlyAnsweredCount = Number(window.standaloneQuizNewlyAnsweredCount || 0) + 1;
             }
+
+            window.standaloneQuizSelectedChoice = null;
             renderStandaloneQuizQuestion();
-            if((q.answerImageUrls || []).length > 0) showQuizAnswerModal();
         };
 
         window.navigateStandaloneQuiz = function(direction) {
             if(direction === 'back') {
                 if(window.standaloneQuizIndex > 0) {
                     window.standaloneQuizIndex--;
+                    window.standaloneQuizSelectedChoice = null;
                     renderStandaloneQuizQuestion();
                 }
                 return;
@@ -2027,6 +2063,7 @@
 
             if(window.standaloneQuizIndex < window.standaloneQuizQuestions.length - 1) {
                 window.standaloneQuizIndex++;
+                window.standaloneQuizSelectedChoice = null;
                 renderStandaloneQuizQuestion();
             } else {
                 finishStandaloneQuiz();
