@@ -275,11 +275,10 @@
         </section>
 
         <section id="view-content-flow" class="view hide">
-            <div class="bg-white border-b border-gray-100 grid grid-cols-4 text-center text-xs font-semibold text-gray-400 sticky top-14 z-40">
+            <div class="bg-white border-b border-gray-100 grid grid-cols-3 text-center text-xs font-semibold text-gray-400 sticky top-14 z-40">
                 <button id="tab-btn-nota" onclick="switchFlowSubTab('nota')" class="py-3 border-b-2 border-transparent text-soft-pink border-soft-pink">Nota</button>
                 <button id="tab-btn-contoh" onclick="switchFlowSubTab('contoh')" class="py-3 border-b-2 border-transparent">Contoh</button>
                 <button id="tab-btn-latihan" onclick="switchFlowSubTab('latihan')" class="py-3 border-b-2 border-transparent">Latihan</button>
-                <button id="tab-btn-kuiz" onclick="switchFlowSubTab('kuiz')" class="py-3 border-b-2 border-transparent">Kuiz Bab</button>
             </div>
 
             <div class="p-3 bg-slate-50 border-b border-gray-100 flex items-center justify-between">
@@ -296,15 +295,41 @@
             <div id="flow-section-latihan" class="flow-subview p-5 hide">
                 <div id="latihan-content" class="space-y-5"></div>
             </div>
-            <div id="flow-section-kuiz" class="flow-subview p-5 hide">
-                <div id="kuiz-intro" class="text-center py-6">
-                    <span class="text-4xl">📝</span>
-                    <h3 class="font-bold text-lg mt-2">Kuiz Penilaian Bab</h3>
-                    <p class="text-xs text-gray-500 mt-1">Uji pemahaman anda setelah mempelajari semua subtopik.</p>
-                    <button onclick="startChapterQuiz()" class="btn-primary text-xs font-bold px-6 py-2.5 rounded-xl mt-4">Mula Kuiz</button>
+        </section>
+
+
+        <section id="view-quiz" class="view p-5 hide">
+            <div class="mb-6">
+                <h2 class="text-xl font-bold text-slate-900">Quiz</h2>
+                <p class="text-xs text-gray-500 mt-1">Pilih tingkatan dan bab untuk jawab kuiz. Setiap kuiz bab hanya boleh dijawab sekali.</p>
+            </div>
+
+            <div id="quiz-picker" class="space-y-4">
+                <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm text-xs space-y-3">
+                    <label class="block font-bold text-gray-600">Pilih Tingkatan</label>
+                    <select id="quiz-form-select" onchange="loadQuizChaptersForUser()" class="w-full border border-gray-200 p-3 rounded-xl bg-white text-sm outline-none">
+                        <option value="1">Tingkatan 1</option>
+                        <option value="2">Tingkatan 2</option>
+                        <option value="3">Tingkatan 3</option>
+                        <option value="4">Tingkatan 4</option>
+                        <option value="5">Tingkatan 5</option>
+                    </select>
                 </div>
-                <div id="kuiz-active" class="space-y-5 hide"></div>
-                <div id="kuiz-result" class="text-center py-6 hide"></div>
+                <div>
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Pilih Bab</p>
+                    <div id="quiz-chapter-list" class="space-y-3"></div>
+                </div>
+            </div>
+
+            <div id="quiz-runner" class="hide space-y-4"></div>
+            <div id="quiz-final-result" class="hide space-y-4"></div>
+
+            <div id="quiz-answer-modal" class="fixed inset-0 z-[120] bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4 hide">
+                <div class="bg-white rounded-3xl max-w-sm w-full p-5 shadow-2xl text-center">
+                    <h3 class="font-bold text-slate-900 mb-2">Gambar Jawapan</h3>
+                    <div id="quiz-answer-modal-content" class="space-y-3 max-h-[65vh] overflow-y-auto"></div>
+                    <button onclick="closeQuizAnswerModal()" class="mt-4 bg-slate-900 text-white text-xs font-bold px-5 py-2.5 rounded-xl">Tutup</button>
+                </div>
             </div>
         </section>
 
@@ -506,6 +531,57 @@
                 </div>
             </div>
 
+
+            <div class="bg-blue-50 border border-blue-300 p-4 rounded-xl space-y-3 mb-6 text-xs shadow-sm">
+                <h3 class="font-bold text-sm text-blue-900 border-b border-blue-200 pb-2"><i class="fa-solid fa-circle-question"></i> Quiz Manager Berasingan</h3>
+                <p class="text-[11px] text-blue-800">Upload soalan quiz mengikut Tingkatan dan Bab. Bahagian Silibus hanya untuk Nota, Contoh dan Latihan.</p>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block font-semibold text-gray-700 mb-1">Tingkatan</label>
+                        <select id="adm-quiz-form" onchange="updateAdminQuizChapterOptions()" class="w-full border p-2.5 rounded-lg bg-white outline-none">
+                            <option value="1">Tingkatan 1</option>
+                            <option value="2">Tingkatan 2</option>
+                            <option value="3" selected>Tingkatan 3</option>
+                            <option value="4">Tingkatan 4</option>
+                            <option value="5">Tingkatan 5</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-gray-700 mb-1">Bab</label>
+                        <select id="adm-quiz-chapter" class="w-full border p-2.5 rounded-lg bg-white outline-none">
+                            <option value="">-- Pilih Bab --</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-semibold text-gray-700 mb-1">Soalan Quiz</label>
+                    <textarea id="adm-standalone-quiz-soalan" rows="2" class="w-full border p-2 rounded-lg bg-white outline-none" placeholder="Taip soalan quiz di sini..."></textarea>
+                </div>
+                <div>
+                    <label class="block font-semibold text-gray-700 mb-1">Gambar Soalan</label>
+                    <input type="file" id="adm-standalone-quiz-image-file" accept="image/jpeg, image/png, image/webp" multiple class="w-full border p-2 rounded-lg text-xs bg-white">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="text" id="adm-standalone-quiz-a" placeholder="Pilihan A" class="w-full border p-2 rounded-lg bg-white outline-none">
+                    <input type="text" id="adm-standalone-quiz-b" placeholder="Pilihan B" class="w-full border p-2 rounded-lg bg-white outline-none">
+                    <input type="text" id="adm-standalone-quiz-c" placeholder="Pilihan C" class="w-full border p-2 rounded-lg bg-white outline-none">
+                    <input type="text" id="adm-standalone-quiz-d" placeholder="Pilihan D" class="w-full border p-2 rounded-lg bg-white outline-none">
+                </div>
+                <div>
+                    <label class="block font-semibold text-gray-700 mb-1">Jawapan Betul (A/B/C/D)</label>
+                    <input type="text" id="adm-standalone-quiz-jawapan" maxlength="1" placeholder="A" class="w-full border p-2.5 rounded-lg bg-white outline-none uppercase font-bold tracking-wider max-w-[100px]">
+                </div>
+                <div>
+                    <label class="block font-semibold text-gray-700 mb-1">Gambar Jawapan / Solusi</label>
+                    <input type="file" id="adm-standalone-quiz-answer-image-file" accept="image/jpeg, image/png, image/webp" multiple class="w-full border p-2 rounded-lg text-xs bg-white">
+                    <p class="text-[10px] text-gray-500 mt-1">Gambar ini akan muncul sebagai pop up selepas user jawab soalan.</p>
+                </div>
+                <button onclick="addStandaloneQuizQuestion()" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 rounded-xl text-sm flex items-center justify-center space-x-1 shadow-md">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> <span>Upload Soalan Quiz</span>
+                </button>
+                <div id="adm-standalone-quiz-list" class="space-y-2 pt-2"></div>
+            </div>
+
             <div class="bg-white border border-gray-200 p-4 rounded-xl space-y-3 mb-6 text-xs shadow-sm">
                 <h3 class="font-bold text-sm text-slate-800 border-b pb-2"><i class="fa-solid fa-file-pen"></i> 2. Urus Isi Kandungan</h3>
                 
@@ -536,7 +612,6 @@
                         <option value="nota">Nota Ringkas</option>
                         <option value="contoh">Contoh Jalan Kerja</option>
                         <option value="latihan">Soalan Latihan Interaktif</option>
-                        <option value="kuiz">Kuiz Bab</option>
                     </select>
                 </div>
 
@@ -618,43 +693,7 @@
                     </div>
                 </div>
 
-                <div id="fields-kuiz" class="space-y-3 hide">
-                    <div>
-                        <label class="block font-semibold text-gray-600 mb-1">Soalan Kuiz Bab</label>
-                        <textarea id="adm-kuiz-soalan" rows="2" class="w-full border p-2 rounded-lg focus:outline-none" placeholder="Taip soalan kuiz bab..."></textarea>
-                    </div>
-                    <div>
-                        <label class="block font-semibold text-gray-600 mb-1">Gambar Soalan Kuiz</label>
-                        <input type="file" id="adm-kuiz-image-file" accept="image/jpeg, image/png, image/webp" multiple class="w-full border p-2 rounded-lg text-xs bg-gray-50">
-                        <p class="text-[10px] text-gray-400 mt-1">Boleh muat naik lebih daripada satu gambar untuk soalan kuiz.</p>
-                    </div>
-                    <div class="grid grid-cols-2 gap-2">
-                        <div>
-                            <label class="block font-semibold text-[11px] text-gray-500 mb-1">Pilihan A</label>
-                            <input type="text" id="adm-kuiz-a" class="w-full border p-2 rounded-lg focus:outline-none">
-                        </div>
-                        <div>
-                            <label class="block font-semibold text-[11px] text-gray-500 mb-1">Pilihan B</label>
-                            <input type="text" id="adm-kuiz-b" class="w-full border p-2 rounded-lg focus:outline-none">
-                        </div>
-                        <div>
-                            <label class="block font-semibold text-[11px] text-gray-500 mb-1">Pilihan C</label>
-                            <input type="text" id="adm-kuiz-c" class="w-full border p-2 rounded-lg focus:outline-none">
-                        </div>
-                        <div>
-                            <label class="block font-semibold text-[11px] text-gray-500 mb-1">Pilihan D</label>
-                            <input type="text" id="adm-kuiz-d" class="w-full border p-2 rounded-lg focus:outline-none">
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block font-semibold text-gray-600 mb-1">Jawapan Betul (A / B / C / D)</label>
-                        <input type="text" id="adm-kuiz-jawapan" placeholder="Contoh: A" class="w-full border p-2.5 rounded-lg focus:outline-none uppercase font-bold tracking-wider max-w-[100px]">
-                    </div>
-                    <div>
-                        <label class="block font-semibold text-gray-600 mb-1">Penerangan Jawapan Kuiz</label>
-                        <textarea id="adm-kuiz-penerangan" rows="2" class="w-full border p-2 rounded-lg focus:outline-none" placeholder="Terangkan kenapa jawapan ini betul..."></textarea>
-                    </div>
-                </div>
+
 
                 <button id="adm-submit-content-btn" onclick="addContentToFirebase()" class="w-full bg-purple-700 hover:bg-purple-800 text-white font-bold py-3 rounded-xl text-sm flex items-center justify-center space-x-1 shadow-md">
                     <i class="fa-solid fa-cloud-arrow-up"></i> <span>Muat Naik Isi Kandungan</span>
@@ -668,12 +707,15 @@
     </main>
 
     <footer id="app-footer" class="bg-white border-t border-gray-100 fixed bottom-0 left-0 right-0 z-50 hide shadow-[0_-4px_12px_rgba(0,0,0,0.03)]">
-        <div class="max-w-md mx-auto grid grid-cols-4 text-center py-2 text-gray-400 text-[10px] font-bold uppercase tracking-wider">
+        <div class="max-w-md mx-auto grid grid-cols-5 text-center py-2 text-gray-400 text-[10px] font-bold uppercase tracking-wider">
             <button onclick="switchView('dashboard')" id="nav-btn-dashboard" class="flex flex-col items-center space-y-1 text-soft-pink">
                 <i class="fa-solid fa-compass text-lg"></i> <span>Mula</span>
             </button>
             <button onclick="handleAccessToLevels()" id="nav-btn-levels" class="flex flex-col items-center space-y-1">
                 <i class="fa-solid fa-book-bookmark text-lg"></i> <span>Silibus</span>
+            </button>
+            <button onclick="openQuizView()" id="nav-btn-quiz" class="flex flex-col items-center space-y-1">
+                <i class="fa-solid fa-circle-question text-lg"></i> <span>Quiz</span>
             </button>
             <button onclick="switchView('profile')" id="nav-btn-profile" class="flex flex-col items-center space-y-1">
                 <i class="fa-solid fa-id-badge text-lg"></i> <span>Profil</span>
@@ -729,6 +771,11 @@
         window.currentQuizQuestions = [];
         window.currentQuizIndex = 0;
         window.quizUserAnswers = [];
+        window.standaloneQuizQuestions = [];
+        window.standaloneQuizIndex = 0;
+        window.standaloneQuizAnswers = [];
+        window.standaloneQuizAnsweredCurrent = false;
+        window.standaloneQuizContext = null;
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
@@ -810,8 +857,13 @@
                 
                 renderAffiliateProfileSection(udata);
                 updateAdminVoucherManagerUI();
-                if (udata.role === 'admin') updateAdminAffiliateManagerUI();
+                if (udata.role === 'admin') {
+                    updateAdminAffiliateManagerUI();
+                    updateAdminQuizChapterOptions();
+                    loadAdminStandaloneQuizList();
+                }
                 updateAdminChapterDropdown();
+                if (!document.getElementById('view-quiz').classList.contains('hide')) loadQuizChaptersForUser();
 
                 if(document.getElementById('view-dashboard').classList.contains('hide') && 
                    document.getElementById('view-landing').classList.contains('hide') === false) {
@@ -823,7 +875,7 @@
         }
 
         window.switchView = function(viewId) {
-            if ((viewId === 'levels' || viewId === 'chapters' || viewId === 'content-flow') && !isPremiumUser) {
+            if ((viewId === 'levels' || viewId === 'chapters' || viewId === 'content-flow' || viewId === 'quiz') && !isPremiumUser) {
                 document.getElementById('payment-modal').classList.remove('hide');
                 return;
             }
@@ -1440,11 +1492,6 @@
                 latihanAnswered = {};
                 renderLatihanItem();
             } 
-            else if(tabName === 'kuiz') {
-                document.getElementById('kuiz-intro').classList.remove('hide');
-                document.getElementById('kuiz-active').classList.add('hide');
-                document.getElementById('kuiz-result').classList.add('hide');
-            }
         };
 
         // Fungsi baharu untuk melukis Item Nota tunggal (Pagination)
@@ -1689,119 +1736,378 @@
             }
         };
 
-        window.startChapterQuiz = function() {
-            const chaptersOfForm = appSilibusData[currentLevel] || {};
-            const chapterData = chaptersOfForm[currentChapterKey] || {};
-            const subtopikObj = chapterData.subtopik || {};
-            
-            let allQuizQuestions = [];
-            Object.values(subtopikObj).forEach(sub => {
-                const kandunganList = getKandunganListFromSubtopic(sub);
-                expandKandunganItems(kandunganList).forEach(item => {
-                    if(item.type === 'kuiz' && item.kuiz) {
-                        allQuizQuestions.push(item.kuiz);
-                    }
-                });
-            });
 
-            if(allQuizQuestions.length === 0) {
-                return alert("Tiada soalan kuiz bab dimasukkan lagi.");
+        window.openQuizView = function() {
+            if(!isPremiumUser) {
+                document.getElementById('payment-modal').classList.remove('hide');
+                return;
             }
-
-            window.currentQuizQuestions = allQuizQuestions.slice(0, 10); // Ambil maksima 10 soalan
-            window.currentQuizIndex = 0;
-            window.quizUserAnswers = [];
-
-            document.getElementById('kuiz-intro').classList.add('hide');
-            document.getElementById('kuiz-active').classList.remove('hide');
-            document.getElementById('kuiz-result').classList.add('hide');
-
-            renderActiveQuizQuestion();
+            switchView('quiz');
+            loadQuizChaptersForUser();
         };
 
-        function renderActiveQuizQuestion() {
-            const container = document.getElementById('kuiz-active');
-            container.innerHTML = '';
+        function getChapterDisplayName(formNum, chKey) {
+            return appSilibusData?.[formNum]?.[chKey]?.nama_bab || chKey;
+        }
 
-            const idx = window.currentQuizIndex;
-            const q = window.currentQuizQuestions[idx];
+        function getQuizResultKey(formNum, chKey) {
+            return `${formNum}_${chKey}`.replace(/[^a-zA-Z0-9_-]/g, '_');
+        }
+
+        window.loadQuizChaptersForUser = async function() {
+            const list = document.getElementById('quiz-chapter-list');
+            if(!list) return;
+            list.innerHTML = '<p class="text-xs text-gray-400 text-center py-4">Memuatkan senarai bab...</p>';
+            const formNum = document.getElementById('quiz-form-select')?.value || '1';
+            const chapters = appSilibusData[formNum] || {};
+            const chKeys = Object.keys(chapters).sort();
+
+            if(chKeys.length === 0) {
+                list.innerHTML = '<p class="text-xs text-gray-400 text-center py-6">Tiada bab untuk tingkatan ini lagi.</p>';
+                return;
+            }
+
+            let html = '';
+            for (const chKey of chKeys) {
+                const quizSnap = await get(ref(db, `quizzes/${formNum}/${chKey}`));
+                const quizCount = quizSnap.exists() ? Object.keys(quizSnap.val()).length : 0;
+                const resultKey = getQuizResultKey(formNum, chKey);
+                const resultSnap = currentUser ? await get(ref(db, `quizResults/${currentUser.uid}/${resultKey}`)) : null;
+                const done = resultSnap && resultSnap.exists();
+                const scoreText = done ? `Skor: ${resultSnap.val().percent || 0}%` : `${quizCount} soalan`;
+                const disabled = quizCount === 0 ? 'disabled' : '';
+                const btnClass = quizCount === 0
+                    ? 'bg-gray-50 text-gray-400 border-gray-100 cursor-not-allowed'
+                    : done
+                        ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                        : 'bg-white text-slate-900 border-gray-100 hover:border-soft-pink';
+
+                html += `
+                    <button ${disabled} onclick="startStandaloneQuiz('${formNum}', '${chKey}')" class="w-full ${btnClass} border p-4 rounded-xl text-left font-bold text-sm flex justify-between items-center shadow-sm transition">
+                        <div>
+                            <span>${getChapterDisplayName(formNum, chKey)}</span>
+                            <p class="text-[11px] font-medium text-gray-500 mt-1">${done ? 'Telah dijawab sekali' : 'Belum dijawab'} • ${scoreText}</p>
+                        </div>
+                        <i class="fa-solid ${done ? 'fa-chart-simple' : 'fa-chevron-right'} text-xs"></i>
+                    </button>
+                `;
+            }
+            list.innerHTML = html;
+        };
+
+        window.startStandaloneQuiz = async function(formNum, chKey) {
+            if(!currentUser) return alert('Sila log masuk dahulu.');
+            const resultKey = getQuizResultKey(formNum, chKey);
+            const previousSnap = await get(ref(db, `quizResults/${currentUser.uid}/${resultKey}`));
+            if(previousSnap.exists()) {
+                window.standaloneQuizContext = { formNum, chKey, resultKey, chapterName: getChapterDisplayName(formNum, chKey) };
+                showStoredQuizResult(previousSnap.val());
+                return;
+            }
+
+            const snap = await get(ref(db, `quizzes/${formNum}/${chKey}`));
+            if(!snap.exists()) return alert('Tiada soalan quiz untuk bab ini lagi.');
+            const data = snap.val();
+            window.standaloneQuizQuestions = Object.entries(data)
+                .map(([id, q]) => ({ id, ...q }))
+                .sort((a,b) => (a.createdAt || 0) - (b.createdAt || 0));
+            window.standaloneQuizIndex = 0;
+            window.standaloneQuizAnswers = [];
+            window.standaloneQuizAnsweredCurrent = false;
+            window.standaloneQuizContext = { formNum, chKey, resultKey, chapterName: getChapterDisplayName(formNum, chKey) };
+
+            document.getElementById('quiz-picker').classList.add('hide');
+            document.getElementById('quiz-final-result').classList.add('hide');
+            document.getElementById('quiz-runner').classList.remove('hide');
+            renderStandaloneQuizQuestion();
+        };
+
+        function renderStandaloneQuizQuestion() {
+            const runner = document.getElementById('quiz-runner');
+            const idx = window.standaloneQuizIndex;
+            const q = window.standaloneQuizQuestions[idx];
+            const answered = window.standaloneQuizAnswers[idx];
+            window.standaloneQuizAnsweredCurrent = !!answered;
+            const isFirst = idx === 0;
+            const isLast = idx === window.standaloneQuizQuestions.length - 1;
 
             let html = `
                 <div class="flex justify-between items-center text-xs text-gray-400 font-bold">
-                    <span>Soalan Kuiz Bab</span>
-                    <span>${idx + 1} / ${window.currentQuizQuestions.length}</span>
+                    <button onclick="backToQuizPicker()" class="text-gray-500"><i class="fa-solid fa-arrow-left"></i> Senarai Quiz</button>
+                    <span>${idx + 1} / ${window.standaloneQuizQuestions.length}</span>
                 </div>
                 <div class="bg-white border rounded-2xl p-5 shadow-sm text-xs space-y-4">
-                    <p class="text-slate-900 font-bold text-sm">${q.soalan}</p>
-                    ${renderImageGallery(q.imageUrls, q.imageUrl || "")}
+                    <div>
+                        <span class="bg-blue-100 text-blue-700 font-bold px-2.5 py-1 rounded-lg text-[10px] uppercase tracking-wider">${window.standaloneQuizContext.chapterName}</span>
+                        <p class="text-slate-900 font-bold text-sm mt-3 leading-relaxed">${q.soalan || ''}</p>
+                        ${renderImageGallery(q.imageUrls, '')}
+                    </div>
                     <div class="grid grid-cols-1 gap-2 pt-1">
             `;
 
-            ['A', 'B', 'C', 'D'].forEach(opt => {
-                let optText = q[opt.toLowerCase()];
+            ['A','B','C','D'].forEach(opt => {
+                const optText = q[opt.toLowerCase()] || '';
                 if(!optText) return;
+                let style = 'border-gray-200 bg-white text-slate-700 hover:bg-slate-50';
+                let icon = '';
+                if(answered) {
+                    if(opt === q.jawapan) {
+                        style = 'border-green-500 bg-green-50 text-green-700 font-bold';
+                        icon = '<i class="fa-solid fa-circle-check text-green-600"></i>';
+                    } else if(opt === answered.chosen && opt !== q.jawapan) {
+                        style = 'border-red-500 bg-red-50 text-red-700 font-bold';
+                        icon = '<i class="fa-solid fa-circle-xmark text-red-600"></i>';
+                    } else {
+                        style = 'border-gray-100 bg-gray-50 text-gray-400';
+                    }
+                }
                 html += `
-                    <button onclick="submitQuizAnswer('${opt}')" class="w-full text-left p-3 rounded-xl border border-gray-200 bg-white text-slate-700 hover:bg-slate-50 transition font-medium">
-                        <strong>${opt}.</strong> ${optText}
+                    <button ${answered ? 'disabled' : ''} onclick="answerStandaloneQuiz('${opt}')" class="w-full text-left p-3 rounded-xl border ${style} transition text-xs flex items-center justify-between">
+                        <span><strong class="mr-1">${opt}.</strong> ${optText}</span>${icon}
                     </button>
                 `;
             });
 
-            html += `</div></div>`;
-            container.innerHTML = html;
+            html += `</div>`;
+            if(answered) {
+                const msg = answered.correct ? 'Betul! Jawapan anda tepat.' : 'Salah. Jawapan betul sudah ditanda hijau.';
+                const boxStyle = answered.correct ? 'bg-green-50 text-green-700 border-green-100' : 'bg-red-50 text-red-700 border-red-100';
+                html += `
+                    <div class="p-3 rounded-xl border ${boxStyle}">
+                        <p class="font-bold">${msg}</p>
+                        ${((q.answerImageUrls || []).length > 0) ? '<button onclick="showQuizAnswerModal()" class="mt-2 bg-slate-900 text-white text-[11px] font-bold px-3 py-2 rounded-lg">Lihat Gambar Jawapan</button>' : '<p class="text-[11px] mt-1">Tiada gambar jawapan dimuat naik.</p>'}
+                    </div>
+                `;
+            }
+
+            html += `
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="navigateStandaloneQuiz('back')" ${isFirst ? 'disabled' : ''} class="${isFirst ? 'bg-gray-100 text-gray-300' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'} font-bold py-3 rounded-xl transition">← Back</button>
+                    <button onclick="navigateStandaloneQuiz('next')" ${answered ? '' : 'disabled'} class="${answered ? 'btn-primary' : 'bg-gray-100 text-gray-300 cursor-not-allowed'} font-bold py-3 rounded-xl transition">${isLast ? 'Lihat Result' : 'Next →'}</button>
+                </div>
+            `;
+            runner.innerHTML = html;
         }
 
-        window.submitQuizAnswer = function(chosen) {
-            window.quizUserAnswers.push(chosen);
-            if(window.currentQuizIndex < window.currentQuizQuestions.length - 1) {
-                window.currentQuizIndex++;
-                renderActiveQuizQuestion();
+        window.answerStandaloneQuiz = function(chosen) {
+            const idx = window.standaloneQuizIndex;
+            if(window.standaloneQuizAnswers[idx]) return;
+            const q = window.standaloneQuizQuestions[idx];
+            window.standaloneQuizAnswers[idx] = {
+                questionId: q.id,
+                question: q.soalan || '',
+                chosen,
+                correctAnswer: q.jawapan,
+                correct: chosen === q.jawapan,
+                answerImageUrls: q.answerImageUrls || []
+            };
+            renderStandaloneQuizQuestion();
+            if((q.answerImageUrls || []).length > 0) showQuizAnswerModal();
+        };
+
+        window.navigateStandaloneQuiz = function(direction) {
+            if(direction === 'back') {
+                if(window.standaloneQuizIndex > 0) {
+                    window.standaloneQuizIndex--;
+                    renderStandaloneQuizQuestion();
+                }
+                return;
+            }
+
+            if(!window.standaloneQuizAnswers[window.standaloneQuizIndex]) {
+                alert('Sila jawab soalan ini dahulu sebelum pergi ke soalan seterusnya.');
+                return;
+            }
+
+            if(window.standaloneQuizIndex < window.standaloneQuizQuestions.length - 1) {
+                window.standaloneQuizIndex++;
+                renderStandaloneQuizQuestion();
             } else {
-                finishChapterQuizAndShowResults();
+                finishStandaloneQuiz();
             }
         };
 
-        function finishChapterQuizAndShowResults() {
-            document.getElementById('kuiz-active').classList.add('hide');
-            const resDiv = document.getElementById('kuiz-result');
-            resDiv.classList.remove('hide');
+        window.showQuizAnswerModal = function() {
+            const q = window.standaloneQuizQuestions[window.standaloneQuizIndex];
+            const urls = q.answerImageUrls || [];
+            const box = document.getElementById('quiz-answer-modal-content');
+            box.innerHTML = urls.length
+                ? urls.map(url => `<img src="${url}" class="w-full rounded-xl border border-gray-100 shadow-sm" alt="Gambar jawapan quiz">`).join('')
+                : '<p class="text-xs text-gray-500">Tiada gambar jawapan untuk soalan ini.</p>';
+            document.getElementById('quiz-answer-modal').classList.remove('hide');
+        };
 
-            let scoreCount = 0;
-            window.currentQuizQuestions.forEach((q, i) => {
-                if(window.quizUserAnswers[i] === q.jawapan) scoreCount++;
-            });
+        window.closeQuizAnswerModal = function() {
+            document.getElementById('quiz-answer-modal').classList.add('hide');
+        };
 
-            let finalPercent = Math.round((scoreCount / window.currentQuizQuestions.length) * 100);
+        async function finishStandaloneQuiz() {
+            const questions = window.standaloneQuizQuestions;
+            const answers = window.standaloneQuizAnswers;
+            const correctCount = answers.filter(a => a.correct).length;
+            const percent = Math.round((correctCount / questions.length) * 100);
+            const wrongAnswers = answers.filter(a => !a.correct);
+            const ctx = window.standaloneQuizContext;
+            const resultData = {
+                formNum: ctx.formNum,
+                chapterKey: ctx.chKey,
+                chapterName: ctx.chapterName,
+                total: questions.length,
+                correct: correctCount,
+                wrong: wrongAnswers.length,
+                percent,
+                answers,
+                wrongAnswers,
+                completedAt: Date.now()
+            };
 
-            resDiv.innerHTML = `
-                <span class="text-5xl">🏆</span>
-                <h3 class="font-bold text-lg mt-3 text-slate-900">Kuiz Selesai!</h3>
-                <p class="text-xs text-gray-500 mt-1">Skor Pencapaian Anda:</p>
-                <div class="text-3xl font-extrabold text-soft-pink my-3">${finalPercent}%</div>
-                <p class="text-xs text-gray-600 px-4 leading-relaxed">Anda menjawab betul <strong>${scoreCount}</strong> daripada ${window.currentQuizQuestions.length} soalan.</p>
-                <button onclick="switchFlowSubTab('kuiz')" class="btn-primary text-xs font-bold px-6 py-2.5 rounded-xl mt-5">Ulang Semula Kuiz</button>
-            `;
+            await set(ref(db, `quizResults/${currentUser.uid}/${ctx.resultKey}`), resultData);
 
-            if(currentUser) {
-                get(ref(db, `users/${currentUser.uid}`)).then(snap => {
-                    let udata = snap.exists() ? snap.val() : {};
-                    let completedCount = udata.completedChaptersCount || 0;
-                    let b = udata.badges || {};
-                    
-                    if(finalPercent >= 80) {
-                        b['quiz_master'] = true;
-                    }
-                    completedCount += 1;
+            const userSnap = await get(ref(db, `users/${currentUser.uid}`));
+            const udata = userSnap.exists() ? userSnap.val() : {};
+            const previousCompleted = Number(udata.completedChaptersCount || 0);
+            const previousAvg = Number(udata.averageQuizScore || 0);
+            const newCompleted = previousCompleted + 1;
+            const newAvg = Math.round(((previousAvg * previousCompleted) + percent) / newCompleted);
+            const updates = {
+                completedChaptersCount: newCompleted,
+                averageQuizScore: newAvg,
+                answeredCount: Number(udata.answeredCount || 0) + questions.length
+            };
+            if(percent < 70) updates.weakestTopic = ctx.chapterName;
+            await update(ref(db, `users/${currentUser.uid}`), updates);
 
-                    update(ref(db, `users/${currentUser.uid}`), {
-                        completedChaptersCount: completedCount,
-                        averageQuizScore: Math.round(((udata.averageQuizScore || 0) + finalPercent) / (completedCount === 1 ? 1 : 2)),
-                        badges: b
-                    }).then(() => checkUserPremiumAndLoadDashboard());
-                });
-            }
+            showStoredQuizResult(resultData);
+            checkUserPremiumAndLoadDashboard();
         }
 
+        function showStoredQuizResult(resultData) {
+            document.getElementById('quiz-picker').classList.add('hide');
+            document.getElementById('quiz-runner').classList.add('hide');
+            const resultEl = document.getElementById('quiz-final-result');
+            resultEl.classList.remove('hide');
+
+            const wrongHtml = (resultData.wrongAnswers || []).length === 0
+                ? '<p class="text-xs text-green-700 bg-green-50 border border-green-100 rounded-xl p-3 font-bold">Semua jawapan betul. Mantap! 🎉</p>'
+                : (resultData.wrongAnswers || []).map((a, i) => `
+                    <div class="bg-red-50 border border-red-100 rounded-xl p-3 text-xs text-left">
+                        <p class="font-bold text-red-800">${i + 1}. ${a.question || 'Soalan'}</p>
+                        <p class="mt-1 text-red-700">Jawapan anda: <strong>${a.chosen}</strong></p>
+                        <p class="text-green-700">Jawapan betul: <strong>${a.correctAnswer}</strong></p>
+                    </div>
+                `).join('');
+
+            const statusText = resultData.percent >= 70 ? 'Bagus! Anda menguasai bab ini.' : 'Anda masih lemah dalam bab ini. Ulang kaji nota dan latihan.';
+            resultEl.innerHTML = `
+                <div class="bg-white border rounded-2xl p-5 shadow-sm text-center">
+                    <span class="text-5xl">${resultData.percent >= 70 ? '🏆' : '💪'}</span>
+                    <h3 class="font-bold text-lg mt-3 text-slate-900">Result Quiz</h3>
+                    <p class="text-xs text-gray-500 mt-1">${resultData.chapterName || ''}</p>
+                    <div class="text-4xl font-extrabold text-soft-pink my-4">${resultData.percent}%</div>
+                    <p class="text-xs text-gray-600">Betul <strong>${resultData.correct}</strong> daripada <strong>${resultData.total}</strong> soalan.</p>
+                    <p class="text-xs mt-2 font-semibold ${resultData.percent >= 70 ? 'text-green-700' : 'text-red-700'}">${statusText}</p>
+                </div>
+                <div>
+                    <h4 class="font-bold text-sm text-slate-900 mb-2">Soalan Yang Salah</h4>
+                    <div class="space-y-2">${wrongHtml}</div>
+                </div>
+                <button onclick="backToQuizPicker()" class="w-full bg-slate-900 text-white font-bold py-3 rounded-xl text-sm">Kembali ke Senarai Quiz</button>
+            `;
+        }
+
+        window.backToQuizPicker = function() {
+            document.getElementById('quiz-runner').classList.add('hide');
+            document.getElementById('quiz-final-result').classList.add('hide');
+            document.getElementById('quiz-picker').classList.remove('hide');
+            loadQuizChaptersForUser();
+        };
+
+        window.updateAdminQuizChapterOptions = function() {
+            const formSelect = document.getElementById('adm-quiz-form');
+            const chSelect = document.getElementById('adm-quiz-chapter');
+            if(!formSelect || !chSelect) return;
+            const formNum = formSelect.value;
+            chSelect.innerHTML = '<option value="">-- Pilih Bab --</option>';
+            const chapters = appSilibusData[formNum] || {};
+            Object.keys(chapters).sort().forEach(chKey => {
+                const opt = document.createElement('option');
+                opt.value = chKey;
+                opt.innerText = chapters[chKey].nama_bab || chKey;
+                chSelect.appendChild(opt);
+            });
+            loadAdminStandaloneQuizList();
+        };
+
+        window.addStandaloneQuizQuestion = async function() {
+            const formNum = document.getElementById('adm-quiz-form').value;
+            const chKey = document.getElementById('adm-quiz-chapter').value;
+            const soalan = document.getElementById('adm-standalone-quiz-soalan').value.trim();
+            const a = document.getElementById('adm-standalone-quiz-a').value.trim();
+            const b = document.getElementById('adm-standalone-quiz-b').value.trim();
+            const c = document.getElementById('adm-standalone-quiz-c').value.trim();
+            const d = document.getElementById('adm-standalone-quiz-d').value.trim();
+            const jawapan = document.getElementById('adm-standalone-quiz-jawapan').value.trim().toUpperCase();
+            if(!formNum || !chKey) return alert('Sila pilih Tingkatan dan Bab.');
+            if(!soalan) return alert('Sila taip soalan quiz.');
+            if(!a || !b || !c || !d) return alert('Sila isi semua pilihan jawapan A, B, C dan D.');
+            if(!['A','B','C','D'].includes(jawapan)) return alert('Jawapan betul mesti A, B, C atau D.');
+
+            try {
+                const imageUrls = await uploadMultipleFilesHelper('adm-standalone-quiz-image-file', 'standalone_quiz_questions');
+                const answerImageUrls = await uploadMultipleFilesHelper('adm-standalone-quiz-answer-image-file', 'standalone_quiz_answers');
+                const newRef = push(ref(db, `quizzes/${formNum}/${chKey}`));
+                await set(newRef, {
+                    soalan, imageUrls, a, b, c, d, jawapan, answerImageUrls,
+                    formNum, chapterKey: chKey,
+                    chapterName: getChapterDisplayName(formNum, chKey),
+                    createdAt: Date.now(),
+                    createdBy: currentUser?.uid || ''
+                });
+                alert('Soalan quiz berjaya diupload.');
+                ['adm-standalone-quiz-soalan','adm-standalone-quiz-image-file','adm-standalone-quiz-a','adm-standalone-quiz-b','adm-standalone-quiz-c','adm-standalone-quiz-d','adm-standalone-quiz-jawapan','adm-standalone-quiz-answer-image-file'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if(el) el.value = '';
+                });
+                loadAdminStandaloneQuizList();
+            } catch(err) {
+                alert('Ralat upload quiz: ' + err.message);
+            }
+        };
+
+        window.loadAdminStandaloneQuizList = async function() {
+            const list = document.getElementById('adm-standalone-quiz-list');
+            const formEl = document.getElementById('adm-quiz-form');
+            const chEl = document.getElementById('adm-quiz-chapter');
+            if(!list || !formEl || !chEl) return;
+            const formNum = formEl.value;
+            const chKey = chEl.value;
+            if(!chKey) {
+                list.innerHTML = '<p class="text-[10px] text-blue-700 text-center py-2">Pilih bab untuk lihat senarai soalan quiz.</p>';
+                return;
+            }
+            const snap = await get(ref(db, `quizzes/${formNum}/${chKey}`));
+            if(!snap.exists()) {
+                list.innerHTML = '<p class="text-[10px] text-blue-700 text-center py-2">Tiada soalan quiz untuk bab ini.</p>';
+                return;
+            }
+            const data = snap.val();
+            list.innerHTML = Object.entries(data).map(([id, q], index) => `
+                <div class="bg-white border border-blue-100 rounded-xl p-2 flex justify-between items-center">
+                    <div>
+                        <p class="font-bold text-slate-800">${index + 1}. ${(q.soalan || '').substring(0, 55)}${(q.soalan || '').length > 55 ? '...' : ''}</p>
+                        <p class="text-[10px] text-gray-500">Jawapan: ${q.jawapan || '-'}</p>
+                    </div>
+                    <button onclick="deleteStandaloneQuizQuestion('${formNum}', '${chKey}', '${id}')" class="bg-red-50 text-red-600 font-bold px-2 py-1 rounded-lg text-[10px]">Padam</button>
+                </div>
+            `).join('');
+        };
+
+        window.deleteStandaloneQuizQuestion = async function(formNum, chKey, id) {
+            if(!confirm('Padam soalan quiz ini?')) return;
+            await remove(ref(db, `quizzes/${formNum}/${chKey}/${id}`));
+            loadAdminStandaloneQuizList();
+        };
 
         function formatRM(value) {
             const num = Number(value || 0);
@@ -2104,7 +2410,7 @@
 
         window.toggleAdminContentFields = function() {
             const type = document.getElementById('adm-content-type').value;
-            ['nota', 'contoh', 'latihan', 'kuiz'].forEach(t => {
+            ['nota', 'contoh', 'latihan'].forEach(t => {
                 const field = document.getElementById(`fields-${t}`);
                 if (field) field.classList.add('hide');
             });
@@ -2127,9 +2433,12 @@
                 selectCh.appendChild(opt);
             });
             updateAdminSubtopicOptions();
+            updateAdminQuizChapterOptions();
         };
         
         document.getElementById('adm-form').onchange = window.updateAdminChapterDropdown;
+        const admQuizChapterSelect = document.getElementById('adm-quiz-chapter');
+        if(admQuizChapterSelect) admQuizChapterSelect.onchange = window.loadAdminStandaloneQuizList;
 
         window.updateAdminSubtopicOptions = function() {
             const formNum = document.getElementById('adm-form').value;
