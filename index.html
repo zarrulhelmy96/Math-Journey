@@ -548,7 +548,7 @@
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-700 mb-1">Bab</label>
-                        <select id="adm-quiz-chapter" class="w-full border p-2.5 rounded-lg bg-white outline-none">
+                        <select id="adm-quiz-chapter" onchange="loadAdminStandaloneQuizList()" class="w-full border p-2.5 rounded-lg bg-white outline-none">
                             <option value="">-- Pilih Bab --</option>
                         </select>
                     </div>
@@ -579,6 +579,14 @@
                 <button onclick="addStandaloneQuizQuestion()" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 rounded-xl text-sm flex items-center justify-center space-x-1 shadow-md">
                     <i class="fa-solid fa-cloud-arrow-up"></i> <span>Upload Soalan Quiz</span>
                 </button>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="loadAdminStandaloneQuizList()" class="bg-white border border-blue-200 text-blue-700 font-bold py-2 rounded-xl text-xs hover:bg-blue-50 transition">
+                        <i class="fa-solid fa-rotate"></i> Refresh Senarai
+                    </button>
+                    <button onclick="deleteAllStandaloneQuizForSelectedChapter()" class="bg-red-600 text-white font-bold py-2 rounded-xl text-xs hover:bg-red-700 transition">
+                        <i class="fa-solid fa-trash"></i> Padam Semua Quiz Bab Ini
+                    </button>
+                </div>
                 <div id="adm-standalone-quiz-list" class="space-y-2 pt-2"></div>
             </div>
 
@@ -2075,6 +2083,15 @@
             }
         };
 
+        function escapeHtml(text = '') {
+            return String(text)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
         window.loadAdminStandaloneQuizList = async function() {
             const list = document.getElementById('adm-standalone-quiz-list');
             const formEl = document.getElementById('adm-quiz-form');
@@ -2086,27 +2103,73 @@
                 list.innerHTML = '<p class="text-[10px] text-blue-700 text-center py-2">Pilih bab untuk lihat senarai soalan quiz.</p>';
                 return;
             }
-            const snap = await get(ref(db, `quizzes/${formNum}/${chKey}`));
-            if(!snap.exists()) {
-                list.innerHTML = '<p class="text-[10px] text-blue-700 text-center py-2">Tiada soalan quiz untuk bab ini.</p>';
-                return;
+
+            list.innerHTML = '<p class="text-[10px] text-blue-700 text-center py-2">Memuatkan senarai quiz...</p>';
+
+            try {
+                const snap = await get(ref(db, `quizzes/${formNum}/${chKey}`));
+                if(!snap.exists()) {
+                    list.innerHTML = '<p class="text-[10px] text-blue-700 text-center py-2">Tiada soalan quiz untuk bab ini.</p>';
+                    return;
+                }
+
+                const data = snap.val();
+                const entries = Object.entries(data).sort((a, b) => (a[1].createdAt || 0) - (b[1].createdAt || 0));
+                list.innerHTML = entries.map(([id, q], index) => {
+                    const safeQuestion = escapeHtml(q.soalan || 'Soalan tanpa tajuk');
+                    const shortQuestion = safeQuestion.length > 75 ? safeQuestion.substring(0, 75) + '...' : safeQuestion;
+                    const questionImageCount = Array.isArray(q.imageUrls) ? q.imageUrls.length : 0;
+                    const answerImageCount = Array.isArray(q.answerImageUrls) ? q.answerImageUrls.length : 0;
+                    return `
+                        <div class="bg-white border border-blue-100 rounded-xl p-3 space-y-2 shadow-sm">
+                            <div class="flex justify-between gap-3 items-start">
+                                <div class="flex-1">
+                                    <p class="font-bold text-slate-800 leading-relaxed">${index + 1}. ${shortQuestion}</p>
+                                    <p class="text-[10px] text-gray-500 mt-1">Jawapan betul: <span class="font-bold text-emerald-700">${escapeHtml(q.jawapan || '-')}</span> | Gambar soalan: ${questionImageCount} | Gambar jawapan: ${answerImageCount}</p>
+                                </div>
+                                <button onclick='deleteStandaloneQuizQuestion(${JSON.stringify(formNum)}, ${JSON.stringify(chKey)}, ${JSON.stringify(id)})' class="bg-red-50 text-red-600 font-bold px-3 py-1.5 rounded-lg text-[10px] hover:bg-red-100 transition">
+                                    <i class="fa-solid fa-trash"></i> Padam
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch(err) {
+                list.innerHTML = `<p class="text-[10px] text-red-600 text-center py-2">Ralat load senarai quiz: ${escapeHtml(err.message)}</p>`;
             }
-            const data = snap.val();
-            list.innerHTML = Object.entries(data).map(([id, q], index) => `
-                <div class="bg-white border border-blue-100 rounded-xl p-2 flex justify-between items-center">
-                    <div>
-                        <p class="font-bold text-slate-800">${index + 1}. ${(q.soalan || '').substring(0, 55)}${(q.soalan || '').length > 55 ? '...' : ''}</p>
-                        <p class="text-[10px] text-gray-500">Jawapan: ${q.jawapan || '-'}</p>
-                    </div>
-                    <button onclick="deleteStandaloneQuizQuestion('${formNum}', '${chKey}', '${id}')" class="bg-red-50 text-red-600 font-bold px-2 py-1 rounded-lg text-[10px]">Padam</button>
-                </div>
-            `).join('');
         };
 
         window.deleteStandaloneQuizQuestion = async function(formNum, chKey, id) {
-            if(!confirm('Padam soalan quiz ini?')) return;
-            await remove(ref(db, `quizzes/${formNum}/${chKey}/${id}`));
-            loadAdminStandaloneQuizList();
+            if(!formNum || !chKey || !id) return alert('Data quiz tidak lengkap untuk dipadam.');
+            if(!confirm('Padam soalan quiz ini? Tindakan ini tidak boleh undo.')) return;
+            try {
+                await remove(ref(db, `quizzes/${formNum}/${chKey}/${id}`));
+                alert('Soalan quiz berjaya dipadam.');
+                await loadAdminStandaloneQuizList();
+                if(!document.getElementById('view-quiz')?.classList.contains('hide')) {
+                    await loadQuizChaptersForUser();
+                }
+            } catch(err) {
+                alert('Ralat padam quiz: ' + err.message);
+            }
+        };
+
+        window.deleteAllStandaloneQuizForSelectedChapter = async function() {
+            const formNum = document.getElementById('adm-quiz-form')?.value;
+            const chKey = document.getElementById('adm-quiz-chapter')?.value;
+            if(!formNum || !chKey) return alert('Sila pilih Tingkatan dan Bab dahulu.');
+            const chapterName = getChapterDisplayName(formNum, chKey);
+            if(!confirm(`Padam SEMUA soalan quiz untuk ${chapterName}? Tindakan ini tidak boleh undo.`)) return;
+            try {
+                await remove(ref(db, `quizzes/${formNum}/${chKey}`));
+                alert('Semua soalan quiz untuk bab ini berjaya dipadam.');
+                await loadAdminStandaloneQuizList();
+                if(!document.getElementById('view-quiz')?.classList.contains('hide')) {
+                    await loadQuizChaptersForUser();
+                }
+            } catch(err) {
+                alert('Ralat padam semua quiz: ' + err.message);
+            }
         };
 
         function formatRM(value) {
