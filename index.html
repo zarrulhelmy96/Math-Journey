@@ -293,7 +293,7 @@
         <section id="view-quiz" class="view p-5 hide">
             <div class="mb-6">
                 <h2 class="text-xl font-bold text-slate-900">Quiz</h2>
-                <p class="text-xs text-gray-500 mt-1">Pilih tingkatan dan bab untuk jawab kuiz. Setiap kuiz bab hanya boleh dijawab sekali.</p>
+                <p class="text-xs text-gray-500 mt-1">Pilih tingkatan, bab dan level Easy / Medium / Hard untuk jawab kuiz. Setiap kuiz level hanya boleh dijawab sekali.</p>
             </div>
 
             <div id="quiz-picker" class="space-y-4">
@@ -312,6 +312,8 @@
                     <div id="quiz-chapter-list" class="space-y-3"></div>
                 </div>
             </div>
+
+            <div id="quiz-level-picker" class="hide space-y-4"></div>
 
             <div id="quiz-runner" class="hide space-y-4"></div>
             <div id="quiz-final-result" class="hide space-y-4"></div>
@@ -526,8 +528,8 @@
 
             <div class="bg-blue-50 border border-blue-300 p-4 rounded-xl space-y-3 mb-6 text-xs shadow-sm">
                 <h3 class="font-bold text-sm text-blue-900 border-b border-blue-200 pb-2"><i class="fa-solid fa-circle-question"></i> Quiz Manager Berasingan</h3>
-                <p class="text-[11px] text-blue-800">Upload soalan quiz mengikut Tingkatan dan Bab. Bahagian Silibus pula hanya untuk Contoh Soalan Bergambar.</p>
-                <div class="grid grid-cols-2 gap-2">
+                <p class="text-[11px] text-blue-800">Upload soalan quiz mengikut Tingkatan, Bab dan Level Easy / Medium / Hard. Bahagian Silibus pula hanya untuk Contoh Soalan Bergambar.</p>
+                <div class="grid grid-cols-1 gap-2">
                     <div>
                         <label class="block font-semibold text-gray-700 mb-1">Tingkatan</label>
                         <select id="adm-quiz-form" onchange="updateAdminQuizChapterOptions()" class="w-full border p-2.5 rounded-lg bg-white outline-none">
@@ -542,6 +544,14 @@
                         <label class="block font-semibold text-gray-700 mb-1">Bab</label>
                         <select id="adm-quiz-chapter" onchange="loadAdminStandaloneQuizList()" class="w-full border p-2.5 rounded-lg bg-white outline-none">
                             <option value="">-- Pilih Bab --</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-gray-700 mb-1">Level Quiz</label>
+                        <select id="adm-quiz-level" onchange="loadAdminStandaloneQuizList()" class="w-full border p-2.5 rounded-lg bg-white outline-none font-bold">
+                            <option value="easy">Easy</option>
+                            <option value="medium">Medium</option>
+                            <option value="hard">Hard</option>
                         </select>
                     </div>
                 </div>
@@ -579,6 +589,7 @@
                         <i class="fa-solid fa-trash"></i> Padam Semua Quiz Bab Ini
                     </button>
                 </div>
+                <div id="adm-standalone-quiz-image-order-panel" class="hide bg-white border border-blue-200 rounded-xl p-3 space-y-2"></div>
                 <div id="adm-standalone-quiz-list" class="space-y-2 pt-2"></div>
             </div>
 
@@ -588,7 +599,7 @@
 
                 <div class="bg-indigo-50 p-3 rounded border border-indigo-200 space-y-2">
                     <p class="font-bold text-[11px] text-indigo-700"><i class="fa-solid fa-folder-open"></i> Senarai Contoh Soalan Dalam Subtopik Ini</p>
-                    <select id="adm-content-list-select" class="w-full border p-2 rounded bg-white outline-none">
+                    <select id="adm-content-list-select" onchange="renderSelectedContentImageOrder()" class="w-full border p-2 rounded bg-white outline-none">
                         <option value="">-- Tiada Contoh Soalan Dipilih --</option>
                     </select>
                     <div class="grid grid-cols-3 gap-2">
@@ -605,6 +616,7 @@
                     <button onclick="deleteSelectedContent()" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold p-2 rounded flex items-center justify-center space-x-1">
                         <i class="fa-solid fa-trash-can"></i> <span>Padam Contoh Soalan Terpilih</span>
                     </button>
+                    <div id="adm-content-image-order-panel" class="hide bg-white border border-indigo-200 rounded-xl p-3 space-y-2"></div>
                 </div>
 
                 <input type="hidden" id="adm-content-type" value="contoh">
@@ -741,6 +753,30 @@
         let currentFlowTab = 'contoh';
         let currentUserProfileData = {};
         const REFERRAL_STORAGE_KEY = 'mathJourneyPendingReferralCode';
+        const QUIZ_LEVELS = { easy: 'Easy', medium: 'Medium', hard: 'Hard' };
+
+        function normalizeQuizLevel(level) {
+            const clean = (level || 'easy').toString().trim().toLowerCase();
+            return ['easy', 'medium', 'hard'].includes(clean) ? clean : 'easy';
+        }
+
+        function getQuizLevelLabel(level) {
+            return QUIZ_LEVELS[normalizeQuizLevel(level)] || 'Easy';
+        }
+
+        function getQuizLevelBadgeClass(level) {
+            const clean = normalizeQuizLevel(level);
+            if(clean === 'hard') return 'bg-red-100 text-red-700';
+            if(clean === 'medium') return 'bg-amber-100 text-amber-700';
+            return 'bg-emerald-100 text-emerald-700';
+        }
+
+        function getQuizQuestionSortValue(q = {}, fallbackIndex = 0) {
+            if(typeof q.sortOrder === 'number') return q.sortOrder;
+            if(typeof q.sortOrder === 'string' && q.sortOrder.trim() !== '' && !isNaN(Number(q.sortOrder))) return Number(q.sortOrder);
+            if(typeof q.createdAt === 'number') return 1000000000000 + q.createdAt;
+            return 2000000000000 + fallbackIndex;
+        }
 
         // Variable global baharu
         let notaItems = [];
@@ -1856,8 +1892,9 @@
             return appSilibusData?.[formNum]?.[chKey]?.nama_bab || chKey;
         }
 
-        function getQuizResultKey(formNum, chKey) {
-            return `${formNum}_${chKey}`.replace(/[^a-zA-Z0-9_-]/g, '_');
+        function getQuizResultKey(formNum, chKey, level = 'easy') {
+            const quizLevel = normalizeQuizLevel(level);
+            return `${formNum}_${chKey}_${quizLevel}`.replace(/[^a-zA-Z0-9_-]/g, '_');
         }
 
         function isCurrentUserAdmin() {
@@ -1872,9 +1909,43 @@
             return map;
         }
 
+        function isQuizQuestionObject(q) {
+            return !!(q && typeof q === 'object' && (q.soalan || q.jawapan || q.imageUrls || q.answerImageUrls));
+        }
+
+        function getQuizEntriesForLevelFromChapterData(chapterQuizData = {}, level = 'easy') {
+            const quizLevel = normalizeQuizLevel(level);
+            let entries = [];
+            const levelData = chapterQuizData?.[quizLevel];
+
+            if(levelData && typeof levelData === 'object' && !isQuizQuestionObject(levelData)) {
+                entries = entries.concat(Object.entries(levelData).filter(([, q]) => isQuizQuestionObject(q)));
+            }
+
+            // Backward compatible: soalan quiz lama yang pernah disimpan terus bawah quizzes/{tingkatan}/{bab}
+            // akan dianggap sebagai level Easy supaya data lama tidak hilang daripada paparan pelajar.
+            if(quizLevel === 'easy') {
+                const legacyEntries = Object.entries(chapterQuizData || {})
+                    .filter(([key, q]) => !['easy','medium','hard'].includes(key) && isQuizQuestionObject(q));
+                entries = entries.concat(legacyEntries);
+            }
+
+            return entries;
+        }
+
+        async function getQuizCountForLevel(formNum, chKey, level) {
+            const snap = await get(ref(db, `quizzes/${formNum}/${chKey}`));
+            if(!snap.exists()) return 0;
+            return getQuizEntriesForLevelFromChapterData(snap.val() || {}, level).length;
+        }
+
         window.loadQuizChaptersForUser = async function() {
             const list = document.getElementById('quiz-chapter-list');
             if(!list) return;
+            document.getElementById('quiz-level-picker')?.classList.add('hide');
+            document.getElementById('quiz-runner')?.classList.add('hide');
+            document.getElementById('quiz-final-result')?.classList.add('hide');
+            document.getElementById('quiz-picker')?.classList.remove('hide');
             list.innerHTML = '<p class="text-xs text-gray-400 text-center py-4">Memuatkan senarai bab...</p>';
             const formNum = document.getElementById('quiz-form-select')?.value || '1';
             const chapters = appSilibusData[formNum] || {};
@@ -1887,35 +1958,88 @@
 
             let html = '';
             for (const chKey of chKeys) {
-                const quizSnap = await get(ref(db, `quizzes/${formNum}/${chKey}`));
-                const quizCount = quizSnap.exists() ? Object.keys(quizSnap.val()).length : 0;
-                const resultKey = getQuizResultKey(formNum, chKey);
-                const resultSnap = currentUser ? await get(ref(db, `quizResults/${currentUser.uid}/${resultKey}`)) : null;
-                const done = resultSnap && resultSnap.exists();
-                const scoreText = done ? `Skor: ${resultSnap.val().percent || 0}%` : `${quizCount} soalan`;
-                const disabled = quizCount === 0 ? 'disabled' : '';
-                const btnClass = quizCount === 0
+                const counts = await Promise.all(['easy','medium','hard'].map(level => getQuizCountForLevel(formNum, chKey, level)));
+                const totalCount = counts.reduce((sum, val) => sum + val, 0);
+                const disabled = totalCount === 0 ? 'disabled' : '';
+                const btnClass = totalCount === 0
                     ? 'bg-gray-50 text-gray-400 border-gray-100 cursor-not-allowed'
-                    : done
-                        ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                        : 'bg-white text-slate-900 border-gray-100 hover:border-soft-pink';
+                    : 'bg-white text-slate-900 border-gray-100 hover:border-soft-pink';
+                const countText = totalCount === 0
+                    ? 'Tiada soalan quiz lagi'
+                    : `Easy: ${counts[0]} • Medium: ${counts[1]} • Hard: ${counts[2]}`;
 
                 html += `
-                    <button ${disabled} onclick="startStandaloneQuiz('${formNum}', '${chKey}')" class="w-full ${btnClass} border p-4 rounded-xl text-left font-bold text-sm flex justify-between items-center shadow-sm transition">
+                    <button ${disabled} onclick="openQuizLevelPicker('${formNum}', '${chKey}')" class="w-full ${btnClass} border p-4 rounded-xl text-left font-bold text-sm flex justify-between items-center shadow-sm transition">
                         <div>
                             <span>${getChapterDisplayName(formNum, chKey)}</span>
-                            <p class="text-[11px] font-medium text-gray-500 mt-1">${done ? 'Telah dijawab sekali' : 'Belum dijawab'} • ${scoreText}</p>
+                            <p class="text-[11px] font-medium text-gray-500 mt-1">${countText}</p>
                         </div>
-                        <i class="fa-solid ${done ? 'fa-chart-simple' : 'fa-chevron-right'} text-xs"></i>
+                        <i class="fa-solid fa-chevron-right text-xs"></i>
                     </button>
                 `;
             }
             list.innerHTML = html;
         };
 
-        window.startStandaloneQuiz = async function(formNum, chKey) {
+        window.openQuizLevelPicker = async function(formNum, chKey) {
+            const levelDiv = document.getElementById('quiz-level-picker');
+            if(!levelDiv) return;
+            document.getElementById('quiz-picker')?.classList.add('hide');
+            document.getElementById('quiz-runner')?.classList.add('hide');
+            document.getElementById('quiz-final-result')?.classList.add('hide');
+            levelDiv.classList.remove('hide');
+            levelDiv.innerHTML = '<p class="text-xs text-gray-400 text-center py-4">Memuatkan level quiz...</p>';
+
+            const chapterName = getChapterDisplayName(formNum, chKey);
+            let html = `
+                <div class="mb-4">
+                    <button onclick="backToQuizChapters()" class="text-gray-500 text-sm"><i class="fa-solid fa-arrow-left"></i> Pilih Bab</button>
+                    <h3 class="text-lg font-bold text-slate-900 mt-3">${chapterName}</h3>
+                    <p class="text-xs text-gray-500 mt-1">Pilih level quiz yang anda mahu jawab.</p>
+                </div>
+                <div class="space-y-3">
+            `;
+
+            for (const level of ['easy','medium','hard']) {
+                const quizCount = await getQuizCountForLevel(formNum, chKey, level);
+                const resultKey = getQuizResultKey(formNum, chKey, level);
+                const resultSnap = currentUser ? await get(ref(db, `quizResults/${currentUser.uid}/${resultKey}`)) : null;
+                const done = resultSnap && resultSnap.exists();
+                const disabled = quizCount === 0 ? 'disabled' : '';
+                const btnClass = quizCount === 0
+                    ? 'bg-gray-50 text-gray-400 border-gray-100 cursor-not-allowed'
+                    : done
+                        ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                        : 'bg-white text-slate-900 border-gray-100 hover:border-soft-pink';
+                const scoreText = done ? `Skor: ${resultSnap.val().percent || 0}%` : `${quizCount} soalan`;
+
+                html += `
+                    <button ${disabled} onclick="startStandaloneQuiz('${formNum}', '${chKey}', '${level}')" class="w-full ${btnClass} border p-4 rounded-xl text-left font-bold text-sm flex justify-between items-center shadow-sm transition">
+                        <div>
+                            <span class="${getQuizLevelBadgeClass(level)} px-2.5 py-1 rounded-lg text-[10px] uppercase tracking-wider">${getQuizLevelLabel(level)}</span>
+                            <p class="text-[11px] font-medium text-gray-500 mt-2">${done ? 'Telah dijawab sekali' : 'Belum dijawab'} • ${scoreText}</p>
+                        </div>
+                        <i class="fa-solid ${done ? 'fa-chart-simple' : 'fa-chevron-right'} text-xs"></i>
+                    </button>
+                `;
+            }
+
+            html += '</div>';
+            levelDiv.innerHTML = html;
+        };
+
+        window.backToQuizChapters = function() {
+            document.getElementById('quiz-level-picker')?.classList.add('hide');
+            document.getElementById('quiz-runner')?.classList.add('hide');
+            document.getElementById('quiz-final-result')?.classList.add('hide');
+            document.getElementById('quiz-picker')?.classList.remove('hide');
+            loadQuizChaptersForUser();
+        };
+
+        window.startStandaloneQuiz = async function(formNum, chKey, level = 'easy') {
             if(!currentUser) return alert('Sila log masuk dahulu.');
-            const resultKey = getQuizResultKey(formNum, chKey);
+            const quizLevel = normalizeQuizLevel(level);
+            const resultKey = getQuizResultKey(formNum, chKey, quizLevel);
             const adminMode = isCurrentUserAdmin();
             let previousResult = null;
             let previousAnswerMap = {};
@@ -1930,10 +2054,12 @@
 
             const snap = await get(ref(db, `quizzes/${formNum}/${chKey}`));
             if(!snap.exists()) return alert('Tiada soalan quiz untuk bab ini lagi.');
-            const data = snap.val();
-            window.standaloneQuizQuestions = Object.entries(data)
+            const data = snap.val() || {};
+            const levelEntries = getQuizEntriesForLevelFromChapterData(data, quizLevel);
+            if(levelEntries.length === 0) return alert('Tiada soalan quiz untuk level ini lagi.');
+            window.standaloneQuizQuestions = levelEntries
                 .map(([id, q]) => ({ id, ...q }))
-                .sort((a,b) => (a.createdAt || 0) - (b.createdAt || 0));
+                .sort((a,b) => getQuizQuestionSortValue(a) - getQuizQuestionSortValue(b));
             window.standaloneQuizIndex = 0;
             window.standaloneQuizAnswers = adminMode
                 ? []
@@ -1947,11 +2073,14 @@
                 chKey,
                 resultKey,
                 chapterName: getChapterDisplayName(formNum, chKey),
+                level: quizLevel,
+                levelLabel: getQuizLevelLabel(quizLevel),
                 adminMode,
                 previousResultExists: !!previousResult
             };
 
             document.getElementById('quiz-picker').classList.add('hide');
+            document.getElementById('quiz-level-picker')?.classList.add('hide');
             document.getElementById('quiz-final-result').classList.add('hide');
             document.getElementById('quiz-runner').classList.remove('hide');
             renderStandaloneQuizQuestion();
@@ -1976,6 +2105,7 @@
                 <div class="bg-white border rounded-2xl p-5 shadow-sm text-xs space-y-4">
                     <div>
                         <span class="bg-blue-100 text-blue-700 font-bold px-2.5 py-1 rounded-lg text-[10px] uppercase tracking-wider">${window.standaloneQuizContext.chapterName}</span>
+                        <span class="ml-1 ${getQuizLevelBadgeClass(window.standaloneQuizContext.level)} font-bold px-2.5 py-1 rounded-lg text-[10px] uppercase tracking-wider">${window.standaloneQuizContext.levelLabel}</span>
                         ${lockedByPreviousAttempt ? '<span class="ml-1 bg-amber-100 text-amber-700 font-bold px-2.5 py-1 rounded-lg text-[10px] uppercase tracking-wider">Sudah dijawab</span>' : ''}
                         <p class="text-slate-900 font-bold text-sm mt-3 leading-relaxed">${q.soalan || ''}</p>
                         ${renderImageGallery(q.imageUrls, '')}
@@ -2139,6 +2269,8 @@
                 formNum: ctx.formNum,
                 chapterKey: ctx.chKey,
                 chapterName: ctx.chapterName,
+                level: ctx.level,
+                levelLabel: ctx.levelLabel,
                 total: questions.length,
                 correct: correctCount,
                 wrong: wrongAnswers.length,
@@ -2198,7 +2330,7 @@
                 <div class="bg-white border rounded-2xl p-5 shadow-sm text-center">
                     <span class="text-5xl">${resultData.percent >= 70 ? '🏆' : '💪'}</span>
                     <h3 class="font-bold text-lg mt-3 text-slate-900">Result Quiz</h3>
-                    <p class="text-xs text-gray-500 mt-1">${resultData.chapterName || ''}</p>
+                    <p class="text-xs text-gray-500 mt-1">${resultData.chapterName || ''} • ${resultData.levelLabel || getQuizLevelLabel(resultData.level)}</p>
                     <div class="text-4xl font-extrabold text-soft-pink my-4">${resultData.percent}%</div>
                     <p class="text-xs text-gray-600">Betul <strong>${resultData.correct}</strong> daripada <strong>${resultData.total}</strong> soalan.</p>
                     <p class="text-xs mt-2 font-semibold ${resultData.percent >= 70 ? 'text-green-700' : 'text-red-700'}">${statusText}</p>
@@ -2217,15 +2349,46 @@
         window.retryStandaloneQuiz = function() {
             const ctx = window.standaloneQuizContext;
             if(!ctx) return backToQuizPicker();
-            startStandaloneQuiz(ctx.formNum, ctx.chKey);
+            startStandaloneQuiz(ctx.formNum, ctx.chKey, ctx.level || 'easy');
         };
 
         window.backToQuizPicker = function() {
             document.getElementById('quiz-runner').classList.add('hide');
+            document.getElementById('quiz-level-picker')?.classList.add('hide');
             document.getElementById('quiz-final-result').classList.add('hide');
             document.getElementById('quiz-picker').classList.remove('hide');
             loadQuizChaptersForUser();
         };
+
+        function getAdminQuizLevel() {
+            return normalizeQuizLevel(document.getElementById('adm-quiz-level')?.value || 'easy');
+        }
+
+        function getOrderedQuizEntries(data = {}) {
+            return Object.entries(data || {})
+                .filter(([, q]) => q && typeof q === 'object')
+                .map(([id, q], index) => ({ id, q, index }))
+                .sort((a, b) => {
+                    const orderA = getQuizQuestionSortValue(a.q, a.index);
+                    const orderB = getQuizQuestionSortValue(b.q, b.index);
+                    if(orderA !== orderB) return orderA - orderB;
+                    return a.index - b.index;
+                });
+        }
+
+        async function getNextStandaloneQuizSortOrder(formNum, chKey, level) {
+            const snap = await get(ref(db, `quizzes/${formNum}/${chKey}/${normalizeQuizLevel(level)}`));
+            if(!snap.exists()) return 1;
+            const entries = getOrderedQuizEntries(snap.val());
+            if(entries.length === 0) return 1;
+            let maxOrder = 0;
+            entries.forEach(({ q }, index) => {
+                const orderValue = getQuizQuestionSortValue(q, index);
+                if(orderValue < 1000000000000) maxOrder = Math.max(maxOrder, orderValue);
+                else maxOrder = Math.max(maxOrder, index + 1);
+            });
+            return Math.floor(maxOrder) + 1;
+        }
 
         window.updateAdminQuizChapterOptions = function() {
             const formSelect = document.getElementById('adm-quiz-form');
@@ -2246,6 +2409,7 @@
         window.addStandaloneQuizQuestion = async function() {
             const formNum = document.getElementById('adm-quiz-form').value;
             const chKey = document.getElementById('adm-quiz-chapter').value;
+            const quizLevel = getAdminQuizLevel();
             const soalan = document.getElementById('adm-standalone-quiz-soalan').value.trim();
             const a = document.getElementById('adm-standalone-quiz-a').value.trim();
             const b = document.getElementById('adm-standalone-quiz-b').value.trim();
@@ -2260,15 +2424,19 @@
             try {
                 const imageUrls = await uploadMultipleFilesHelper('adm-standalone-quiz-image-file', 'standalone_quiz_questions');
                 const answerImageUrls = await uploadMultipleFilesHelper('adm-standalone-quiz-answer-image-file', 'standalone_quiz_answers');
-                const newRef = push(ref(db, `quizzes/${formNum}/${chKey}`));
+                const sortOrder = await getNextStandaloneQuizSortOrder(formNum, chKey, quizLevel);
+                const newRef = push(ref(db, `quizzes/${formNum}/${chKey}/${quizLevel}`));
                 await set(newRef, {
                     soalan, imageUrls, a, b, c, d, jawapan, answerImageUrls,
                     formNum, chapterKey: chKey,
                     chapterName: getChapterDisplayName(formNum, chKey),
+                    level: quizLevel,
+                    levelLabel: getQuizLevelLabel(quizLevel),
+                    sortOrder,
                     createdAt: Date.now(),
                     createdBy: currentUser?.uid || ''
                 });
-                alert('Soalan quiz berjaya diupload.');
+                alert(`Soalan quiz level ${getQuizLevelLabel(quizLevel)} berjaya diupload.`);
                 ['adm-standalone-quiz-soalan','adm-standalone-quiz-image-file','adm-standalone-quiz-a','adm-standalone-quiz-b','adm-standalone-quiz-c','adm-standalone-quiz-d','adm-standalone-quiz-jawapan','adm-standalone-quiz-answer-image-file'].forEach(id => {
                     const el = document.getElementById(id);
                     if(el) el.value = '';
@@ -2284,26 +2452,31 @@
             const list = document.getElementById('adm-standalone-quiz-list');
             const formEl = document.getElementById('adm-quiz-form');
             const chEl = document.getElementById('adm-quiz-chapter');
+            const orderPanel = document.getElementById('adm-standalone-quiz-image-order-panel');
+            if(orderPanel) {
+                orderPanel.classList.add('hide');
+                orderPanel.innerHTML = '';
+            }
             if(!list || !formEl || !chEl) return;
             const formNum = formEl.value;
             const chKey = chEl.value;
+            const quizLevel = getAdminQuizLevel();
             if(!chKey) {
                 list.innerHTML = '<p class="text-[10px] text-blue-700 text-center py-2">Pilih bab untuk lihat senarai soalan quiz.</p>';
                 return;
             }
 
-            list.innerHTML = '<p class="text-[10px] text-blue-700 text-center py-2">Memuatkan senarai quiz...</p>';
+            list.innerHTML = `<p class="text-[10px] text-blue-700 text-center py-2">Memuatkan senarai quiz level ${getQuizLevelLabel(quizLevel)}...</p>`;
 
             try {
-                const snap = await get(ref(db, `quizzes/${formNum}/${chKey}`));
+                const snap = await get(ref(db, `quizzes/${formNum}/${chKey}/${quizLevel}`));
                 if(!snap.exists()) {
-                    list.innerHTML = '<p class="text-[10px] text-blue-700 text-center py-2">Tiada soalan quiz untuk bab ini.</p>';
+                    list.innerHTML = `<p class="text-[10px] text-blue-700 text-center py-2">Tiada soalan quiz level ${getQuizLevelLabel(quizLevel)} untuk bab ini.</p>`;
                     return;
                 }
 
-                const data = snap.val();
-                const entries = Object.entries(data).sort((a, b) => (a[1].createdAt || 0) - (b[1].createdAt || 0));
-                list.innerHTML = entries.map(([id, q], index) => {
+                const entries = getOrderedQuizEntries(snap.val());
+                list.innerHTML = entries.map(({ id, q }, index) => {
                     const safeQuestion = escapeHtml(q.soalan || 'Soalan tanpa tajuk');
                     const shortQuestion = safeQuestion.length > 75 ? safeQuestion.substring(0, 75) + '...' : safeQuestion;
                     const questionImageCount = Array.isArray(q.imageUrls) ? q.imageUrls.length : 0;
@@ -2313,10 +2486,18 @@
                             <div class="flex justify-between gap-3 items-start">
                                 <div class="flex-1">
                                     <p class="font-bold text-slate-800 leading-relaxed">${index + 1}. ${shortQuestion}</p>
-                                    <p class="text-[10px] text-gray-500 mt-1">Jawapan betul: <span class="font-bold text-emerald-700">${escapeHtml(q.jawapan || '-')}</span> | Gambar soalan: ${questionImageCount} | Gambar jawapan: ${answerImageCount}</p>
+                                    <p class="text-[10px] text-gray-500 mt-1">Level: <span class="font-bold">${getQuizLevelLabel(quizLevel)}</span> | Jawapan betul: <span class="font-bold text-emerald-700">${escapeHtml(q.jawapan || '-')}</span> | Gambar soalan: ${questionImageCount} | Gambar jawapan: ${answerImageCount}</p>
                                 </div>
-                                <button onclick='deleteStandaloneQuizQuestion(${JSON.stringify(formNum)}, ${JSON.stringify(chKey)}, ${JSON.stringify(id)})' class="bg-red-50 text-red-600 font-bold px-3 py-1.5 rounded-lg text-[10px] hover:bg-red-100 transition">
+                                <button onclick='deleteStandaloneQuizQuestion(${JSON.stringify(formNum)}, ${JSON.stringify(chKey)}, ${JSON.stringify(quizLevel)}, ${JSON.stringify(id)})' class="bg-red-50 text-red-600 font-bold px-3 py-1.5 rounded-lg text-[10px] hover:bg-red-100 transition">
                                     <i class="fa-solid fa-trash"></i> Padam
+                                </button>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button onclick='renderStandaloneQuizImageOrderPanel(${JSON.stringify(formNum)}, ${JSON.stringify(chKey)}, ${JSON.stringify(quizLevel)}, ${JSON.stringify(id)}, "question")' class="bg-blue-50 text-blue-700 border border-blue-100 font-bold py-2 rounded-lg text-[10px] hover:bg-blue-100 transition">
+                                    <i class="fa-solid fa-images"></i> Susun Gambar Soalan
+                                </button>
+                                <button onclick='renderStandaloneQuizImageOrderPanel(${JSON.stringify(formNum)}, ${JSON.stringify(chKey)}, ${JSON.stringify(quizLevel)}, ${JSON.stringify(id)}, "answer")' class="bg-indigo-50 text-indigo-700 border border-indigo-100 font-bold py-2 rounded-lg text-[10px] hover:bg-indigo-100 transition">
+                                    <i class="fa-solid fa-image"></i> Susun Gambar Jawapan
                                 </button>
                             </div>
                         </div>
@@ -2327,11 +2508,95 @@
             }
         };
 
-        window.deleteStandaloneQuizQuestion = async function(formNum, chKey, id) {
+        window.renderStandaloneQuizImageOrderPanel = async function(formNum, chKey, quizLevel, id, imageType = 'question') {
+            const panel = document.getElementById('adm-standalone-quiz-image-order-panel');
+            if(!panel) return;
+            const cleanLevel = normalizeQuizLevel(quizLevel);
+            const fieldName = imageType === 'answer' ? 'answerImageUrls' : 'imageUrls';
+            const title = imageType === 'answer' ? 'Gambar Jawapan / Solusi' : 'Gambar Soalan';
+            panel.classList.remove('hide');
+            panel.innerHTML = '<p class="text-[10px] text-blue-700 text-center py-2">Memuatkan gambar...</p>';
+
+            try {
+                const snap = await get(ref(db, `quizzes/${formNum}/${chKey}/${cleanLevel}/${id}`));
+                if(!snap.exists()) {
+                    panel.innerHTML = '<p class="text-[10px] text-red-600 text-center py-2">Soalan quiz tidak ditemui.</p>';
+                    return;
+                }
+                const q = snap.val() || {};
+                const urls = Array.isArray(q[fieldName]) ? q[fieldName].filter(Boolean) : [];
+                if(urls.length === 0) {
+                    panel.innerHTML = `<p class="text-[10px] text-gray-500 text-center py-2">Tiada ${title.toLowerCase()} untuk disusun.</p>`;
+                    return;
+                }
+
+                window.currentStandaloneQuizImageOrderContext = { formNum, chKey, quizLevel: cleanLevel, id, fieldName, imageType };
+                panel.innerHTML = `
+                    <div class="flex items-center justify-between gap-2 border-b border-blue-100 pb-2">
+                        <div>
+                            <p class="font-bold text-blue-900 text-xs"><i class="fa-solid fa-up-down"></i> Susun Turutan ${title}</p>
+                            <p class="text-[10px] text-gray-500">Gunakan Up / Down untuk ubah gambar yang sudah diupload.</p>
+                        </div>
+                        <button onclick="closeStandaloneQuizImageOrderPanel()" class="text-gray-400 hover:text-red-500 text-xs font-bold">Tutup</button>
+                    </div>
+                    <div class="space-y-2">
+                        ${urls.map((url, index) => `
+                            <div class="flex items-center gap-2 bg-blue-50/60 border border-blue-100 rounded-lg p-2">
+                                <img src="${url}" class="w-14 h-14 object-cover rounded border bg-white" alt="Gambar quiz ${index + 1}">
+                                <div class="flex-1">
+                                    <p class="font-bold text-slate-800 text-[11px]">Gambar ${index + 1}</p>
+                                    <p class="text-[10px] text-gray-500 truncate">${escapeHtml(url)}</p>
+                                </div>
+                                <div class="flex flex-col gap-1">
+                                    <button onclick="moveStandaloneQuizImage(${index}, 'up')" ${index === 0 ? 'disabled' : ''} class="${index === 0 ? 'bg-gray-100 text-gray-300' : 'bg-slate-800 text-white'} px-2 py-1 rounded text-[10px] font-bold">Up</button>
+                                    <button onclick="moveStandaloneQuizImage(${index}, 'down')" ${index === urls.length - 1 ? 'disabled' : ''} class="${index === urls.length - 1 ? 'bg-gray-100 text-gray-300' : 'bg-slate-800 text-white'} px-2 py-1 rounded text-[10px] font-bold">Down</button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } catch(err) {
+                panel.innerHTML = `<p class="text-[10px] text-red-600 text-center py-2">Ralat susun gambar: ${escapeHtml(err.message)}</p>`;
+            }
+        };
+
+        window.closeStandaloneQuizImageOrderPanel = function() {
+            const panel = document.getElementById('adm-standalone-quiz-image-order-panel');
+            if(panel) {
+                panel.classList.add('hide');
+                panel.innerHTML = '';
+            }
+            window.currentStandaloneQuizImageOrderContext = null;
+        };
+
+        window.moveStandaloneQuizImage = async function(index, direction) {
+            const ctx = window.currentStandaloneQuizImageOrderContext;
+            if(!ctx) return alert('Sila pilih soalan quiz dan jenis gambar dahulu.');
+            try {
+                const qRef = ref(db, `quizzes/${ctx.formNum}/${ctx.chKey}/${ctx.quizLevel}/${ctx.id}`);
+                const snap = await get(qRef);
+                if(!snap.exists()) return alert('Soalan quiz tidak ditemui.');
+                const q = snap.val() || {};
+                const urls = Array.isArray(q[ctx.fieldName]) ? q[ctx.fieldName].filter(Boolean) : [];
+                const targetIndex = direction === 'up' ? index - 1 : index + 1;
+                if(targetIndex < 0 || targetIndex >= urls.length) return alert('Gambar ini sudah berada di hujung senarai.');
+                [urls[index], urls[targetIndex]] = [urls[targetIndex], urls[index]];
+                await update(qRef, { [ctx.fieldName]: urls, updatedAt: Date.now() });
+                await renderStandaloneQuizImageOrderPanel(ctx.formNum, ctx.chKey, ctx.quizLevel, ctx.id, ctx.imageType);
+                await loadAdminStandaloneQuizList();
+                const current = window.currentStandaloneQuizImageOrderContext;
+                if(current) await renderStandaloneQuizImageOrderPanel(current.formNum, current.chKey, current.quizLevel, current.id, current.imageType);
+            } catch(err) {
+                alert('Ralat ubah turutan gambar quiz: ' + err.message);
+            }
+        };
+
+        window.deleteStandaloneQuizQuestion = async function(formNum, chKey, level, id) {
+            const quizLevel = normalizeQuizLevel(level);
             if(!formNum || !chKey || !id) return alert('Data quiz tidak lengkap untuk dipadam.');
             if(!confirm('Padam soalan quiz ini? Tindakan ini tidak boleh undo.')) return;
             try {
-                await remove(ref(db, `quizzes/${formNum}/${chKey}/${id}`));
+                await remove(ref(db, `quizzes/${formNum}/${chKey}/${quizLevel}/${id}`));
                 alert('Soalan quiz berjaya dipadam.');
                 await loadAdminStandaloneQuizList();
                 if(!document.getElementById('view-quiz')?.classList.contains('hide')) {
@@ -2345,12 +2610,13 @@
         window.deleteAllStandaloneQuizForSelectedChapter = async function() {
             const formNum = document.getElementById('adm-quiz-form')?.value;
             const chKey = document.getElementById('adm-quiz-chapter')?.value;
+            const quizLevel = getAdminQuizLevel();
             if(!formNum || !chKey) return alert('Sila pilih Tingkatan dan Bab dahulu.');
             const chapterName = getChapterDisplayName(formNum, chKey);
-            if(!confirm(`Padam SEMUA soalan quiz untuk ${chapterName}? Tindakan ini tidak boleh undo.`)) return;
+            if(!confirm(`Padam SEMUA soalan quiz level ${getQuizLevelLabel(quizLevel)} untuk ${chapterName}? Tindakan ini tidak boleh undo.`)) return;
             try {
-                await remove(ref(db, `quizzes/${formNum}/${chKey}`));
-                alert('Semua soalan quiz untuk bab ini berjaya dipadam.');
+                await remove(ref(db, `quizzes/${formNum}/${chKey}/${quizLevel}`));
+                alert(`Semua soalan quiz level ${getQuizLevelLabel(quizLevel)} untuk bab ini berjaya dipadam.`);
                 await loadAdminStandaloneQuizList();
                 if(!document.getElementById('view-quiz')?.classList.contains('hide')) {
                     await loadQuizChaptersForUser();
@@ -2690,6 +2956,8 @@
         document.getElementById('adm-form').onchange = window.updateAdminChapterDropdown;
         const admQuizChapterSelect = document.getElementById('adm-quiz-chapter');
         if(admQuizChapterSelect) admQuizChapterSelect.onchange = window.loadAdminStandaloneQuizList;
+        const admQuizLevelSelect = document.getElementById('adm-quiz-level');
+        if(admQuizLevelSelect) admQuizLevelSelect.onchange = window.loadAdminStandaloneQuizList;
 
         window.updateAdminSubtopicOptions = function() {
             const formNum = document.getElementById('adm-form').value;
@@ -2725,7 +2993,10 @@
 
             try {
                 const subtopicData = appSilibusData?.[formNum]?.[chKey]?.subtopik?.[subKey];
-                if(!chKey || !subKey || !subtopicData) return;
+                if(!chKey || !subKey || !subtopicData) {
+                    if (typeof window.renderSelectedContentImageOrder === 'function') window.renderSelectedContentImageOrder();
+                    return;
+                }
 
                 const kandunganList = getKandunganListFromSubtopic(subtopicData);
                 const keys = getOrderedContentKeys(kandunganList || {}).filter(k => {
@@ -2735,6 +3006,7 @@
 
                 if(keys.length === 0) {
                     selectList.innerHTML = '<option value="">-- Belum ada contoh soalan --</option>';
+                    if (typeof window.renderSelectedContentImageOrder === 'function') window.renderSelectedContentImageOrder();
                     return;
                 }
 
@@ -2769,6 +3041,7 @@
                 if (previouslySelected && kandunganList[previouslySelected]) {
                     selectList.value = previouslySelected;
                 }
+                if (typeof window.renderSelectedContentImageOrder === 'function') window.renderSelectedContentImageOrder();
             } catch (err) {
                 console.error("loadSubtopicContentList error:", err);
                 selectList.innerHTML = '<option value="">-- Ralat baca kandungan, sila semak console --</option>';
@@ -3068,6 +3341,84 @@
             document.getElementById('adm-content-type').scrollIntoView({ behavior: 'smooth', block: 'center' });
         };
 
+        window.renderSelectedContentImageOrder = function() {
+            const panel = document.getElementById('adm-content-image-order-panel');
+            const selectEl = document.getElementById('adm-content-list-select');
+            if(!panel || !selectEl) return;
+            const contentKey = selectEl.value;
+            panel.classList.add('hide');
+            panel.innerHTML = '';
+
+            const info = getCurrentSubtopicInfo();
+            if(!info.chKey || !info.subKey || !contentKey) return;
+            const rawItem = info.kandunganList?.[contentKey];
+            if(!rawItem) return;
+            const expanded = sortExpandedItems(expandKandunganItems({ [contentKey]: rawItem })).filter(item => item.type === 'contoh');
+            const item = expanded[0] || normalizeContentItem(rawItem, contentKey);
+            const urls = getImageUrlsForEdit(item.contoh || {});
+
+            if(urls.length === 0) {
+                panel.classList.remove('hide');
+                panel.innerHTML = '<p class="text-[10px] text-gray-500 text-center py-2">Contoh soalan ini belum ada gambar untuk disusun.</p>';
+                return;
+            }
+
+            panel.classList.remove('hide');
+            panel.innerHTML = `
+                <div class="flex items-center justify-between gap-2 border-b border-indigo-100 pb-2">
+                    <div>
+                        <p class="font-bold text-indigo-900 text-xs"><i class="fa-solid fa-up-down"></i> Susun Turutan Gambar Silibus</p>
+                        <p class="text-[10px] text-gray-500">Ini ubah order gambar dalam contoh soalan yang dipilih.</p>
+                    </div>
+                </div>
+                <div class="space-y-2 pt-1">
+                    ${urls.map((url, index) => `
+                        <div class="flex items-center gap-2 bg-indigo-50/60 border border-indigo-100 rounded-lg p-2">
+                            <img src="${url}" class="w-14 h-14 object-cover rounded border bg-white" alt="Gambar silibus ${index + 1}">
+                            <div class="flex-1">
+                                <p class="font-bold text-slate-800 text-[11px]">Gambar ${index + 1}</p>
+                                <p class="text-[10px] text-gray-500 truncate">${escapeHtml(url)}</p>
+                            </div>
+                            <div class="flex flex-col gap-1">
+                                <button onclick="moveSelectedContentImage(${index}, 'up')" ${index === 0 ? 'disabled' : ''} class="${index === 0 ? 'bg-gray-100 text-gray-300' : 'bg-slate-800 text-white'} px-2 py-1 rounded text-[10px] font-bold">Up</button>
+                                <button onclick="moveSelectedContentImage(${index}, 'down')" ${index === urls.length - 1 ? 'disabled' : ''} class="${index === urls.length - 1 ? 'bg-gray-100 text-gray-300' : 'bg-slate-800 text-white'} px-2 py-1 rounded text-[10px] font-bold">Down</button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        };
+
+        window.moveSelectedContentImage = async function(index, direction) {
+            const info = getCurrentSubtopicInfo();
+            const contentKey = document.getElementById('adm-content-list-select')?.value;
+            if(!info.chKey || !info.subKey || !contentKey) return alert('Sila pilih contoh soalan dahulu.');
+
+            try {
+                const itemRef = ref(db, `silibus/${info.formNum}/${info.chKey}/subtopik/${info.subKey}/kandungan_list/${contentKey}`);
+                const snap = await get(itemRef);
+                if(!snap.exists()) return alert('Contoh soalan tidak ditemui.');
+
+                const rawItem = snap.val() || {};
+                const item = normalizeContentItem(rawItem, contentKey);
+                const urls = getImageUrlsForEdit(item.contoh || {});
+                const targetIndex = direction === 'up' ? index - 1 : index + 1;
+                if(targetIndex < 0 || targetIndex >= urls.length) return alert('Gambar ini sudah berada di hujung senarai.');
+
+                [urls[index], urls[targetIndex]] = [urls[targetIndex], urls[index]];
+                await update(itemRef, { 'contoh/imageUrls': urls, updatedAt: Date.now() });
+
+                const snapshot = await get(ref(db, 'silibus'));
+                appSilibusData = snapshot.exists() ? snapshot.val() : {};
+                loadSubtopicContentList();
+                document.getElementById('adm-content-list-select').value = contentKey;
+                renderSelectedContentImageOrder();
+                if (currentLevel && currentChapterKey && currentFlowTab) switchFlowSubTab(currentFlowTab);
+            } catch(err) {
+                alert('Ralat ubah turutan gambar silibus: ' + err.message);
+            }
+        };
+
         window.moveSelectedContent = async function(direction) {
             const info = getCurrentSubtopicInfo();
             const contentKey = document.getElementById('adm-content-list-select').value;
@@ -3098,6 +3449,7 @@
                 appSilibusData = snapshot.exists() ? snapshot.val() : {};
                 loadSubtopicContentList();
                 document.getElementById('adm-content-list-select').value = contentKey;
+                if (typeof window.renderSelectedContentImageOrder === 'function') window.renderSelectedContentImageOrder();
                 if (currentLevel && currentChapterKey && currentFlowTab) switchFlowSubTab(currentFlowTab);
             } catch (err) {
                 alert("Ralat susun kandungan: " + err.message);
