@@ -96,6 +96,26 @@
             </div>
         </div>
 
+        <div id="activation-guide-modal" class="fixed inset-0 z-[130] flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm hide">
+            <div class="bg-white rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl border border-gray-100 transform transition-all p-6 text-center">
+                <div class="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
+                    📩
+                </div>
+                <h3 class="text-xl font-bold text-slate-900 mb-2">Sahkan Akaun Anda</h3>
+                <p class="text-sm text-gray-600 mb-4 leading-relaxed">
+                    Activation link telah dihantar ke email anda.
+                </p>
+                <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-left mb-5">
+                    <p class="text-sm text-amber-900 leading-relaxed font-semibold">
+                        Sila pergi ke email dan pergi ke bahagian SPAM. Jika activation link tidak berwarna biru, sila tekan NOT SPAM
+                    </p>
+                </div>
+                <button onclick="closeActivationGuideModal()" class="w-full btn-primary font-bold py-3.5 rounded-2xl shadow-lg shadow-pink-100 text-sm">
+                    Saya Faham
+                </button>
+            </div>
+        </div>
+
         <section id="view-landing" class="view">
             <div class="p-6 text-center pt-16">
                 <span class="text-5xl inline-block mb-4 animate-bounce">📐✨</span>
@@ -927,6 +947,21 @@
             window.scrollTo(0,0);
         };
 
+        window.showActivationGuideModal = function() {
+            const modal = document.getElementById('activation-guide-modal');
+            if (modal) {
+                modal.classList.remove('hide');
+            } else {
+                alert('Sila pergi ke email dan pergi ke bahagian SPAM. Jika activation link tidak berwarna biru, sila tekan NOT SPAM');
+            }
+        };
+
+        window.closeActivationGuideModal = function() {
+            const modal = document.getElementById('activation-guide-modal');
+            if (modal) modal.classList.add('hide');
+            switchView('login');
+        };
+
         window.togglePasswordVisibility = function(inputId, iconId) {
             const input = document.getElementById(inputId);
             const icon = document.getElementById(iconId);
@@ -1055,7 +1090,7 @@
                     if(!user.emailVerified && role !== "admin") {
                         try { await sendEmailVerification(user); } catch(e) {}
                         await signOut(auth);
-                        alert("E-mel anda belum disahkan. Sila semak Gmail/inbox dan tekan link confirmation yang Firebase hantar. Kami juga cuba hantar semula verification email.");
+                        alert("E-mel anda belum disahkan. Sila semak Gmail/inbox dan bahagian SPAM. Jika activation link tidak berwarna biru, sila tekan NOT SPAM. Kami juga cuba hantar semula verification email.");
                         switchView('login');
                         return;
                     }
@@ -1130,7 +1165,6 @@
 
                     localStorage.removeItem(REFERRAL_STORAGE_KEY);
                     await sendEmailVerification(newUser);
-                    alert("Akaun berjaya didaftarkan. Sila semak Gmail/inbox anda dan tekan link confirmation sebelum log masuk.");
                     await signOut(auth);
 
                     if(document.getElementById('auth-submit-btn').innerText !== 'Log Masuk') {
@@ -1140,6 +1174,7 @@
                     const confirmInput = document.getElementById('auth-confirm-password');
                     if(confirmInput) confirmInput.value = "";
                     switchView('login');
+                    showActivationGuideModal();
                 })
                 .catch(err => alert("Gagal mendaftar: " + err.message));
             }
