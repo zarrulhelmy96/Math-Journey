@@ -103,7 +103,7 @@
                     Belajar Matematik Dengan Lebih Mudah Bersama <span class="text-soft-pink">Math Journey</span>
                 </h1>
                 <p class="text-gray-600 mb-8 text-sm">
-                    Nota ringkas, jalan kerja lengkap, latihan interaktif dan kuiz untuk pelajar sekolah menengah Malaysia.
+                    Belajar melalui contoh soalan bergambar step-by-step dan kuiz berbayar untuk pelajar sekolah menengah Malaysia.
                 </p>
                 <div class="space-y-3 px-4">
                     <button type="button" onclick="switchView('login')" class="w-full btn-primary font-bold py-3.5 rounded-2xl shadow-lg shadow-pink-100">
@@ -121,15 +121,15 @@
                     <div class="flex items-start space-x-3 bg-white p-4 rounded-xl shadow-sm">
                         <div class="bg-pink-100 p-2 rounded-lg text-soft-pink"><i class="fa-solid fa-book-open"></i></div>
                         <div>
-                            <h4 class="font-bold text-sm">Nota Mudah Faham</h4>
-                            <p class="text-xs text-gray-500">Direka khas untuk elak rasa pening, terus masuk formula utama.</p>
+                            <h4 class="font-bold text-sm">Contoh Soalan Bergambar</h4>
+                            <p class="text-xs text-gray-500">Fokus kepada soalan sebenar dan jalan kerja bergambar satu langkah demi satu langkah.</p>
                         </div>
                     </div>
                     <div class="flex items-start space-x-3 bg-white p-4 rounded-xl shadow-sm">
                         <div class="bg-green-100 p-2 rounded-lg text-green-600"><i class="fa-solid fa-list-check"></i></div>
                         <div>
-                            <h4 class="font-bold text-sm">Jalan Kerja Step-by-Step</h4>
-                            <p class="text-xs text-gray-500">Macam cikgu ada dekat sebelah menerangkan satu per satu.</p>
+                            <h4 class="font-bold text-sm">Jalan Kerja Gambar Demi Gambar</h4>
+                            <p class="text-xs text-gray-500">Tekan Back dan Next untuk lihat penyelesaian secara tersusun.</p>
                         </div>
                     </div>
                     <div class="flex items-start space-x-3 bg-white p-4 rounded-xl shadow-sm">
@@ -231,7 +231,7 @@
 
             <div class="mb-6">
                 <button onclick="handleAccessToLevels()" class="w-full bg-slate-900 text-white font-bold p-4 rounded-xl flex justify-between items-center shadow-md">
-                    <span>📚 Pilih Tingkatan & Mula Belajar</span>
+                    <span>📚 Pilih Tingkatan & Lihat Contoh Soalan</span>
                     <i class="fa-solid fa-chevron-right text-xs"></i>
                 </button>
             </div>
@@ -275,10 +275,10 @@
         </section>
 
         <section id="view-content-flow" class="view hide">
-            <div class="bg-white border-b border-gray-100 grid grid-cols-3 text-center text-xs font-semibold text-gray-400 sticky top-14 z-40">
-                <button id="tab-btn-nota" onclick="switchFlowSubTab('nota')" class="py-3 border-b-2 border-transparent text-soft-pink border-soft-pink">Nota</button>
-                <button id="tab-btn-contoh" onclick="switchFlowSubTab('contoh')" class="py-3 border-b-2 border-transparent">Contoh</button>
-                <button id="tab-btn-latihan" onclick="switchFlowSubTab('latihan')" class="py-3 border-b-2 border-transparent">Latihan</button>
+            <div class="p-5 border-b border-gray-100 bg-white sticky top-14 z-40">
+                <button onclick="switchView('chapters')" class="text-gray-500 text-sm"><i class="fa-solid fa-arrow-left"></i> Senarai Bab</button>
+                <h2 id="content-flow-title" class="text-xl font-bold text-slate-900 mt-3">Contoh Soalan</h2>
+                <p class="text-xs text-gray-500 mt-1">Pilih subtopik, kemudian buka contoh soalan untuk lihat jalan kerja gambar demi gambar.</p>
             </div>
 
             <div class="p-3 bg-slate-50 border-b border-gray-100 flex items-center justify-between">
@@ -286,17 +286,9 @@
                 <select id="flow-subtopic-select" onchange="onSubtopicChange()" class="text-xs bg-white border border-gray-200 rounded p-1.5 font-medium max-w-[250px] outline-none"></select>
             </div>
 
-            <div id="flow-section-nota" class="flow-subview p-5">
-                <div id="nota-content" class="space-y-4"></div>
-            </div>
-            <div id="flow-section-contoh" class="flow-subview p-5 hide">
-                <div id="contoh-content" class="space-y-5"></div>
-            </div>
-            <div id="flow-section-latihan" class="flow-subview p-5 hide">
-                <div id="latihan-content" class="space-y-5"></div>
-            </div>
+            <div id="contoh-list-content" class="p-5 space-y-3"></div>
+            <div id="contoh-viewer-content" class="p-5 hide"></div>
         </section>
-
 
         <section id="view-quiz" class="view p-5 hide">
             <div class="mb-6">
@@ -534,7 +526,7 @@
 
             <div class="bg-blue-50 border border-blue-300 p-4 rounded-xl space-y-3 mb-6 text-xs shadow-sm">
                 <h3 class="font-bold text-sm text-blue-900 border-b border-blue-200 pb-2"><i class="fa-solid fa-circle-question"></i> Quiz Manager Berasingan</h3>
-                <p class="text-[11px] text-blue-800">Upload soalan quiz mengikut Tingkatan dan Bab. Bahagian Silibus hanya untuk Nota, Contoh dan Latihan.</p>
+                <p class="text-[11px] text-blue-800">Upload soalan quiz mengikut Tingkatan dan Bab. Bahagian Silibus pula hanya untuk Contoh Soalan Bergambar.</p>
                 <div class="grid grid-cols-2 gap-2">
                     <div>
                         <label class="block font-semibold text-gray-700 mb-1">Tingkatan</label>
@@ -591,12 +583,13 @@
             </div>
 
             <div class="bg-white border border-gray-200 p-4 rounded-xl space-y-3 mb-6 text-xs shadow-sm">
-                <h3 class="font-bold text-sm text-slate-800 border-b pb-2"><i class="fa-solid fa-file-pen"></i> 2. Urus Isi Kandungan</h3>
-                
+                <h3 class="font-bold text-sm text-slate-800 border-b pb-2"><i class="fa-solid fa-images"></i> 2. Upload Contoh Soalan Bergambar</h3>
+                <p class="text-[11px] text-gray-500 leading-relaxed">Pilih Tingkatan, Bab dan Subtopik di bahagian struktur atas. Kemudian upload gambar contoh soalan / jalan kerja. Setiap gambar akan dipaparkan kepada pelajar sebagai step berasingan dengan butang Back dan Next.</p>
+
                 <div class="bg-indigo-50 p-3 rounded border border-indigo-200 space-y-2">
-                    <p class="font-bold text-[11px] text-indigo-700"><i class="fa-solid fa-folder-open"></i> Senarai Kandungan Wujud Dalam Subtopik Ini</p>
+                    <p class="font-bold text-[11px] text-indigo-700"><i class="fa-solid fa-folder-open"></i> Senarai Contoh Soalan Dalam Subtopik Ini</p>
                     <select id="adm-content-list-select" class="w-full border p-2 rounded bg-white outline-none">
-                        <option value="">-- Tiada Kandungan Dipilih --</option>
+                        <option value="">-- Tiada Contoh Soalan Dipilih --</option>
                     </select>
                     <div class="grid grid-cols-3 gap-2">
                         <button onclick="editSelectedContent()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold p-2 rounded flex items-center justify-center space-x-1">
@@ -610,101 +603,27 @@
                         </button>
                     </div>
                     <button onclick="deleteSelectedContent()" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold p-2 rounded flex items-center justify-center space-x-1">
-                        <i class="fa-solid fa-trash-can"></i> <span>Padam Kandungan Terpilih Saja</span>
+                        <i class="fa-solid fa-trash-can"></i> <span>Padam Contoh Soalan Terpilih</span>
                     </button>
                 </div>
 
-                <div>
-                    <label class="block font-semibold text-gray-700 mb-1">Jenis Kandungan Baru</label>
-                    <select id="adm-content-type" onchange="toggleAdminContentFields()" class="w-full border p-2.5 rounded-lg bg-white focus:outline-none">
-                        <option value="nota">Nota Ringkas</option>
-                        <option value="contoh">Contoh Jalan Kerja</option>
-                        <option value="latihan">Soalan Latihan Interaktif</option>
-                    </select>
-                </div>
+                <input type="hidden" id="adm-content-type" value="contoh">
 
-                <div id="fields-nota" class="space-y-3">
+                <div id="fields-contoh" class="space-y-3">
                     <div>
-                        <label class="block font-semibold text-gray-600 mb-1">Maksud / Definisi</label>
-                        <textarea id="adm-nota-maksud" rows="2" class="w-full border p-2 rounded-lg focus:outline-none" placeholder="Masukkan definisi..."></textarea>
+                        <label class="block font-semibold text-gray-600 mb-1">Nama / Tajuk Contoh Soalan</label>
+                        <textarea id="adm-contoh-soalan" rows="2" class="w-full border p-2 rounded-lg focus:outline-none" placeholder="Contoh: Contoh Soalan 1 - Faktor Perdana"></textarea>
                     </div>
+                    <textarea id="adm-contoh-langkah" class="hide"></textarea>
                     <div>
-                        <label class="block font-semibold text-gray-600 mb-1">Formula Utama</label>
-                        <textarea id="adm-nota-formula" rows="2" class="w-full border p-2 rounded-lg focus:outline-none" placeholder="Contoh: E = mc² atau Luas = x * y"></textarea>
-                    </div>
-                    <div>
-                        <label class="block font-semibold text-gray-600 mb-1">Kesilapan Lazim Pelajar</label>
-                        <textarea id="adm-nota-kesilapan" rows="2" class="w-full border p-2 rounded-lg focus:outline-none" placeholder="Apakah perangkap atau salah faham biasa pelajar?"></textarea>
-                    </div>
-                    <div>
-                        <label class="block font-semibold text-gray-600 mb-1">Tips & Trik Memori</label>
-                        <textarea id="adm-nota-tips" rows="2" class="w-full border p-2 rounded-lg focus:outline-none" placeholder="Formula akronim atau jalan pintas mudah hafal..."></textarea>
-                    </div>
-                    <div>
-                        <label class="block font-semibold text-gray-600 mb-1">Gambar Nota</label>
-                        <input type="file" id="adm-nota-image-file" accept="image/jpeg, image/png, image/webp" multiple class="w-full border p-2 rounded-lg text-xs bg-gray-50">
-                        <p class="text-[10px] text-gray-400 mt-1">Anda boleh memuat naik lebih daripada satu gambar nota serentak (PDF tidak diterima lagi).</p>
-                    </div>
-                </div>
-
-                <div id="fields-contoh" class="space-y-3 hide">
-                    <div>
-                        <label class="block font-semibold text-gray-600 mb-1">Pernyataan Soalan Contoh</label>
-                        <textarea id="adm-contoh-soalan" rows="2" class="w-full border p-2 rounded-lg focus:outline-none" placeholder="Taip soalan contoh di sini..."></textarea>
-                    </div>
-                    <div>
-                        <label class="block font-semibold text-gray-600 mb-1">Penerangan Jalan Kerja Langkah Demi Langkah</label>
-                        <textarea id="adm-contoh-langkah" rows="4" class="w-full border p-2 rounded-lg focus:outline-none" placeholder="Langkah 1: ...&#10;Langkah 2: ...&#10;Jawapan akhir: ..."></textarea>
-                    </div>
-                    <div>
-                        <label class="block font-semibold text-gray-600 mb-1">Gambar Contoh Jalan Kerja</label>
+                        <label class="block font-semibold text-gray-600 mb-1">Gambar Contoh Soalan & Jalan Kerja</label>
                         <input type="file" id="adm-contoh-image-file" accept="image/jpeg, image/png, image/webp" multiple class="w-full border p-2 rounded-lg text-xs bg-gray-50">
-                        <p class="text-[10px] text-gray-400 mt-1">Boleh muat naik lebih daripada satu gambar untuk contoh jalan kerja.</p>
+                        <p class="text-[10px] text-gray-400 mt-1">Boleh upload banyak gambar serentak. Susunan gambar ikut pilihan file anda dan akan menjadi slide step-by-step kepada pelajar.</p>
                     </div>
                 </div>
-
-                <div id="fields-latihan" class="space-y-3 hide">
-                    <div>
-                        <label class="block font-semibold text-gray-600 mb-1">Soalan Latihan</label>
-                        <textarea id="adm-latihan-soalan" rows="2" class="w-full border p-2 rounded-lg focus:outline-none" placeholder="Taip soalan latihan objektif..."></textarea>
-                    </div>
-                    <div>
-                        <label class="block font-semibold text-gray-600 mb-1">Gambar Soalan Latihan</label>
-                        <input type="file" id="adm-latihan-image-file" accept="image/jpeg, image/png, image/webp" multiple class="w-full border p-2 rounded-lg text-xs bg-gray-50">
-                        <p class="text-[10px] text-gray-400 mt-1">Boleh muat naik lebih daripada satu gambar untuk soalan latihan.</p>
-                    </div>
-                    <div class="grid grid-cols-2 gap-2">
-                        <div>
-                            <label class="block font-semibold text-[11px] text-gray-500 mb-1">Pilihan A</label>
-                            <input type="text" id="adm-latihan-a" class="w-full border p-2 rounded-lg focus:outline-none">
-                        </div>
-                        <div>
-                            <label class="block font-semibold text-[11px] text-gray-500 mb-1">Pilihan B</label>
-                            <input type="text" id="adm-latihan-b" class="w-full border p-2 rounded-lg focus:outline-none">
-                        </div>
-                        <div>
-                            <label class="block font-semibold text-[11px] text-gray-500 mb-1">Pilihan C</label>
-                            <input type="text" id="adm-latihan-c" class="w-full border p-2 rounded-lg focus:outline-none">
-                        </div>
-                        <div>
-                            <label class="block font-semibold text-[11px] text-gray-500 mb-1">Pilihan D</label>
-                            <input type="text" id="adm-latihan-d" class="w-full border p-2 rounded-lg focus:outline-none">
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block font-semibold text-gray-600 mb-1">Jawapan Betul (A / B / C / D)</label>
-                        <input type="text" id="adm-latihan-jawapan" placeholder="Contoh: A" class="w-full border p-2.5 rounded-lg focus:outline-none uppercase font-bold tracking-wider max-w-[100px]">
-                    </div>
-                    <div>
-                        <label class="block font-semibold text-gray-600 mb-1">Penerangan / Solusi Ringkas</label>
-                        <textarea id="adm-latihan-penerangan" rows="2" class="w-full border p-2 rounded-lg focus:outline-none" placeholder="Mengapa jawapan tersebut betul?"></textarea>
-                    </div>
-                </div>
-
-
 
                 <button id="adm-submit-content-btn" onclick="addContentToFirebase()" class="w-full bg-purple-700 hover:bg-purple-800 text-white font-bold py-3 rounded-xl text-sm flex items-center justify-center space-x-1 shadow-md">
-                    <i class="fa-solid fa-cloud-arrow-up"></i> <span>Muat Naik Isi Kandungan</span>
+                    <i class="fa-solid fa-cloud-arrow-up"></i> <span>Upload Contoh Soalan</span>
                 </button>
                 <button id="adm-cancel-edit-btn" onclick="cancelContentEdit()" class="hide w-full bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold py-2.5 rounded-xl text-xs">
                     Batal Edit
@@ -819,7 +738,7 @@
         let currentLevel = null;
         let currentChapterKey = null;
         let appSilibusData = {};
-        let currentFlowTab = 'nota';
+        let currentFlowTab = 'contoh';
         let currentUserProfileData = {};
         const REFERRAL_STORAGE_KEY = 'mathJourneyPendingReferralCode';
 
@@ -828,6 +747,9 @@
         let notaIndex = 0;
         let contohItems = [];
         let contohIndex = 0;
+        let selectedContohIndex = 0;
+        let contohStepImages = [];
+        let contohStepIndex = 0;
         let latihanItems = [];
         let latihanIndex = 0;
         let latihanAnswered = {};
@@ -1329,7 +1251,7 @@
                 card.innerHTML = `
                     <div>
                         <h4 class="font-bold text-sm text-slate-900">${chapterData.nama_bab || chKey}</h4>
-                        <p class="text-[11px] text-gray-400 mt-1 font-medium">${totalSub} Subtopik Pembelajaran</p>
+                        <p class="text-[11px] text-gray-400 mt-1 font-medium">${totalSub} Subtopik Contoh Soalan</p>
                     </div>
                     <span class="bg-pink-50 text-soft-pink text-xs font-bold px-2.5 py-1 rounded-full"><i class="fa-solid fa-play"></i></span>
                 `;
@@ -1341,7 +1263,8 @@
 
         window.openChapterContentFlow = function(chKey) {
             currentChapterKey = chKey;
-            const subtopikObj = appSilibusData[currentLevel][chKey].subtopik || {};
+            const chapterData = appSilibusData[currentLevel][chKey] || {};
+            const subtopikObj = chapterData.subtopik || {};
             const selectEl = document.getElementById('flow-subtopic-select');
             selectEl.innerHTML = '';
 
@@ -1358,21 +1281,18 @@
                 selectEl.appendChild(opt);
             });
 
+            const titleEl = document.getElementById('content-flow-title');
+            if(titleEl) titleEl.innerText = chapterData.nama_bab || chKey;
             switchView('content-flow');
-            switchFlowSubTab('nota');
+            renderContohQuestionList();
         };
 
         window.onSubtopicChange = function() {
-            // Reset index dan item apabila bertukar subtopik
-            notaIndex = 0;
-            notaItems = [];
             contohIndex = 0;
-            contohItems = [];
-            latihanIndex = 0;
-            latihanItems = [];
-            latihanAnswered = {};
-            
-            switchFlowSubTab(currentFlowTab);
+            selectedContohIndex = 0;
+            contohStepImages = [];
+            contohStepIndex = 0;
+            renderContohQuestionList();
         };
 
         function renderImageGallery(imageUrls, oldImageUrl = "") {
@@ -1526,39 +1446,158 @@
             return [...new Set(urls)];
         }
 
-        window.switchFlowSubTab = function(tabName) {
-            currentFlowTab = tabName;
-            document.querySelectorAll('#view-content-flow .bg-white button').forEach(b => {
-                b.classList.remove('text-soft-pink', 'border-soft-pink');
-            });
-            document.getElementById(`tab-btn-${tabName}`).classList.add('text-soft-pink', 'border-soft-pink');
+        window.switchFlowSubTab = function(tabName = 'contoh') {
+            currentFlowTab = 'contoh';
+            renderContohQuestionList();
+        };
 
-            document.querySelectorAll('.flow-subview').forEach(v => v.add ? v.add('hide') : v.classList.add('hide'));
-            document.getElementById(`flow-section-${tabName}`).classList.remove('hide');
+        function getCurrentStudentSubtopicData() {
+            const subKey = document.getElementById('flow-subtopic-select')?.value;
+            if(!currentLevel || !currentChapterKey || !subKey) return null;
+            return appSilibusData?.[currentLevel]?.[currentChapterKey]?.subtopik?.[subKey] || null;
+        }
 
-            const subKey = document.getElementById('flow-subtopic-select').value;
-            if(!subKey) return;
+        function getImageUrlsForDisplay(obj = {}) {
+            let urls = [];
+            if (Array.isArray(obj.imageUrls)) urls = urls.concat(obj.imageUrls.filter(url => typeof url === "string" && url.trim() !== ""));
+            if (obj.imageUrl && typeof obj.imageUrl === "string") {
+                const lower = obj.imageUrl.toLowerCase();
+                const isPdf = lower.includes(".pdf") || lower.includes("pdf?") || lower.includes("application/pdf");
+                if (!isPdf) urls.push(obj.imageUrl);
+            }
+            return [...new Set(urls)];
+        }
 
-            const subtopicData = appSilibusData[currentLevel][currentChapterKey].subtopik[subKey] || {};
+        function renderContohQuestionList() {
+            const listDiv = document.getElementById('contoh-list-content');
+            const viewerDiv = document.getElementById('contoh-viewer-content');
+            if(!listDiv) return;
+            if(viewerDiv) viewerDiv.classList.add('hide');
+            listDiv.classList.remove('hide');
+            listDiv.innerHTML = '';
+
+            const subtopicData = getCurrentStudentSubtopicData();
+            if(!subtopicData) {
+                listDiv.innerHTML = `<p class="text-xs text-gray-400 text-center py-6">Sila pilih subtopik terlebih dahulu.</p>`;
+                return;
+            }
+
             const kandunganList = getKandunganListFromSubtopic(subtopicData);
             const items = sortExpandedItems(expandKandunganItems(kandunganList));
+            contohItems = items.filter(i => i.type === 'contoh');
 
-            if(tabName === 'nota') {
-                notaItems = items.filter(i => i.type === 'nota');
-                notaIndex = 0; // Reset ke nota pertama setiap kali dibuka semula
-                renderNotaItem();
-            } 
-            else if(tabName === 'contoh') {
-                contohItems = items.filter(i => i.type === 'contoh');
-                contohIndex = 0; // Reset ke contoh pertama setiap kali dibuka semula
-                renderContohItem();
-            } 
-            else if(tabName === 'latihan') {
-                latihanItems = items.filter(i => i.type === 'latihan');
-                latihanIndex = 0; // Reset ke soalan pertama setiap kali dibuka semula
-                latihanAnswered = {};
-                renderLatihanItem();
-            } 
+            if(contohItems.length === 0) {
+                listDiv.innerHTML = `<div class="text-center py-10 px-4 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+                    <div class="text-3xl mb-2">🖼️</div>
+                    <p class="text-sm font-bold text-slate-700">Belum ada contoh soalan.</p>
+                    <p class="text-xs text-gray-400 mt-1">Admin boleh upload gambar contoh soalan untuk subtopik ini melalui panel admin.</p>
+                </div>`;
+                return;
+            }
+
+            const subtopicName = subtopicData.nama_subtopik || document.getElementById('flow-subtopic-select')?.selectedOptions?.[0]?.textContent || 'Subtopik';
+            let html = `
+                <div class="mb-3">
+                    <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">${subtopicName}</p>
+                    <h3 class="font-bold text-slate-900 text-base">Senarai Contoh Soalan</h3>
+                </div>
+            `;
+
+            contohItems.forEach((item, index) => {
+                const obj = item.contoh || {};
+                const images = getImageUrlsForDisplay(obj);
+                const title = (obj.soalan || `Contoh Soalan ${index + 1}`).toString().trim();
+                html += `
+                    <button onclick="openContohQuestion(${index})" class="w-full bg-white border border-gray-100 p-4 rounded-2xl text-left shadow-sm hover:border-soft-pink transition flex justify-between items-center">
+                        <div class="pr-3">
+                            <span class="bg-pink-50 text-soft-pink text-[10px] font-bold px-2 py-1 rounded-full">CONTOH ${index + 1}</span>
+                            <h4 class="font-bold text-sm text-slate-900 mt-2 leading-relaxed whitespace-pre-line">${title}</h4>
+                            <p class="text-[11px] text-gray-400 mt-1">${images.length} gambar jalan kerja</p>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-xs text-gray-400"></i>
+                    </button>
+                `;
+            });
+
+            listDiv.innerHTML = html;
+        }
+
+        window.openContohQuestion = function(index) {
+            selectedContohIndex = index;
+            contohStepIndex = 0;
+            const item = contohItems[index];
+            const obj = item?.contoh || {};
+            contohStepImages = getImageUrlsForDisplay(obj);
+
+            if(contohStepImages.length === 0) {
+                alert('Contoh soalan ini belum mempunyai gambar. Sila minta admin upload gambar jalan kerja.');
+                return;
+            }
+
+            renderContohStepViewer();
+        };
+
+        function renderContohStepViewer() {
+            const listDiv = document.getElementById('contoh-list-content');
+            const viewerDiv = document.getElementById('contoh-viewer-content');
+            if(!viewerDiv) return;
+
+            const item = contohItems[selectedContohIndex] || {};
+            const obj = item.contoh || {};
+            const title = (obj.soalan || `Contoh Soalan ${selectedContohIndex + 1}`).toString().trim();
+            const imgUrl = contohStepImages[contohStepIndex];
+            const isFirst = contohStepIndex === 0;
+            const isLast = contohStepIndex === contohStepImages.length - 1;
+
+            if(listDiv) listDiv.classList.add('hide');
+            viewerDiv.classList.remove('hide');
+
+            viewerDiv.innerHTML = `
+                <button onclick="backToContohList()" class="text-gray-500 text-sm mb-4"><i class="fa-solid fa-arrow-left"></i> Kembali ke senarai contoh</button>
+                <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm space-y-4">
+                    <div>
+                        <p class="text-[11px] font-bold text-soft-pink uppercase tracking-wider">Contoh ${selectedContohIndex + 1}</p>
+                        <h3 class="font-bold text-slate-900 text-sm leading-relaxed whitespace-pre-line mt-1">${title}</h3>
+                    </div>
+                    <div class="bg-slate-50 border border-gray-100 rounded-2xl p-2">
+                        <img src="${imgUrl}" class="w-full h-auto object-contain rounded-xl bg-white" alt="Gambar jalan kerja ${contohStepIndex + 1}">
+                    </div>
+                    <div class="flex items-center justify-between text-[11px] font-bold text-gray-400">
+                        <span>Gambar ${contohStepIndex + 1} daripada ${contohStepImages.length}</span>
+                        <span>Jalan kerja step-by-step</span>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3 mt-5">
+                    <button onclick="navigateContohStep('back')" ${isFirst ? 'disabled' : ''} class="${isFirst ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-red-500 hover:bg-red-600 text-white'} font-bold py-3 rounded-xl transition">← Back</button>
+                    <button onclick="navigateContohStep('next')" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl transition">${isLast ? 'Selesai' : 'Next →'}</button>
+                </div>
+            `;
+            window.scrollTo(0,0);
+        }
+
+        window.navigateContohStep = function(direction) {
+            if(direction === 'back') {
+                if(contohStepIndex > 0) {
+                    contohStepIndex--;
+                    renderContohStepViewer();
+                }
+                return;
+            }
+
+            if(contohStepIndex < contohStepImages.length - 1) {
+                contohStepIndex++;
+                renderContohStepViewer();
+            } else {
+                backToContohList();
+            }
+        };
+
+        window.backToContohList = function() {
+            const listDiv = document.getElementById('contoh-list-content');
+            const viewerDiv = document.getElementById('contoh-viewer-content');
+            if(viewerDiv) viewerDiv.classList.add('hide');
+            if(listDiv) listDiv.classList.remove('hide');
+            window.scrollTo(0,0);
         };
 
         // Fungsi baharu untuk melukis Item Nota tunggal (Pagination)
@@ -2682,23 +2721,26 @@
 
             if (!selectList) return;
             const previouslySelected = selectList.value || currentEditingContentKey || "";
-            selectList.innerHTML = '<option value="">-- Tiada Kandungan Dipilih --</option>';
+            selectList.innerHTML = '<option value="">-- Tiada Contoh Soalan Dipilih --</option>';
 
             try {
                 const subtopicData = appSilibusData?.[formNum]?.[chKey]?.subtopik?.[subKey];
                 if(!chKey || !subKey || !subtopicData) return;
 
                 const kandunganList = getKandunganListFromSubtopic(subtopicData);
-                const keys = getOrderedContentKeys(kandunganList || {});
+                const keys = getOrderedContentKeys(kandunganList || {}).filter(k => {
+                    const expanded = sortExpandedItems(expandKandunganItems({ [k]: kandunganList[k] || {} }));
+                    return expanded.some(item => item.type === 'contoh');
+                });
 
                 if(keys.length === 0) {
-                    selectList.innerHTML = '<option value="">-- Belum ada isi kandungan --</option>';
+                    selectList.innerHTML = '<option value="">-- Belum ada contoh soalan --</option>';
                     return;
                 }
 
                 keys.forEach((k, index) => {
                     const rawItem = kandunganList[k] || {};
-                    const expanded = sortExpandedItems(expandKandunganItems({ [k]: rawItem }));
+                    const expanded = sortExpandedItems(expandKandunganItems({ [k]: rawItem })).filter(item => item.type === 'contoh');
                     const orderNo = index + 1;
 
                     let title = "";
@@ -2833,7 +2875,7 @@
             if (submitBtn) {
                 submitBtn.innerHTML = contentKey
                     ? '<i class="fa-solid fa-floppy-disk"></i> <span>Simpan Perubahan</span>'
-                    : '<i class="fa-solid fa-cloud-arrow-up"></i> <span>Muat Naik Isi Kandungan</span>';
+                    : '<i class="fa-solid fa-cloud-arrow-up"></i> <span>Upload Contoh Soalan</span>';
                 submitBtn.className = contentKey
                     ? 'w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl text-sm flex items-center justify-center space-x-1 shadow-md'
                     : 'w-full bg-purple-700 hover:bg-purple-800 text-white font-bold py-3 rounded-xl text-sm flex items-center justify-center space-x-1 shadow-md';
@@ -2875,7 +2917,7 @@
             else if(type === 'contoh') {
                 payload.contoh = {
                     soalan: document.getElementById('adm-contoh-soalan').value.trim(),
-                    langkah: document.getElementById('adm-contoh-langkah').value.trim(),
+                    langkah: (document.getElementById('adm-contoh-langkah')?.value || '').trim(),
                     imageUrls: mergedImageUrls
                 };
             } 
@@ -2939,6 +2981,10 @@
                 else if(type === 'latihan') newImageUrls = await uploadMultipleFilesHelper('adm-latihan-image-file', 'latihan_images');
                 else if(type === 'kuiz') newImageUrls = await uploadMultipleFilesHelper('adm-kuiz-image-file', 'kuiz_images');
 
+                if(type === 'contoh' && !currentEditingContentKey && newImageUrls.length === 0) {
+                    return alert("Sila upload sekurang-kurangnya satu gambar contoh soalan / jalan kerja.");
+                }
+
                 let payload = buildContentPayload(type, existingItem, newImageUrls);
 
                 if (currentEditingContentKey) {
@@ -2948,13 +2994,13 @@
                         payload.sortOrder = currentIndex >= 0 ? currentIndex + 1 : getNextSortOrder(kandunganList);
                     }
                     await set(ref(db, `silibus/${formNum}/${chKey}/subtopik/${subKey}/kandungan_list/${currentEditingContentKey}`), payload);
-                    alert("Perubahan kandungan berjaya disimpan!");
+                    alert("Perubahan contoh soalan berjaya disimpan!");
                 } else {
                     payload.sortOrder = getNextSortOrder(kandunganList);
                     const listRef = ref(db, `silibus/${formNum}/${chKey}/subtopik/${subKey}/kandungan_list`);
                     const newItemRef = push(listRef);
                     await set(newItemRef, payload);
-                    alert("Kandungan berjaya ditambah ke Firebase Database!");
+                    alert("Contoh soalan berjaya ditambah ke Firebase Database!");
                 }
 
                 clearContentForm(type);
@@ -2981,7 +3027,7 @@
 
             const item = normalizeContentItem(rawItem, contentKey);
             const type = item.type || guessContentType(item);
-            if(!type) return alert("Jenis kandungan tidak dapat dikenal pasti.");
+            if(type !== 'contoh') return alert("Item ini bukan contoh soalan. Panel admin baharu hanya mengurus contoh soalan bergambar.");
 
             clearContentForm();
             document.getElementById('adm-content-type').value = type;
