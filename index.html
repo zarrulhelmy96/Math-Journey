@@ -1914,23 +1914,53 @@
         }
 
         function getQuizEntriesForLevelFromChapterData(chapterQuizData = {}, level = 'easy') {
+            return getQuizEntriesWithSourceForLevelFromChapterData(chapterQuizData, level)
+                .map(entry => [entry.id, entry.q]);
+        }
+
+        function getQuizEntriesWithSourceForLevelFromChapterData(chapterQuizData = {}, level = 'easy') {
             const quizLevel = normalizeQuizLevel(level);
-            let entries = [];
+            const entries = [];
             const levelData = chapterQuizData?.[quizLevel];
 
             if(levelData && typeof levelData === 'object' && !isQuizQuestionObject(levelData)) {
-                entries = entries.concat(Object.entries(levelData).filter(([, q]) => isQuizQuestionObject(q)));
+                Object.entries(levelData).forEach(([id, q]) => {
+                    if(isQuizQuestionObject(q)) {
+                        entries.push({
+                            id,
+                            q,
+                            sourceMode: 'level',
+                            sourceLevel: quizLevel,
+                            sourceLabel: getQuizLevelLabel(quizLevel)
+                        });
+                    }
+                });
             }
 
             // Backward compatible: soalan quiz lama yang pernah disimpan terus bawah quizzes/{tingkatan}/{bab}
-            // akan dianggap sebagai level Easy supaya data lama tidak hilang daripada paparan pelajar.
+            // akan dianggap sebagai level Easy supaya data lama tidak hilang daripada paparan pelajar DAN panel admin.
             if(quizLevel === 'easy') {
-                const legacyEntries = Object.entries(chapterQuizData || {})
-                    .filter(([key, q]) => !['easy','medium','hard'].includes(key) && isQuizQuestionObject(q));
-                entries = entries.concat(legacyEntries);
+                Object.entries(chapterQuizData || {}).forEach(([id, q]) => {
+                    if(!['easy','medium','hard'].includes(id) && isQuizQuestionObject(q)) {
+                        entries.push({
+                            id,
+                            q,
+                            sourceMode: 'legacy',
+                            sourceLevel: 'easy',
+                            sourceLabel: 'Easy Legacy'
+                        });
+                    }
+                });
             }
 
             return entries;
+        }
+
+        function getStandaloneQuizQuestionPath(formNum, chKey, quizLevel, id, sourceMode = 'level') {
+            const cleanLevel = normalizeQuizLevel(quizLevel);
+            return sourceMode === 'legacy'
+                ? `quizzes/${formNum}/${chKey}/${id}`
+                : `quizzes/${formNum}/${chKey}/${cleanLevel}/${id}`;
         }
 
         async function getQuizCountForLevel(formNum, chKey, level) {
@@ -2377,9 +2407,10 @@
         }
 
         async function getNextStandaloneQuizSortOrder(formNum, chKey, level) {
-            const snap = await get(ref(db, `quizzes/${formNum}/${chKey}/${normalizeQuizLevel(level)}`));
+            const quizLevel = normalizeQuizLevel(level);
+            const snap = await get(ref(db, `quizzes/${formNum}/${chKey}`));
             if(!snap.exists()) return 1;
-            const entries = getOrderedQuizEntries(snap.val());
+            const entries = getQuizEntriesWithSourceForLevelFromChapterData(snap.val() || {}, quizLevel);
             if(entries.length === 0) return 1;
             let maxOrder = 0;
             entries.forEach(({ q }, index) => {
@@ -2469,34 +2500,46 @@
             list.innerHTML = `<p class="text-[10px] text-blue-700 text-center py-2">Memuatkan senarai quiz level ${getQuizLevelLabel(quizLevel)}...</p>`;
 
             try {
-                const snap = await get(ref(db, `quizzes/${formNum}/${chKey}/${quizLevel}`));
-                if(!snap.exists()) {
+                const snap = await get(ref(db, `quizzes/${formNum}/${chKey}`));
+                const chapterQuizData = snap.exists() ? (snap.val() || {}) : {};
+                const entries = getQuizEntriesWithSourceForLevelFromChapterData(chapterQuizData, quizLevel)
+                    .map((entry, index) => ({ ...entry, index }))
+                    .sort((a, b) => {
+                        const orderA = getQuizQuestionSortValue(a.q, a.index);
+                        const orderB = getQuizQuestionSortValue(b.q, b.index);
+                        if(orderA !== orderB) return orderA - orderB;
+                        return a.index - b.index;
+                    });
+
+                if(entries.length === 0) {
                     list.innerHTML = `<p class="text-[10px] text-blue-700 text-center py-2">Tiada soalan quiz level ${getQuizLevelLabel(quizLevel)} untuk bab ini.</p>`;
                     return;
                 }
 
-                const entries = getOrderedQuizEntries(snap.val());
-                list.innerHTML = entries.map(({ id, q }, index) => {
+                list.innerHTML = entries.map(({ id, q, sourceMode, sourceLabel }, index) => {
                     const safeQuestion = escapeHtml(q.soalan || 'Soalan tanpa tajuk');
                     const shortQuestion = safeQuestion.length > 75 ? safeQuestion.substring(0, 75) + '...' : safeQuestion;
                     const questionImageCount = Array.isArray(q.imageUrls) ? q.imageUrls.length : 0;
                     const answerImageCount = Array.isArray(q.answerImageUrls) ? q.answerImageUrls.length : 0;
+                    const sourceBadge = sourceMode === 'legacy'
+                        ? '<span class="bg-amber-100 text-amber-700 font-bold px-1.5 py-0.5 rounded">Legacy Easy</span>'
+                        : `<span class="font-bold">${getQuizLevelLabel(quizLevel)}</span>`;
                     return `
                         <div class="bg-white border border-blue-100 rounded-xl p-3 space-y-2 shadow-sm">
                             <div class="flex justify-between gap-3 items-start">
                                 <div class="flex-1">
                                     <p class="font-bold text-slate-800 leading-relaxed">${index + 1}. ${shortQuestion}</p>
-                                    <p class="text-[10px] text-gray-500 mt-1">Level: <span class="font-bold">${getQuizLevelLabel(quizLevel)}</span> | Jawapan betul: <span class="font-bold text-emerald-700">${escapeHtml(q.jawapan || '-')}</span> | Gambar soalan: ${questionImageCount} | Gambar jawapan: ${answerImageCount}</p>
+                                    <p class="text-[10px] text-gray-500 mt-1">Level: ${sourceBadge} | Jawapan betul: <span class="font-bold text-emerald-700">${escapeHtml(q.jawapan || '-')}</span> | Gambar soalan: ${questionImageCount} | Gambar jawapan: ${answerImageCount}</p>
                                 </div>
-                                <button onclick='deleteStandaloneQuizQuestion(${JSON.stringify(formNum)}, ${JSON.stringify(chKey)}, ${JSON.stringify(quizLevel)}, ${JSON.stringify(id)})' class="bg-red-50 text-red-600 font-bold px-3 py-1.5 rounded-lg text-[10px] hover:bg-red-100 transition">
+                                <button onclick='deleteStandaloneQuizQuestion(${JSON.stringify(formNum)}, ${JSON.stringify(chKey)}, ${JSON.stringify(quizLevel)}, ${JSON.stringify(id)}, ${JSON.stringify(sourceMode)})' class="bg-red-50 text-red-600 font-bold px-3 py-1.5 rounded-lg text-[10px] hover:bg-red-100 transition">
                                     <i class="fa-solid fa-trash"></i> Padam
                                 </button>
                             </div>
                             <div class="grid grid-cols-2 gap-2">
-                                <button onclick='renderStandaloneQuizImageOrderPanel(${JSON.stringify(formNum)}, ${JSON.stringify(chKey)}, ${JSON.stringify(quizLevel)}, ${JSON.stringify(id)}, "question")' class="bg-blue-50 text-blue-700 border border-blue-100 font-bold py-2 rounded-lg text-[10px] hover:bg-blue-100 transition">
+                                <button onclick='renderStandaloneQuizImageOrderPanel(${JSON.stringify(formNum)}, ${JSON.stringify(chKey)}, ${JSON.stringify(quizLevel)}, ${JSON.stringify(id)}, "question", ${JSON.stringify(sourceMode)})' class="bg-blue-50 text-blue-700 border border-blue-100 font-bold py-2 rounded-lg text-[10px] hover:bg-blue-100 transition">
                                     <i class="fa-solid fa-images"></i> Susun Gambar Soalan
                                 </button>
-                                <button onclick='renderStandaloneQuizImageOrderPanel(${JSON.stringify(formNum)}, ${JSON.stringify(chKey)}, ${JSON.stringify(quizLevel)}, ${JSON.stringify(id)}, "answer")' class="bg-indigo-50 text-indigo-700 border border-indigo-100 font-bold py-2 rounded-lg text-[10px] hover:bg-indigo-100 transition">
+                                <button onclick='renderStandaloneQuizImageOrderPanel(${JSON.stringify(formNum)}, ${JSON.stringify(chKey)}, ${JSON.stringify(quizLevel)}, ${JSON.stringify(id)}, "answer", ${JSON.stringify(sourceMode)})' class="bg-indigo-50 text-indigo-700 border border-indigo-100 font-bold py-2 rounded-lg text-[10px] hover:bg-indigo-100 transition">
                                     <i class="fa-solid fa-image"></i> Susun Gambar Jawapan
                                 </button>
                             </div>
@@ -2508,7 +2551,7 @@
             }
         };
 
-        window.renderStandaloneQuizImageOrderPanel = async function(formNum, chKey, quizLevel, id, imageType = 'question') {
+        window.renderStandaloneQuizImageOrderPanel = async function(formNum, chKey, quizLevel, id, imageType = 'question', sourceMode = 'level') {
             const panel = document.getElementById('adm-standalone-quiz-image-order-panel');
             if(!panel) return;
             const cleanLevel = normalizeQuizLevel(quizLevel);
@@ -2518,7 +2561,8 @@
             panel.innerHTML = '<p class="text-[10px] text-blue-700 text-center py-2">Memuatkan gambar...</p>';
 
             try {
-                const snap = await get(ref(db, `quizzes/${formNum}/${chKey}/${cleanLevel}/${id}`));
+                const qPath = getStandaloneQuizQuestionPath(formNum, chKey, cleanLevel, id, sourceMode);
+                const snap = await get(ref(db, qPath));
                 if(!snap.exists()) {
                     panel.innerHTML = '<p class="text-[10px] text-red-600 text-center py-2">Soalan quiz tidak ditemui.</p>';
                     return;
@@ -2530,7 +2574,7 @@
                     return;
                 }
 
-                window.currentStandaloneQuizImageOrderContext = { formNum, chKey, quizLevel: cleanLevel, id, fieldName, imageType };
+                window.currentStandaloneQuizImageOrderContext = { formNum, chKey, quizLevel: cleanLevel, id, fieldName, imageType, sourceMode };
                 panel.innerHTML = `
                     <div class="flex items-center justify-between gap-2 border-b border-blue-100 pb-2">
                         <div>
@@ -2573,7 +2617,7 @@
             const ctx = window.currentStandaloneQuizImageOrderContext;
             if(!ctx) return alert('Sila pilih soalan quiz dan jenis gambar dahulu.');
             try {
-                const qRef = ref(db, `quizzes/${ctx.formNum}/${ctx.chKey}/${ctx.quizLevel}/${ctx.id}`);
+                const qRef = ref(db, getStandaloneQuizQuestionPath(ctx.formNum, ctx.chKey, ctx.quizLevel, ctx.id, ctx.sourceMode));
                 const snap = await get(qRef);
                 if(!snap.exists()) return alert('Soalan quiz tidak ditemui.');
                 const q = snap.val() || {};
@@ -2582,21 +2626,22 @@
                 if(targetIndex < 0 || targetIndex >= urls.length) return alert('Gambar ini sudah berada di hujung senarai.');
                 [urls[index], urls[targetIndex]] = [urls[targetIndex], urls[index]];
                 await update(qRef, { [ctx.fieldName]: urls, updatedAt: Date.now() });
-                await renderStandaloneQuizImageOrderPanel(ctx.formNum, ctx.chKey, ctx.quizLevel, ctx.id, ctx.imageType);
+                await renderStandaloneQuizImageOrderPanel(ctx.formNum, ctx.chKey, ctx.quizLevel, ctx.id, ctx.imageType, ctx.sourceMode);
                 await loadAdminStandaloneQuizList();
                 const current = window.currentStandaloneQuizImageOrderContext;
-                if(current) await renderStandaloneQuizImageOrderPanel(current.formNum, current.chKey, current.quizLevel, current.id, current.imageType);
+                if(current) await renderStandaloneQuizImageOrderPanel(current.formNum, current.chKey, current.quizLevel, current.id, current.imageType, current.sourceMode);
             } catch(err) {
                 alert('Ralat ubah turutan gambar quiz: ' + err.message);
             }
         };
 
-        window.deleteStandaloneQuizQuestion = async function(formNum, chKey, level, id) {
+        window.deleteStandaloneQuizQuestion = async function(formNum, chKey, level, id, sourceMode = 'level') {
             const quizLevel = normalizeQuizLevel(level);
             if(!formNum || !chKey || !id) return alert('Data quiz tidak lengkap untuk dipadam.');
-            if(!confirm('Padam soalan quiz ini? Tindakan ini tidak boleh undo.')) return;
+            const sourceText = sourceMode === 'legacy' ? 'soalan legacy Easy' : `soalan level ${getQuizLevelLabel(quizLevel)}`;
+            if(!confirm(`Padam ${sourceText} ini? Tindakan ini tidak boleh undo.`)) return;
             try {
-                await remove(ref(db, `quizzes/${formNum}/${chKey}/${quizLevel}/${id}`));
+                await remove(ref(db, getStandaloneQuizQuestionPath(formNum, chKey, quizLevel, id, sourceMode)));
                 alert('Soalan quiz berjaya dipadam.');
                 await loadAdminStandaloneQuizList();
                 if(!document.getElementById('view-quiz')?.classList.contains('hide')) {
@@ -2613,9 +2658,28 @@
             const quizLevel = getAdminQuizLevel();
             if(!formNum || !chKey) return alert('Sila pilih Tingkatan dan Bab dahulu.');
             const chapterName = getChapterDisplayName(formNum, chKey);
-            if(!confirm(`Padam SEMUA soalan quiz level ${getQuizLevelLabel(quizLevel)} untuk ${chapterName}? Tindakan ini tidak boleh undo.`)) return;
+            const extraLegacyText = quizLevel === 'easy' ? ' Termasuk soalan Easy lama / legacy yang tersimpan di path lama.' : '';
+            if(!confirm(`Padam SEMUA soalan quiz level ${getQuizLevelLabel(quizLevel)} untuk ${chapterName}?${extraLegacyText} Tindakan ini tidak boleh undo.`)) return;
             try {
                 await remove(ref(db, `quizzes/${formNum}/${chKey}/${quizLevel}`));
+
+                // Untuk Easy, turut padam soalan lama yang pernah disimpan terus bawah quizzes/{tingkatan}/{bab}/{id}.
+                if(quizLevel === 'easy') {
+                    const chapterSnap = await get(ref(db, `quizzes/${formNum}/${chKey}`));
+                    if(chapterSnap.exists()) {
+                        const chapterData = chapterSnap.val() || {};
+                        const legacyUpdates = {};
+                        Object.entries(chapterData).forEach(([id, q]) => {
+                            if(!['easy','medium','hard'].includes(id) && isQuizQuestionObject(q)) {
+                                legacyUpdates[id] = null;
+                            }
+                        });
+                        if(Object.keys(legacyUpdates).length > 0) {
+                            await update(ref(db, `quizzes/${formNum}/${chKey}`), legacyUpdates);
+                        }
+                    }
+                }
+
                 alert(`Semua soalan quiz level ${getQuizLevelLabel(quizLevel)} untuk bab ini berjaya dipadam.`);
                 await loadAdminStandaloneQuizList();
                 if(!document.getElementById('view-quiz')?.classList.contains('hide')) {
