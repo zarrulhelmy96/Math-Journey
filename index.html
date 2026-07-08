@@ -2283,6 +2283,33 @@
             document.getElementById('quiz-answer-modal').classList.add('hide');
         };
 
+        function refreshQuizStatsInUI(updates = {}) {
+            // Refresh nombor di dashboard/profile tanpa panggil semula checkUserPremiumAndLoadDashboard().
+            // Kalau panggil function penuh itu semasa view quiz terbuka, ia akan trigger loadQuizChaptersForUser()
+            // dan menyebabkan student biasa terpelanting balik ke page pilih bab selepas tekan Lihat Result.
+            currentUserProfileData = { ...(currentUserProfileData || {}), ...(updates || {}) };
+
+            if(Object.prototype.hasOwnProperty.call(updates, 'answeredCount')) {
+                const answeredEl = document.getElementById('dash-stat-questions');
+                if(answeredEl) answeredEl.innerText = updates.answeredCount || 0;
+            }
+
+            if(Object.prototype.hasOwnProperty.call(updates, 'completedChaptersCount')) {
+                const completedEl = document.getElementById('prof-completed-count');
+                if(completedEl) completedEl.innerText = `${updates.completedChaptersCount || 0} Bab`;
+            }
+
+            if(Object.prototype.hasOwnProperty.call(updates, 'averageQuizScore')) {
+                const avgEl = document.getElementById('prof-avg-score');
+                if(avgEl) avgEl.innerText = `${updates.averageQuizScore || 0}%`;
+            }
+
+            if(Object.prototype.hasOwnProperty.call(updates, 'weakestTopic')) {
+                const weakEl = document.getElementById('prof-weakest-topic');
+                if(weakEl) weakEl.innerText = updates.weakestTopic || 'Tiada data lagi';
+            }
+        }
+
         async function finishStandaloneQuiz() {
             const questions = window.standaloneQuizQuestions;
             const answers = window.standaloneQuizAnswers.filter(Boolean);
@@ -2333,10 +2360,10 @@
 
                 if(percent < 70) updates.weakestTopic = ctx.chapterName;
                 await update(ref(db, `users/${currentUser.uid}`), updates);
+                refreshQuizStatsInUI(updates);
             }
 
             showStoredQuizResult(resultData);
-            if(!ctx.adminMode) checkUserPremiumAndLoadDashboard();
         }
 
         function showStoredQuizResult(resultData) {
