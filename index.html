@@ -1073,9 +1073,29 @@
             const hasPremiumAccess = userData.premium === true || userData.hasAccess === true;
             if(!hasPremiumAccess) return false;
             const status = (userData.paymentStatus || userData.accessMethod || userData.purchaseMethod || '').toString().toLowerCase();
-            // Voucher ialah akses percuma/admin-gift. Komisen affiliate hanya untuk akaun premium berbayar.
-            if(status === 'voucher') return false;
+            // Dalam sistem Math Journey sekarang, voucher juga dikira sebagai Premium aktif.
+            // Jadi referral yang redeem voucher akan muncul sebagai Premium aktif di Admin Panel.
+            // Hanya akses admin/manual free sahaja yang tidak dikira untuk komisen affiliate.
+            if(status === 'admin' || status === 'manual_free' || status === 'free') return false;
             return true;
+        }
+
+        async function markReferralAsPremiumAfterAccess(uid, method = 'premium') {
+            try {
+                const referralSnap = await get(ref(db, `referrals/${uid}`));
+                if(!referralSnap.exists()) return;
+                const referralData = referralSnap.val() || {};
+                if((referralData.commissionStatus || 'pending') !== 'pending') return;
+                await update(ref(db, `referrals/${uid}`), {
+                    status: 'premium_active',
+                    premiumMethod: method,
+                    premiumActivatedAt: Date.now()
+                });
+            } catch (err) {
+                // Sesetengah rules mungkin tidak benarkan user update folder referrals.
+                // Tak apa: Admin Panel tetap akan detect premium melalui users/{uid}.
+                console.warn('Referral premium marker skipped:', err.message);
+            }
         }
 
         function normalizeQuizLevel(level) {
@@ -1585,11 +1605,13 @@
                 if (result.committed && finalVoucher && finalVoucher.usedBy === currentUser.uid) {
                     await update(ref(db, `users/${currentUser.uid}`), {
                         premium: true,
+                        hasAccess: true,
                         paymentStatus: "voucher",
                         purchaseType: "lifetime",
                         voucherCode: code,
                         paidAt: timestampNow
                     });
+                    await markReferralAsPremiumAfterAccess(currentUser.uid, 'voucher');
                     status = "success";
                     message = "Tahniah! Kod baucar sah. Akses Premium Seumur Hidup telah diaktifkan! 🎉";
                 } else if (finalVoucher && finalVoucher.used === true) {
@@ -4035,12 +4057,13 @@
                             const referredUser = users[referredUid] || {};
                             const referredIsPremium = isPaidPremiumForAffiliate(referredUser);
                             const commissionAmount = AFFILIATE_COMMISSION_PER_PREMIUM;
+                            const premiumMethod = (referredUser.paymentStatus || referredUser.accessMethod || referredUser.purchaseMethod || '').toString().toLowerCase();
                             const premiumBadge = referredIsPremium
-                                ? `<span class="bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full text-[9px] font-bold">Premium aktif</span>`
+                                ? `<span class="bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full text-[9px] font-bold">${premiumMethod === 'voucher' ? 'Premium aktif (voucher)' : 'Premium aktif'}</span>`
                                 : `<span class="bg-amber-100 text-amber-700 px-2 py-1 rounded-full text-[9px] font-bold">Belum premium</span>`;
                             const buttonHtml = referredIsPremium
                                 ? `<button onclick="confirmReferralCommission('${referralId}')" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2 rounded-lg text-xs">Masukkan Komisen ${formatRM(commissionAmount)}</button>`
-                                : `<button disabled class="w-full bg-gray-200 text-gray-400 font-bold py-2 rounded-lg text-xs cursor-not-allowed">Tunggu user bayar premium</button>`;
+                                : `<button disabled class="w-full bg-gray-200 text-gray-400 font-bold py-2 rounded-lg text-xs cursor-not-allowed">Tunggu user jadi premium</button>`;
 
                             const card = document.createElement('div');
                             card.className = "bg-white border border-emerald-200 rounded-xl p-3 space-y-2 text-slate-800";
@@ -4181,7 +4204,7 @@
         };
 
         window.confirmReferralCommission = async function(referralId) {
-            if(!confirm(`Masukkan komisen ${formatRM(AFFILIATE_COMMISSION_PER_PREMIUM)} untuk referral ini? Pastikan user ini memang sudah bayar dan sudah dapat access premium.`)) return;
+            if(!confirm(`Masukkan komisen ${formatRM(AFFILIATE_COMMISSION_PER_PREMIUM)} untuk referral ini? Pastikan user ini memang sudah dapat access premium melalui bayaran atau voucher.`)) return;
             try {
                 const rSnap = await get(ref(db, `referrals/${referralId}`));
                 if(!rSnap.exists()) return alert("Referral tidak ditemui.");
@@ -4192,7 +4215,7 @@
                 const referredSnap = await get(ref(db, `users/${referredUid}`));
                 const referredUser = referredSnap.exists() ? referredSnap.val() : {};
                 if(!isPaidPremiumForAffiliate(referredUser)) {
-                    return alert("User referral ini belum dikesan sebagai premium berbayar. Commission hanya boleh masuk selepas user bayar RM129 dan dapat access premium.");
+                    return alert("User referral ini belum dikesan sebagai premium aktif. Commission hanya boleh masuk selepas user dapat access premium.");
                 }
 
                 const affiliateUid = r.affiliateUid;
