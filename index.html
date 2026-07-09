@@ -100,11 +100,11 @@
                     👑
                 </div>
                 <h3 class="text-xl font-bold text-slate-900 mb-2">Akses Premium</h3>
-                <p class="text-sm text-gray-500 mb-6 leading-relaxed">Dapatkan akses penuh dengan harga <span class="font-bold text-slate-900">RM99</span> seumur hidup</p>
+                <p class="text-sm text-gray-500 mb-6 leading-relaxed">Dapatkan akses penuh semua bab dan quiz dengan harga <span class="font-bold text-slate-900">RM129</span> seumur hidup</p>
                 
                 <div class="space-y-2 mb-6">
                     <button onclick="payLifetimeNow()" class="w-full btn-primary font-bold py-3.5 rounded-2xl shadow-lg shadow-pink-100 text-sm flex items-center justify-center space-x-2">
-                        <i class="fa-solid fa-credit-card"></i> <span>Bayar RM99 Sekarang</span>
+                        <i class="fa-solid fa-credit-card"></i> <span>Bayar RM129 Sekarang</span>
                     </button>
                 </div>
 
@@ -939,6 +939,10 @@
         let currentFlowTab = 'contoh';
         let currentUserProfileData = {};
         const REFERRAL_STORAGE_KEY = 'mathJourneyPendingReferralCode';
+        const PREMIUM_PRICE = 129;
+        const FREE_CHAPTER_LIMIT_PER_FORM = 2;
+        const AFFILIATE_COMMISSION_PER_PREMIUM = 10;
+        const CHAPTER_KEY_COLLATOR = new Intl.Collator('ms', { numeric: true, sensitivity: 'base' });
         const QUIZ_LEVELS = { easy: 'Easy', medium: 'Medium', hard: 'Hard' };
 
         // === ADMIN RECOVERY FIX ===
@@ -989,6 +993,45 @@
                 currentUserProfileData?.admin === true ||
                 (currentUser && RECOVERY_ADMIN_UIDS.includes(currentUser.uid))
             );
+        }
+
+        function getPremiumPriceText() {
+            return `RM${PREMIUM_PRICE}`;
+        }
+
+        function getSortedChapterKeys(chaptersObj = {}) {
+            return Object.keys(chaptersObj || {}).sort((a, b) => {
+                const labelA = `${a} ${chaptersObj?.[a]?.nama_bab || ''}`;
+                const labelB = `${b} ${chaptersObj?.[b]?.nama_bab || ''}`;
+                return CHAPTER_KEY_COLLATOR.compare(labelA, labelB);
+            });
+        }
+
+        function isFreeChapterForGuest(formNum, chKey) {
+            if(!formNum || !chKey) return false;
+            const chaptersOfForm = appSilibusData?.[formNum] || {};
+            const orderedKeys = getSortedChapterKeys(chaptersOfForm);
+            const chapterIndex = orderedKeys.indexOf(chKey);
+            return chapterIndex >= 0 && chapterIndex < FREE_CHAPTER_LIMIT_PER_FORM;
+        }
+
+        function canAccessChapter(formNum, chKey) {
+            return isPremiumUser || isCurrentUserAdmin() || isFreeChapterForGuest(formNum, chKey);
+        }
+
+        function showPremiumModal() {
+            const modal = document.getElementById('payment-modal');
+            if(modal) modal.classList.remove('hide');
+            else alert(`Akses ini memerlukan Premium ${getPremiumPriceText()}.`);
+        }
+
+        function isPaidPremiumForAffiliate(userData = {}) {
+            const hasPremiumAccess = userData.premium === true || userData.hasAccess === true;
+            if(!hasPremiumAccess) return false;
+            const status = (userData.paymentStatus || userData.accessMethod || userData.purchaseMethod || '').toString().toLowerCase();
+            // Voucher ialah akses percuma/admin-gift. Komisen affiliate hanya untuk akaun premium berbayar.
+            if(status === 'voucher') return false;
+            return true;
         }
 
         function normalizeQuizLevel(level) {
@@ -1144,8 +1187,12 @@
         }
 
         window.switchView = function(viewId) {
-            if ((viewId === 'levels' || viewId === 'chapters' || viewId === 'content-flow' || viewId === 'quiz') && !isPremiumUser) {
-                document.getElementById('payment-modal').classList.remove('hide');
+            if (viewId === 'quiz' && !isPremiumUser) {
+                showPremiumModal();
+                return;
+            }
+            if (viewId === 'content-flow' && !canAccessChapter(currentLevel, currentChapterKey)) {
+                showPremiumModal();
                 return;
             }
             if (viewId === 'admin' && !isCurrentUserAdmin()) {
@@ -1362,7 +1409,7 @@
                         if (referralSnap.exists() && referralSnap.val().active !== false) {
                             const referralData = referralSnap.val();
                             const affiliateUid = referralData.affiliateUid;
-                            const commissionAmount = Number(referralData.commissionPerSale || 20);
+                            const commissionAmount = AFFILIATE_COMMISSION_PER_PREMIUM;
 
                             userData.referredBy = {
                                 referralCode: referralCodeInput,
@@ -1381,6 +1428,7 @@
                                 status: "registered",
                                 commissionStatus: "pending",
                                 commissionAmount: commissionAmount,
+                                premiumRequired: true,
                                 createdAt: Date.now()
                             });
 
@@ -1429,11 +1477,9 @@
         };
 
         window.handleAccessToLevels = function() {
-            if(isPremiumUser) {
-                switchView('levels');
-            } else {
-                document.getElementById('payment-modal').classList.remove('hide');
-            }
+            // Free user boleh masuk halaman Tingkatan dan nampak 2 bab pertama setiap tingkatan.
+            // Bab selebihnya akan dikunci dengan paywall Premium RM129.
+            switchView('levels');
         };
 
         window.closePaymentModal = function() {
@@ -1524,14 +1570,10 @@
             const paymentUrl = "https://toyyibpay.com/Math-Journey";
             window.open(paymentUrl, "_blank", "noopener,noreferrer");
 
-            alert("Anda akan dibawa ke halaman pembayaran ToyyibPay. Selepas bayaran berjaya, akses akaun perlu disahkan oleh admin/sistem terlebih dahulu.");
+            alert(`Anda akan dibawa ke halaman pembayaran ToyyibPay untuk Premium ${getPremiumPriceText()}. Selepas bayaran berjaya, akses akaun perlu disahkan oleh admin/sistem terlebih dahulu.`);
         };
 
         window.loadChapters = function(formNum) {
-            if(!isPremiumUser) {
-                document.getElementById('payment-modal').classList.remove('hide');
-                return;
-            }
             currentLevel = formNum;
             document.getElementById('chapters-title').innerText = `Tingkatan ${formNum} - Senarai Bab`;
             
@@ -1539,7 +1581,7 @@
             container.innerHTML = '';
 
             const chaptersOfForm = appSilibusData[formNum] || {};
-            const keys = Object.keys(chaptersOfForm);
+            const keys = getSortedChapterKeys(chaptersOfForm);
 
             if(keys.length === 0) {
                 container.innerHTML = `<p class="text-xs text-gray-400 text-center py-8">Tiada data bab bagi tingkatan ini lagi buat masa sekarang.</p>`;
@@ -1547,20 +1589,35 @@
                 return;
             }
 
-            keys.sort().forEach((chKey) => {
+            keys.forEach((chKey) => {
                 const chapterData = chaptersOfForm[chKey];
                 const subtopikObj = chapterData.subtopik || {};
                 const totalSub = Object.keys(subtopikObj).length;
 
+                const canOpenChapter = canAccessChapter(formNum, chKey);
+                const isFreeChapter = isFreeChapterForGuest(formNum, chKey);
                 const card = document.createElement('div');
-                card.className = "bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:border-soft-pink transition cursor-pointer flex justify-between items-center";
-                card.onclick = () => openChapterContentFlow(chKey);
+                card.className = canOpenChapter
+                    ? "bg-white border border-gray-100 rounded-2xl p-4 shadow-sm hover:border-soft-pink transition cursor-pointer flex justify-between items-center"
+                    : "bg-white border border-gray-100 rounded-2xl p-4 shadow-sm opacity-90 hover:border-amber-300 transition cursor-pointer flex justify-between items-center";
+                card.onclick = () => canOpenChapter ? openChapterContentFlow(chKey) : showPremiumModal();
+
+                let badgeHtml = '';
+                if(isPremiumUser || isCurrentUserAdmin()) {
+                    badgeHtml = `<span class="bg-pink-50 text-soft-pink text-xs font-bold px-2.5 py-1 rounded-full"><i class="fa-solid fa-play"></i></span>`;
+                } else if(isFreeChapter) {
+                    badgeHtml = `<span class="bg-emerald-50 text-emerald-700 text-[10px] font-extrabold px-2.5 py-1 rounded-full">FREE</span>`;
+                } else {
+                    badgeHtml = `<span class="bg-amber-50 text-amber-700 text-[10px] font-extrabold px-2.5 py-1 rounded-full"><i class="fa-solid fa-lock"></i> ${getPremiumPriceText()}</span>`;
+                }
+
                 card.innerHTML = `
-                    <div>
+                    <div class="pr-3">
                         <h4 class="font-bold text-sm text-slate-900">${chapterData.nama_bab || chKey}</h4>
                         <p class="text-[11px] text-gray-400 mt-1 font-medium">${totalSub} Subtopik Contoh Soalan</p>
+                        ${(!isPremiumUser && !isCurrentUserAdmin() && !isFreeChapter) ? `<p class="text-[10px] text-amber-600 font-bold mt-1">Bab premium. Bayar ${getPremiumPriceText()} untuk unlock.</p>` : ''}
                     </div>
-                    <span class="bg-pink-50 text-soft-pink text-xs font-bold px-2.5 py-1 rounded-full"><i class="fa-solid fa-play"></i></span>
+                    ${badgeHtml}
                 `;
                 container.appendChild(card);
             });
@@ -1569,6 +1626,10 @@
         };
 
         window.openChapterContentFlow = function(chKey) {
+            if(!canAccessChapter(currentLevel, chKey)) {
+                showPremiumModal();
+                return;
+            }
             currentChapterKey = chKey;
             const chapterData = appSilibusData[currentLevel][chKey] || {};
             const subtopikObj = chapterData.subtopik || {};
@@ -3034,7 +3095,7 @@
                         <div class="flex justify-between items-start">
                             <div>
                                 <h3 class="font-bold text-sm text-emerald-900"><i class="fa-solid fa-handshake-angle"></i> Affiliate Dashboard</h3>
-                                <p class="text-[11px] text-emerald-700 mt-1">Teruskan perjuangan anda, jana income bersama Math Journey.</p>
+                                <p class="text-[11px] text-emerald-700 mt-1">Teruskan perjuangan anda, jana income bersama Math Journey. Komisen RM10 untuk setiap referral yang menjadi premium berbayar.</p>
                             </div>
                             <span class="bg-emerald-600 text-white px-2 py-1 rounded-full text-[10px] font-bold">Approved</span>
                         </div>
@@ -3105,7 +3166,7 @@
                 box.innerHTML = `
                     <div class="bg-white border border-emerald-200 rounded-2xl p-4 text-xs shadow-sm space-y-3">
                         <h3 class="font-bold text-sm text-emerald-900"><i class="fa-solid fa-seedling"></i> Jana Income Bersama Math Journey</h3>
-                        <p class="text-gray-600 leading-relaxed">Aktifkan affiliate untuk dapat referral code sendiri. Bila admin approve, anda boleh track jumlah referral dan commission.</p>
+                        <p class="text-gray-600 leading-relaxed">Aktifkan affiliate untuk dapat referral code sendiri. Bila admin approve, anda boleh track referral dan komisen RM10 bagi setiap akaun premium berbayar.</p>
                         <button onclick="requestAffiliateActivation()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl text-xs">Activate Affiliate</button>
                     </div>
                 `;
@@ -3897,7 +3958,7 @@
                                     <span class="bg-amber-100 text-amber-700 px-2 py-1 rounded-full text-[9px] font-bold h-fit">Pending</span>
                                 </div>
                                 <input id="adm-aff-code-${safeUid}" type="text" value="${suggestion}" placeholder="Referral Code" class="w-full border p-2 rounded-lg text-xs uppercase font-bold tracking-wider">
-                                <input id="adm-aff-commission-${safeUid}" type="number" value="20" min="1" placeholder="Commission per sale RM" class="w-full border p-2 rounded-lg text-xs">
+                                <input id="adm-aff-commission-${safeUid}" type="number" value="10" min="1" placeholder="Commission per sale RM" class="w-full border p-2 rounded-lg text-xs">
                                 <button onclick="approveAffiliateAccount('${uid}', '${safeUid}')" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-lg text-xs">Approve Affiliate</button>
                             `;
                             reqList.appendChild(card);
@@ -3912,13 +3973,27 @@
                         pendingList.innerHTML = `<p class="text-[10px] text-emerald-700 text-center py-2">Tiada commission pending.</p>`;
                     } else {
                         pendingRefs.sort((a,b) => (b[1].createdAt || 0) - (a[1].createdAt || 0)).forEach(([referralId, r]) => {
+                            const referredUid = r.newUserUid || referralId;
+                            const referredUser = users[referredUid] || {};
+                            const referredIsPremium = isPaidPremiumForAffiliate(referredUser);
+                            const commissionAmount = AFFILIATE_COMMISSION_PER_PREMIUM;
+                            const premiumBadge = referredIsPremium
+                                ? `<span class="bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full text-[9px] font-bold">Premium aktif</span>`
+                                : `<span class="bg-amber-100 text-amber-700 px-2 py-1 rounded-full text-[9px] font-bold">Belum premium</span>`;
+                            const buttonHtml = referredIsPremium
+                                ? `<button onclick="confirmReferralCommission('${referralId}')" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2 rounded-lg text-xs">Masukkan Komisen ${formatRM(commissionAmount)}</button>`
+                                : `<button disabled class="w-full bg-gray-200 text-gray-400 font-bold py-2 rounded-lg text-xs cursor-not-allowed">Tunggu user bayar premium</button>`;
+
                             const card = document.createElement('div');
                             card.className = "bg-white border border-emerald-200 rounded-xl p-3 space-y-2 text-slate-800";
                             card.innerHTML = `
-                                <p class="font-bold text-xs">New User: ${r.newUserEmail || referralId}</p>
+                                <div class="flex items-start justify-between gap-2">
+                                    <p class="font-bold text-xs">New User: ${r.newUserEmail || referredUser.email || referralId}</p>
+                                    ${premiumBadge}
+                                </div>
                                 <p class="text-[11px] text-gray-500">Affiliate: <span class="font-semibold">${r.affiliateEmail || r.affiliateUid || '-'}</span></p>
-                                <p class="text-[11px] text-gray-500">Code: <span class="font-mono font-bold text-emerald-700">${r.referralCode || '-'}</span> | Commission: <span class="font-bold">${formatRM(r.commissionAmount || 0)}</span></p>
-                                <button onclick="confirmReferralCommission('${referralId}')" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2 rounded-lg text-xs">Confirm Paid Commission</button>
+                                <p class="text-[11px] text-gray-500">Code: <span class="font-mono font-bold text-emerald-700">${r.referralCode || '-'}</span> | Commission: <span class="font-bold">${formatRM(commissionAmount)}</span></p>
+                                ${buttonHtml}
                             `;
                             pendingList.appendChild(card);
                         });
@@ -3993,7 +4068,7 @@
 
         window.approveAffiliateAccount = async function(uid, safeUid) {
             const code = (document.getElementById(`adm-aff-code-${safeUid}`)?.value || '').trim().toUpperCase();
-            const commission = Number(document.getElementById(`adm-aff-commission-${safeUid}`)?.value || 20);
+            const commission = AFFILIATE_COMMISSION_PER_PREMIUM;
             if(!uid || !code) return alert("Sila masukkan referral code.");
             if(commission <= 0) return alert("Commission per sale mesti lebih daripada RM0.");
 
@@ -4048,15 +4123,22 @@
         };
 
         window.confirmReferralCommission = async function(referralId) {
-            if(!confirm("Confirm commission untuk referral ini? Pastikan user ini memang sudah bayar / premium.")) return;
+            if(!confirm(`Masukkan komisen ${formatRM(AFFILIATE_COMMISSION_PER_PREMIUM)} untuk referral ini? Pastikan user ini memang sudah bayar dan sudah dapat access premium.`)) return;
             try {
                 const rSnap = await get(ref(db, `referrals/${referralId}`));
                 if(!rSnap.exists()) return alert("Referral tidak ditemui.");
                 const r = rSnap.val();
                 if((r.commissionStatus || 'pending') !== 'pending') return alert("Commission ini bukan status pending.");
 
+                const referredUid = r.newUserUid || referralId;
+                const referredSnap = await get(ref(db, `users/${referredUid}`));
+                const referredUser = referredSnap.exists() ? referredSnap.val() : {};
+                if(!isPaidPremiumForAffiliate(referredUser)) {
+                    return alert("User referral ini belum dikesan sebagai premium berbayar. Commission hanya boleh masuk selepas user bayar RM129 dan dapat access premium.");
+                }
+
                 const affiliateUid = r.affiliateUid;
-                const amount = Number(r.commissionAmount || 0);
+                const amount = AFFILIATE_COMMISSION_PER_PREMIUM;
                 if(!affiliateUid || amount <= 0) return alert("Data affiliate atau amount tidak lengkap.");
 
                 const affSnap = await get(ref(db, `users/${affiliateUid}/affiliate`));
@@ -4070,10 +4152,12 @@
                 await update(ref(db, `referrals/${referralId}`), {
                     status: "paid",
                     commissionStatus: "approved",
-                    commissionApprovedAt: Date.now()
+                    commissionAmount: amount,
+                    commissionApprovedAt: Date.now(),
+                    premiumConfirmedAt: Date.now()
                 });
 
-                alert("Commission berjaya dimasukkan ke affiliate balance.");
+                alert(`Komisen ${formatRM(amount)} berjaya dimasukkan ke affiliate balance.`);
                 updateAdminAffiliateManagerUI();
             } catch (err) {
                 alert("Ralat confirm commission: " + err.message);
