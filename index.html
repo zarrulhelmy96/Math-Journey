@@ -36,6 +36,34 @@
         .btn-secondary:hover {
             background-color: #D6F7B3;
         }
+
+        .testimonial-slider-shell {
+            background: linear-gradient(135deg, #FFF0F2 0%, #FFFFFF 48%, #E8FAD4 100%);
+            border: 1px solid #FFE0E7;
+            box-shadow: 0 18px 40px rgba(255, 107, 139, 0.12);
+        }
+        .testimonial-card {
+            display: none;
+            animation: testimonialSlideIn 0.45s ease both;
+        }
+        .testimonial-card.active {
+            display: block;
+        }
+        .testimonial-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 999px;
+            background: #FFD1DB;
+            transition: all 0.25s ease;
+        }
+        .testimonial-dot.active {
+            width: 22px;
+            background: #FF6B8B;
+        }
+        @keyframes testimonialSlideIn {
+            from { opacity: 0; transform: translateX(18px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
         .hide { display: none !important; }
     </style>
 </head>
@@ -161,6 +189,144 @@
                     </div>
                 </div>
             </div>
+
+            <div id="landing-testimonials" class="p-6 bg-white border-t border-gray-100">
+                <div class="text-center mb-5">
+                    <span class="inline-flex items-center gap-1 bg-soft-pink text-soft-pink px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
+                        <i class="fa-solid fa-heart"></i> Testimoni Pelanggan
+                    </span>
+                    <h3 class="text-xl font-extrabold text-slate-900 mt-3 leading-tight">Apa kata pelajar & ibu bapa?</h3>
+                    <p class="text-xs text-gray-500 mt-1">Pengalaman mereka selepas belajar menggunakan Math Journey.</p>
+                </div>
+
+                <div class="testimonial-slider-shell rounded-3xl p-5 overflow-hidden relative">
+                    <div class="absolute -top-6 -right-6 w-24 h-24 bg-pink-100 rounded-full opacity-70"></div>
+                    <div class="absolute -bottom-8 -left-8 w-28 h-28 bg-green-100 rounded-full opacity-70"></div>
+
+                    <div id="testimonial-slider" class="relative z-10 min-h-[230px]">
+                        <div class="testimonial-card active" data-testimonial-index="0">
+                            <div class="flex items-center justify-between mb-4">
+                                <div>
+                                    <p class="font-extrabold text-slate-900 text-sm">Puan Aina</p>
+                                    <p class="text-[10px] text-gray-500 font-semibold">Ibu pelajar Tingkatan 2</p>
+                                </div>
+                                <div class="text-amber-400 text-xs">★★★★★</div>
+                            </div>
+                            <p class="text-sm text-slate-700 leading-relaxed font-medium">“Anak saya memang cepat putus asa bila buat Matematik. Lepas guna Math Journey, dia sendiri yang minta nak sambung belajar sebab jalan kerja gambar demi gambar tu mudah ikut.”</p>
+                        </div>
+
+                        <div class="testimonial-card" data-testimonial-index="1">
+                            <div class="flex items-center justify-between mb-4">
+                                <div>
+                                    <p class="font-extrabold text-slate-900 text-sm">Farhan</p>
+                                    <p class="text-[10px] text-gray-500 font-semibold">Pelajar Tingkatan 3</p>
+                                </div>
+                                <div class="text-amber-400 text-xs">★★★★★</div>
+                            </div>
+                            <p class="text-sm text-slate-700 leading-relaxed font-medium">“Saya suka sebab tak perlu baca nota panjang-panjang. Terus tengok contoh soalan, tekan next satu-satu, baru nampak macam mana nak mula jawab.”</p>
+                        </div>
+
+                        <div class="testimonial-card" data-testimonial-index="2">
+                            <div class="flex items-center justify-between mb-4">
+                                <div>
+                                    <p class="font-extrabold text-slate-900 text-sm">Cikgu Mira</p>
+                                    <p class="text-[10px] text-gray-500 font-semibold">Tutor matematik</p>
+                                </div>
+                                <div class="text-amber-400 text-xs">★★★★★</div>
+                            </div>
+                            <p class="text-sm text-slate-700 leading-relaxed font-medium">“Konsep dia simple tapi kena dengan masalah pelajar. Ramai sebenarnya bukan tak boleh buat, cuma tak tahu langkah pertama. App ni bantu pecahkan proses tu.”</p>
+                        </div>
+
+                        <div class="testimonial-card" data-testimonial-index="3">
+                            <div class="flex items-center justify-between mb-4">
+                                <div>
+                                    <p class="font-extrabold text-slate-900 text-sm">Syafiqah</p>
+                                    <p class="text-[10px] text-gray-500 font-semibold">Pelajar Tingkatan 4</p>
+                                </div>
+                                <div class="text-amber-400 text-xs">★★★★★</div>
+                            </div>
+                            <p class="text-sm text-slate-700 leading-relaxed font-medium">“Dulu saya selalu hafal formula je. Bila tengok contoh soalan dalam Math Journey, saya lebih faham kenapa langkah tu dibuat. Rasa lebih yakin nak jawab.”</p>
+                        </div>
+
+                        <div class="testimonial-card" data-testimonial-index="4">
+                            <div class="flex items-center justify-between mb-4">
+                                <div>
+                                    <p class="font-extrabold text-slate-900 text-sm">Encik Hafiz</p>
+                                    <p class="text-[10px] text-gray-500 font-semibold">Ayah pelajar Tingkatan 1</p>
+                                </div>
+                                <div class="text-amber-400 text-xs">★★★★★</div>
+                            </div>
+                            <p class="text-sm text-slate-700 leading-relaxed font-medium">“Saya suka sebab anak boleh ulang tengok jalan kerja ikut pace sendiri. Tak perlu malu nak ulang banyak kali macam dalam kelas.”</p>
+                        </div>
+
+                        <div class="testimonial-card" data-testimonial-index="5">
+                            <div class="flex items-center justify-between mb-4">
+                                <div>
+                                    <p class="font-extrabold text-slate-900 text-sm">Nadia</p>
+                                    <p class="text-[10px] text-gray-500 font-semibold">Pelajar Tingkatan 5</p>
+                                </div>
+                                <div class="text-amber-400 text-xs">★★★★★</div>
+                            </div>
+                            <p class="text-sm text-slate-700 leading-relaxed font-medium">“Quiz level Easy, Medium dan Hard memang membantu. Saya mula dengan Easy dulu, bila dah faham baru cuba Medium dan Hard.”</p>
+                        </div>
+
+                        <div class="testimonial-card" data-testimonial-index="6">
+                            <div class="flex items-center justify-between mb-4">
+                                <div>
+                                    <p class="font-extrabold text-slate-900 text-sm">Puan Liyana</p>
+                                    <p class="text-[10px] text-gray-500 font-semibold">Ibu pelajar Tingkatan 3</p>
+                                </div>
+                                <div class="text-amber-400 text-xs">★★★★★</div>
+                            </div>
+                            <p class="text-sm text-slate-700 leading-relaxed font-medium">“Harga sekali bayar tu bagi saya berbaloi. Anak boleh buka bila-bila masa, terutama masa nak ulang kaji sebelum ujian.”</p>
+                        </div>
+
+                        <div class="testimonial-card" data-testimonial-index="7">
+                            <div class="flex items-center justify-between mb-4">
+                                <div>
+                                    <p class="font-extrabold text-slate-900 text-sm">Aiman</p>
+                                    <p class="text-[10px] text-gray-500 font-semibold">Pelajar Tingkatan 2</p>
+                                </div>
+                                <div class="text-amber-400 text-xs">★★★★★</div>
+                            </div>
+                            <p class="text-sm text-slate-700 leading-relaxed font-medium">“Saya paling suka bila boleh tekan back kalau tak faham step sebelum tu. Tak rasa rushing dan tak pening sangat.”</p>
+                        </div>
+
+                        <div class="testimonial-card" data-testimonial-index="8">
+                            <div class="flex items-center justify-between mb-4">
+                                <div>
+                                    <p class="font-extrabold text-slate-900 text-sm">Puan Sarah</p>
+                                    <p class="text-[10px] text-gray-500 font-semibold">Ibu pelajar Tingkatan 4</p>
+                                </div>
+                                <div class="text-amber-400 text-xs">★★★★★</div>
+                            </div>
+                            <p class="text-sm text-slate-700 leading-relaxed font-medium">“App ni tak serabut. Anak terus pilih tingkatan, bab dan subtopik. Saya rasa sesuai untuk pelajar yang cepat hilang fokus.”</p>
+                        </div>
+
+                        <div class="testimonial-card" data-testimonial-index="9">
+                            <div class="flex items-center justify-between mb-4">
+                                <div>
+                                    <p class="font-extrabold text-slate-900 text-sm">Izzat</p>
+                                    <p class="text-[10px] text-gray-500 font-semibold">Pelajar Tingkatan 1</p>
+                                </div>
+                                <div class="text-amber-400 text-xs">★★★★★</div>
+                            </div>
+                            <p class="text-sm text-slate-700 leading-relaxed font-medium">“Saya bukan jenis pandai Math, tapi bila tengok contoh soalan banyak kali, lama-lama saya boleh nampak pattern jawapan. Itu yang best.”</p>
+                        </div>
+                    </div>
+
+                    <div class="relative z-10 mt-5 flex items-center justify-between">
+                        <button type="button" onclick="moveTestimonialSlide(-1)" class="w-9 h-9 rounded-full bg-white border border-pink-100 text-soft-pink shadow-sm hover:bg-pink-50 transition" aria-label="Testimoni sebelum">
+                            <i class="fa-solid fa-chevron-left text-xs"></i>
+                        </button>
+                        <div id="testimonial-dots" class="flex items-center gap-1.5"></div>
+                        <button type="button" onclick="moveTestimonialSlide(1)" class="w-9 h-9 rounded-full bg-white border border-pink-100 text-soft-pink shadow-sm hover:bg-pink-50 transition" aria-label="Testimoni seterusnya">
+                            <i class="fa-solid fa-chevron-right text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
         </section>
 
         <section id="view-login" class="view p-6 hide">
@@ -3999,6 +4165,50 @@
                 bDiv.appendChild(badgeEl);
             });
         }
+
+
+
+        let testimonialSlideIndex = 0;
+        let testimonialAutoTimer = null;
+
+        function renderTestimonialSlider() {
+            const cards = document.querySelectorAll('.testimonial-card');
+            const dotsWrap = document.getElementById('testimonial-dots');
+            if (!cards.length || !dotsWrap) return;
+
+            dotsWrap.innerHTML = '';
+            cards.forEach((card, index) => {
+                card.classList.toggle('active', index === testimonialSlideIndex);
+                const dot = document.createElement('button');
+                dot.type = 'button';
+                dot.className = `testimonial-dot ${index === testimonialSlideIndex ? 'active' : ''}`;
+                dot.setAttribute('aria-label', `Pergi ke testimoni ${index + 1}`);
+                dot.onclick = () => showTestimonialSlide(index, true);
+                dotsWrap.appendChild(dot);
+            });
+        }
+
+        window.showTestimonialSlide = function(index, resetTimer = false) {
+            const cards = document.querySelectorAll('.testimonial-card');
+            if (!cards.length) return;
+            testimonialSlideIndex = (index + cards.length) % cards.length;
+            renderTestimonialSlider();
+            if (resetTimer) startTestimonialAutoSlide();
+        };
+
+        window.moveTestimonialSlide = function(step) {
+            showTestimonialSlide(testimonialSlideIndex + step, true);
+        };
+
+        function startTestimonialAutoSlide() {
+            if (testimonialAutoTimer) clearInterval(testimonialAutoTimer);
+            testimonialAutoTimer = setInterval(() => {
+                showTestimonialSlide(testimonialSlideIndex + 1, false);
+            }, 4500);
+        }
+
+        renderTestimonialSlider();
+        startTestimonialAutoSlide();
 
         window.smoothScrollTo = function(id) {
             const el = document.getElementById(id);
