@@ -995,6 +995,50 @@
             );
         }
 
+        function buildDefaultUserProfile(user, existing = {}) {
+            const email = user?.email || existing.email || "";
+            const emailName = email && email.includes('@') ? email.split('@')[0] : "pelajar";
+            return {
+                ...existing,
+                uid: existing.uid || user.uid,
+                email: existing.email || email,
+                contactEmail: existing.contactEmail || existing.email || email,
+                phone: existing.phone || existing.phoneNumber || "",
+                fullname: existing.fullname || "Pelajar Baru",
+                nickname: existing.nickname || emailName,
+                premium: existing.premium === true,
+                hasAccess: existing.hasAccess === true,
+                role: existing.role || "student",
+                streak: Number(existing.streak || 1),
+                answeredCount: Number(existing.answeredCount || 0),
+                createdAt: existing.createdAt || Date.now(),
+                lastActiveTimestamp: Date.now()
+            };
+        }
+
+        async function saveUserProfileSafely(uid, profileData) {
+            try {
+                await set(ref(db, `users/${uid}`), profileData);
+                return true;
+            } catch (err) {
+                console.warn('Full user profile save failed. Trying safe repair:', err.message);
+                const safeRepairData = {
+                    fullname: profileData.fullname || "Pelajar Baru",
+                    nickname: profileData.nickname || "Pelajar",
+                    contactEmail: profileData.contactEmail || profileData.email || "",
+                    phone: profileData.phone || "",
+                    answeredCount: Number(profileData.answeredCount || 0),
+                    lastActiveTimestamp: Date.now()
+                };
+                try {
+                    await update(ref(db, `users/${uid}`), safeRepairData);
+                } catch (secondErr) {
+                    console.warn('Safe profile repair skipped:', secondErr.message);
+                }
+                return false;
+            }
+        }
+
         function getPremiumPriceText() {
             return `RM${PREMIUM_PRICE}`;
         }
@@ -1107,17 +1151,10 @@
                 let udata = snap.exists() ? snap.val() : {};
                 
                 if(!udata.email) {
-                    udata = {
-                        uid: currentUser.uid,
-                        email: currentUser.email,
-                        fullname: udata.fullname || "Pelajar Baru",
-                        nickname: udata.nickname || "Pelajar",
-                        premium: false,
-                        streak: 1,
-                        answeredCount: 0,
-                        lastActiveTimestamp: Date.now()
-                    };
-                    await set(ref(db, `users/${currentUser.uid}`), udata);
+                    // Repair akaun lama: Auth masih ada tetapi profile dalam Realtime Database sudah terpadam / tidak lengkap.
+                    // Simpan semula profile asas. Jika rules terlalu ketat, app akan cuba safe repair dan tetap benarkan login.
+                    udata = buildDefaultUserProfile(currentUser, udata);
+                    await saveUserProfileSafely(currentUser.uid, udata);
                 }
 
                 const isAdminAccount = await checkAdminStatus(currentUser, udata);
@@ -1389,66 +1426,73 @@
                 .then(async (uc) => {
                     const newUser = uc.user;
                     const referralCodeInput = getPendingReferralCodeForRegister();
-                    const userData = {
-                        uid: newUser.uid,
-                        email: newUser.email,
-                        contactEmail: newUser.email,
+                    const userData = buildDefaultUserProfile(newUser, {
                         phone: "",
                         fullname: "Pelajar Baru",
-                        nickname: newUser.email.split('@')[0],
+                        nickname: (newUser.email || 'pelajar').split('@')[0],
                         premium: false,
-                        role: newUser.email.includes("admin") ? "admin" : "student",
-                        streak: 1,
-                        answeredCount: 0,
-                        createdAt: Date.now(),
-                        lastActiveTimestamp: Date.now()
-                    };
+                        hasAccess: false,
+                        role: "student"
+                    });
 
-                    if (referralCodeInput) {
-                        const referralSnap = await get(ref(db, `referralCodes/${referralCodeInput}`));
-                        if (referralSnap.exists() && referralSnap.val().active !== false) {
-                            const referralData = referralSnap.val();
-                            const affiliateUid = referralData.affiliateUid;
-                            const commissionAmount = AFFILIATE_COMMISSION_PER_PREMIUM;
+                    let databaseWriteOk = true;
 
-                            userData.referredBy = {
-                                referralCode: referralCodeInput,
-                                affiliateUid: affiliateUid,
-                                affiliateEmail: referralData.affiliateEmail || "",
-                                createdAt: Date.now()
-                            };
+                    try {
+                        if (referralCodeInput) {
+                            const referralSnap = await get(ref(db, `referralCodes/${referralCodeInput}`));
+                            if (referralSnap.exists() && referralSnap.val().active !== false) {
+                                const referralData = referralSnap.val();
+                                const affiliateUid = referralData.affiliateUid;
+                                const commissionAmount = AFFILIATE_COMMISSION_PER_PREMIUM;
 
-                            await set(ref(db, `users/${newUser.uid}`), userData);
-                            await set(ref(db, `referrals/${newUser.uid}`), {
-                                newUserUid: newUser.uid,
-                                newUserEmail: newUser.email,
-                                referralCode: referralCodeInput,
-                                affiliateUid: affiliateUid,
-                                affiliateEmail: referralData.affiliateEmail || "",
-                                status: "registered",
-                                commissionStatus: "pending",
-                                commissionAmount: commissionAmount,
-                                premiumRequired: true,
-                                createdAt: Date.now()
-                            });
+                                userData.referredBy = {
+                                    referralCode: referralCodeInput,
+                                    affiliateUid: affiliateUid,
+                                    affiliateEmail: referralData.affiliateEmail || "",
+                                    createdAt: Date.now()
+                                };
 
-                            if (affiliateUid) {
-                                const affSnap = await get(ref(db, `users/${affiliateUid}/affiliate`));
-                                const aff = affSnap.exists() ? affSnap.val() : {};
-                                await update(ref(db, `users/${affiliateUid}/affiliate`), {
-                                    referralCount: Number(aff.referralCount || 0) + 1
+                                await saveUserProfileSafely(newUser.uid, userData);
+                                await set(ref(db, `referrals/${newUser.uid}`), {
+                                    newUserUid: newUser.uid,
+                                    newUserEmail: newUser.email,
+                                    referralCode: referralCodeInput,
+                                    affiliateUid: affiliateUid,
+                                    affiliateEmail: referralData.affiliateEmail || "",
+                                    status: "registered",
+                                    commissionStatus: "pending",
+                                    commissionAmount: commissionAmount,
+                                    premiumRequired: true,
+                                    createdAt: Date.now()
                                 });
+
+                                // Jangan paksa user baru edit akaun affiliate. Sesetengah rules block write ke user lain.
+                                // Admin Panel boleh kira referral daripada folder referrals.
+                                if (affiliateUid) {
+                                    try {
+                                        const affSnap = await get(ref(db, `users/${affiliateUid}/affiliate`));
+                                        const aff = affSnap.exists() ? affSnap.val() : {};
+                                        await update(ref(db, `users/${affiliateUid}/affiliate`), {
+                                            referralCount: Number(aff.referralCount || 0) + 1
+                                        });
+                                    } catch (affiliateCountErr) {
+                                        console.warn('Referral count update skipped:', affiliateCountErr.message);
+                                    }
+                                }
+                            } else {
+                                await saveUserProfileSafely(newUser.uid, userData);
+                                alert("Kod referral tidak sah. Akaun tetap berjaya didaftarkan tanpa referral.");
                             }
                         } else {
-                            await set(ref(db, `users/${newUser.uid}`), userData);
-                            alert("Kod referral tidak sah. Akaun tetap berjaya didaftarkan tanpa referral.");
+                            await saveUserProfileSafely(newUser.uid, userData);
                         }
-                    } else {
-                        await set(ref(db, `users/${newUser.uid}`), userData);
+                    } catch (dbErr) {
+                        databaseWriteOk = false;
+                        console.warn('Database profile/referral save failed after Auth signup:', dbErr.message);
                     }
 
                     localStorage.removeItem(REFERRAL_STORAGE_KEY);
-                    await sendEmailVerification(newUser);
+                    try { await sendEmailVerification(newUser); } catch(e) { console.warn('Verification email skipped:', e.message); }
                     await signOut(auth);
 
                     if(document.getElementById('auth-submit-btn').innerText !== 'Log Masuk') {
@@ -1459,10 +1503,24 @@
                     if(confirmInput) confirmInput.value = "";
                     switchView('login');
                     showActivationGuideModal();
+
+                    if (!databaseWriteOk) {
+                        alert("Akaun berjaya dibuat dalam Firebase Authentication, tetapi profile database belum lengkap kerana rules block sebahagian data. Cuba log masuk semula; app akan repair profile asas secara automatik.");
+                    }
                 })
-                .catch(err => alert("Gagal mendaftar: " + err.message));
+                .catch(err => {
+                    if (err.code === 'auth/email-already-in-use') {
+                        alert("Email ini sebenarnya masih wujud dalam Firebase Authentication. Data profile dalam database mungkin sudah terpadam, tapi akaun login masih ada. Sila tekan 'Log masuk di sini' dan login guna password lama. Kalau lupa password, tekan 'Terlupa Kata Laluan?'. Lepas login, app akan bina semula profile asas.");
+                        if(document.getElementById('auth-submit-btn').innerText !== 'Log Masuk') {
+                            toggleAuthMode();
+                        }
+                        return;
+                    }
+                    alert("Gagal mendaftar: " + err.message);
+                });
             }
         };
+
 
         window.handleForgotPassword = function() {
             const email = document.getElementById('auth-email').value.trim();
