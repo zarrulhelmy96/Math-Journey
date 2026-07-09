@@ -1533,7 +1533,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-auth.js";
-        import { getDatabase, ref, set, get, child, push, remove, update, runTransaction } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-database.js";
+        import { getDatabase, ref, set, get, child, push, remove, update, runTransaction, onValue } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-database.js";
         import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-storage.js";
 
         const firebaseConfig = {
@@ -1765,11 +1765,105 @@
         window.standaloneQuizAnsweredCurrent = false;
         window.standaloneQuizContext = null;
 
-        onAuthStateChanged(auth, (user) => {
+        // Single-login session control
+        // Tujuan: satu akaun hanya aktif pada satu device/browser pada satu masa.
+        const ACTIVE_SESSION_STORAGE_KEY = 'mathJourneyActiveSessionId';
+        let currentActiveSessionId = sessionStorage.getItem(ACTIVE_SESSION_STORAGE_KEY) || null;
+        let activeSessionUnsubscribe = null;
+        let singleLoginLogoutInProgress = false;
+
+        function generateActiveSessionId(user) {
+            const randomPart = Math.random().toString(36).substring(2, 12);
+            return `${user.uid}_${Date.now()}_${randomPart}`;
+        }
+
+        function stopActiveSessionWatcher() {
+            if (typeof activeSessionUnsubscribe === 'function') {
+                try { activeSessionUnsubscribe(); } catch(e) {}
+            }
+            activeSessionUnsubscribe = null;
+        }
+
+        async function startSingleDeviceSession(user) {
+            if (!user) return;
+
+            stopActiveSessionWatcher();
+            singleLoginLogoutInProgress = false;
+
+            currentActiveSessionId = generateActiveSessionId(user);
+            sessionStorage.setItem(ACTIVE_SESSION_STORAGE_KEY, currentActiveSessionId);
+
+            await update(ref(db, `users/${user.uid}/activeSession`), {
+                sessionId: currentActiveSessionId,
+                status: 'active',
+                lastLogin: Date.now(),
+                browser: (navigator.userAgent || '').substring(0, 140)
+            });
+
+            activeSessionUnsubscribe = onValue(
+                ref(db, `users/${user.uid}/activeSession/sessionId`),
+                async (snap) => {
+                    const serverSessionId = snap.val();
+
+                    if (
+                        !singleLoginLogoutInProgress &&
+                        serverSessionId &&
+                        currentActiveSessionId &&
+                        serverSessionId !== currentActiveSessionId
+                    ) {
+                        singleLoginLogoutInProgress = true;
+                        stopActiveSessionWatcher();
+                        sessionStorage.removeItem(ACTIVE_SESSION_STORAGE_KEY);
+
+                        alert("Akaun ini telah login di device/browser lain. Sesi ini akan log keluar.");
+                        try { await signOut(auth); } catch(e) {}
+                        switchView('login');
+                    }
+                },
+                (error) => {
+                    console.warn('Active session watcher error:', error.message);
+                }
+            );
+        }
+
+        async function clearActiveSessionBeforeLogout() {
+            try {
+                if (currentUser && currentActiveSessionId) {
+                    const sessionSnap = await get(ref(db, `users/${currentUser.uid}/activeSession/sessionId`));
+                    if (sessionSnap.exists() && sessionSnap.val() === currentActiveSessionId) {
+                        await update(ref(db, `users/${currentUser.uid}/activeSession`), {
+                            sessionId: null,
+                            status: 'loggedOut',
+                            lastLogout: Date.now()
+                        });
+                    }
+                }
+            } catch (e) {
+                console.warn('Clear active session skipped:', e.message);
+            }
+
+            stopActiveSessionWatcher();
+            currentActiveSessionId = null;
+            sessionStorage.removeItem(ACTIVE_SESSION_STORAGE_KEY);
+        }
+
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
-                checkUserPremiumAndLoadDashboard();
+
+                try {
+                    await checkUserPremiumAndLoadDashboard();
+                    await startSingleDeviceSession(user);
+                } catch (err) {
+                    console.error('Single-login / dashboard load error:', err);
+                    alert("Ralat session login: " + err.message + "\n\nPastikan Firebase Rules untuk users/{uid}/activeSession sudah ditambah.");
+                    try { await signOut(auth); } catch(e) {}
+                }
             } else {
+                stopActiveSessionWatcher();
+                currentActiveSessionId = null;
+                sessionStorage.removeItem(ACTIVE_SESSION_STORAGE_KEY);
+
                 currentUser = null;
                 isPremiumUser = false;
                 const urlReferralCode = getReferralCodeFromUrl();
@@ -2170,8 +2264,14 @@
             .catch(err => alert("Ralat: " + err.message));
         };
 
-        window.handleLogout = function() {
-            signOut(auth).then(() => switchView('landing')).catch(e => alert(e.message));
+        window.handleLogout = async function() {
+            try {
+                await clearActiveSessionBeforeLogout();
+                await signOut(auth);
+                switchView('landing');
+            } catch(e) {
+                alert(e.message);
+            }
         };
 
         window.handleAccessToLevels = function() {
