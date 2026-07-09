@@ -1764,6 +1764,7 @@
         window.standaloneQuizAnswers = [];
         window.standaloneQuizAnsweredCurrent = false;
         window.standaloneQuizContext = null;
+        window.standaloneQuizIsFinishing = false;
 
         // Single-login session control
         // Tujuan: satu akaun hanya aktif pada satu device/browser pada satu masa.
@@ -3374,7 +3375,7 @@
             renderStandaloneQuizQuestion();
         };
 
-        window.navigateStandaloneQuiz = function(direction) {
+        window.navigateStandaloneQuiz = async function(direction) {
             if(direction === 'back') {
                 if(window.standaloneQuizIndex > 0) {
                     window.standaloneQuizIndex--;
@@ -3394,7 +3395,12 @@
                 window.standaloneQuizSelectedChoice = null;
                 renderStandaloneQuizQuestion();
             } else {
-                finishStandaloneQuiz();
+                try {
+                    await finishStandaloneQuiz();
+                } catch (err) {
+                    console.error('Finish quiz error:', err);
+                    alert('Ralat papar result quiz: ' + (err?.message || err));
+                }
             }
         };
 
@@ -3440,59 +3446,96 @@
         }
 
         async function finishStandaloneQuiz() {
-            const questions = window.standaloneQuizQuestions;
-            const answers = window.standaloneQuizAnswers.filter(Boolean);
-            if(answers.length < questions.length) {
-                alert('Sila jawab semua soalan yang belum dijawab dahulu.');
-                return;
-            }
+            if(window.standaloneQuizIsFinishing) return;
+            window.standaloneQuizIsFinishing = true;
 
-            const correctCount = answers.filter(a => a.correct).length;
-            const percent = Math.round((correctCount / questions.length) * 100);
-            const wrongAnswers = answers.filter(a => !a.correct);
-            const ctx = window.standaloneQuizContext;
-            const resultData = {
-                formNum: ctx.formNum,
-                chapterKey: ctx.chKey,
-                chapterName: ctx.chapterName,
-                level: ctx.level,
-                levelLabel: ctx.levelLabel,
-                total: questions.length,
-                correct: correctCount,
-                wrong: wrongAnswers.length,
-                percent,
-                answers,
-                wrongAnswers,
-                completedAt: Date.now(),
-                adminPreview: !!ctx.adminMode
-            };
+            const runner = document.getElementById('quiz-runner');
+            const oldRunnerHtml = runner ? runner.innerHTML : '';
 
-            if(!ctx.adminMode) {
-                await set(ref(db, `quizResults/${currentUser.uid}/${ctx.resultKey}`), resultData);
+            try {
+                const questions = window.standaloneQuizQuestions || [];
+                const answers = (window.standaloneQuizAnswers || []).filter(Boolean);
 
-                const userSnap = await get(ref(db, `users/${currentUser.uid}`));
-                const udata = userSnap.exists() ? userSnap.val() : {};
-                const newlyAnswered = Number(window.standaloneQuizNewlyAnsweredCount || 0);
-                const updates = {
-                    answeredCount: Number(udata.answeredCount || 0) + newlyAnswered
-                };
-
-                if(!ctx.previousResultExists) {
-                    const previousCompleted = Number(udata.completedChaptersCount || 0);
-                    const previousAvg = Number(udata.averageQuizScore || 0);
-                    const newCompleted = previousCompleted + 1;
-                    updates.completedChaptersCount = newCompleted;
-                    updates.averageQuizScore = Math.round(((previousAvg * previousCompleted) + percent) / newCompleted);
-                } else {
-                    updates.averageQuizScore = Number(udata.averageQuizScore || 0);
+                if(answers.length < questions.length) {
+                    alert('Sila jawab semua soalan yang belum dijawab dahulu.');
+                    window.standaloneQuizIsFinishing = false;
+                    return;
                 }
 
-                if(percent < 70) updates.weakestTopic = ctx.chapterName;
-                await update(ref(db, `users/${currentUser.uid}`), updates);
-                refreshQuizStatsInUI(updates);
-            }
+                if(runner) {
+                    runner.innerHTML = `
+                        <div class="bg-white border rounded-2xl p-6 text-center shadow-sm">
+                            <div class="text-4xl mb-3">⏳</div>
+                            <p class="font-bold text-slate-900">Sedang kira result...</p>
+                            <p class="text-xs text-gray-500 mt-1">Sila tunggu sebentar.</p>
+                        </div>
+                    `;
+                }
 
-            showStoredQuizResult(resultData);
+                const correctCount = answers.filter(a => a.correct).length;
+                const percent = Math.round((correctCount / questions.length) * 100);
+                const wrongAnswers = answers.filter(a => !a.correct);
+                const ctx = window.standaloneQuizContext || {};
+
+                const resultData = {
+                    formNum: ctx.formNum,
+                    chapterKey: ctx.chKey,
+                    chapterName: ctx.chapterName,
+                    level: ctx.level,
+                    levelLabel: ctx.levelLabel,
+                    total: questions.length,
+                    correct: correctCount,
+                    wrong: wrongAnswers.length,
+                    percent,
+                    answers,
+                    wrongAnswers,
+                    completedAt: Date.now(),
+                    adminPreview: !!ctx.adminMode
+                };
+
+                // Papar result dahulu supaya button "Lihat Result" tidak nampak seperti tidak respon
+                // walaupun Firebase lambat atau rules block sebahagian update statistik.
+                showStoredQuizResult(resultData);
+
+                if(!ctx.adminMode && currentUser && ctx.resultKey) {
+                    try {
+                        await set(ref(db, `quizResults/${currentUser.uid}/${ctx.resultKey}`), resultData);
+                    } catch (saveResultErr) {
+                        console.warn('Quiz result save skipped:', saveResultErr.message);
+                    }
+
+                    try {
+                        const userSnap = await get(ref(db, `users/${currentUser.uid}`));
+                        const udata = userSnap.exists() ? userSnap.val() : {};
+                        const newlyAnswered = Number(window.standaloneQuizNewlyAnsweredCount || 0);
+                        const updates = {
+                            answeredCount: Number(udata.answeredCount || 0) + newlyAnswered
+                        };
+
+                        if(!ctx.previousResultExists) {
+                            const previousCompleted = Number(udata.completedChaptersCount || 0);
+                            const previousAvg = Number(udata.averageQuizScore || 0);
+                            const newCompleted = previousCompleted + 1;
+                            updates.completedChaptersCount = newCompleted;
+                            updates.averageQuizScore = Math.round(((previousAvg * previousCompleted) + percent) / newCompleted);
+                        } else {
+                            updates.averageQuizScore = Number(udata.averageQuizScore || 0);
+                        }
+
+                        if(percent < 70) updates.weakestTopic = ctx.chapterName;
+                        await update(ref(db, `users/${currentUser.uid}`), updates);
+                        refreshQuizStatsInUI(updates);
+                    } catch (statsErr) {
+                        console.warn('Quiz stats update skipped:', statsErr.message);
+                    }
+                }
+            } catch (err) {
+                console.error('finishStandaloneQuiz failed:', err);
+                if(runner) runner.innerHTML = oldRunnerHtml;
+                alert('Ralat papar result quiz: ' + (err?.message || err));
+            } finally {
+                window.standaloneQuizIsFinishing = false;
+            }
         }
 
         function showStoredQuizResult(resultData) {
