@@ -941,6 +941,56 @@
         const REFERRAL_STORAGE_KEY = 'mathJourneyPendingReferralCode';
         const QUIZ_LEVELS = { easy: 'Easy', medium: 'Medium', hard: 'Hard' };
 
+        // === ADMIN RECOVERY FIX ===
+        // UID ini diambil daripada Firebase Realtime Database screenshot semasa kecemasan.
+        // Tujuan: pulihkan akses admin walaupun field users/{uid}/role hilang/berubah.
+        const RECOVERY_ADMIN_UIDS = ['3jpc82EBZedQWOvjEQx9ME0pF9j1'];
+
+        async function checkAdminStatus(user, userData = {}) {
+            if (!user) return false;
+            if (RECOVERY_ADMIN_UIDS.includes(user.uid)) return true;
+            if (userData?.role === 'admin' || userData?.isAdmin === true || userData?.admin === true) return true;
+
+            const checks = [
+                { path: `admins/${user.uid}`, type: 'boolean' },
+                { path: `admin/${user.uid}`, type: 'boolean' },
+                { path: `${user.uid}`, type: 'boolean' },
+                { path: `users/${user.uid}/role`, type: 'role' },
+                { path: `users/${user.uid}/isAdmin`, type: 'boolean' },
+                { path: `users/${user.uid}/admin`, type: 'boolean' }
+            ];
+
+            for (const item of checks) {
+                try {
+                    const snap = await get(ref(db, item.path));
+                    if (!snap.exists()) continue;
+                    const val = snap.val();
+                    if (item.type === 'role' && val === 'admin') return true;
+                    if (item.type === 'boolean' && val === true) return true;
+                } catch (e) {
+                    console.warn('Admin check skipped:', item.path, e.message);
+                }
+            }
+
+            return false;
+        }
+
+        function applyAdminUI(isAdmin) {
+            const adminBtn = document.getElementById('admin-nav-btn');
+            if (!adminBtn) return;
+            if (isAdmin) adminBtn.classList.remove('hide');
+            else adminBtn.classList.add('hide');
+        }
+
+        function isCurrentUserAdmin() {
+            return !!(
+                currentUserProfileData?.role === 'admin' ||
+                currentUserProfileData?.isAdmin === true ||
+                currentUserProfileData?.admin === true ||
+                (currentUser && RECOVERY_ADMIN_UIDS.includes(currentUser.uid))
+            );
+        }
+
         function normalizeQuizLevel(level) {
             const clean = (level || 'easy').toString().trim().toLowerCase();
             return ['easy', 'medium', 'hard'].includes(clean) ? clean : 'easy';
@@ -1027,7 +1077,19 @@
                     await set(ref(db, `users/${currentUser.uid}`), udata);
                 }
 
-                isPremiumUser = udata.premium === true || udata.hasAccess === true || udata.role === 'admin';
+                const isAdminAccount = await checkAdminStatus(currentUser, udata);
+                if (isAdminAccount) {
+                    udata = {
+                        ...udata,
+                        uid: currentUser.uid,
+                        email: udata.email || currentUser.email,
+                        role: 'admin',
+                        premium: true,
+                        hasAccess: true
+                    };
+                }
+
+                isPremiumUser = udata.premium === true || udata.hasAccess === true || isAdminAccount;
                 currentUserProfileData = udata;
                 document.getElementById('dash-username').innerText = udata.nickname || udata.fullname || "Pelajar";
                 document.getElementById('nav-streak').innerText = udata.streak || 1;
@@ -1044,11 +1106,7 @@
                 document.getElementById('prof-avg-score').innerText = `${udata.averageQuizScore || 0}%`;
                 document.getElementById('prof-weakest-topic').innerText = udata.weakestTopic || "Tiada data lagi";
 
-                if (udata.role === 'admin') {
-                    document.getElementById('admin-nav-btn').classList.remove('hide');
-                } else {
-                    document.getElementById('admin-nav-btn').classList.add('hide');
-                }
+                applyAdminUI(isAdminAccount);
 
                 renderBadges(udata.badges || {});
                 
@@ -1068,7 +1126,7 @@
                 
                 renderAffiliateProfileSection(udata);
                 updateAdminVoucherManagerUI();
-                if (udata.role === 'admin') {
+                if (isAdminAccount) {
                     updateAdminAffiliateManagerUI();
                     updateAdminQuizChapterOptions();
                     loadAdminStandaloneQuizList();
@@ -1090,6 +1148,10 @@
                 document.getElementById('payment-modal').classList.remove('hide');
                 return;
             }
+            if (viewId === 'admin' && !isCurrentUserAdmin()) {
+                alert('Akses admin tidak dikesan. Sila login akaun admin yang betul.');
+                viewId = 'dashboard';
+            }
             document.querySelectorAll('.view').forEach(s => s.classList.add('hide'));
             document.getElementById(`view-${viewId}`).classList.remove('hide');
             
@@ -1101,9 +1163,11 @@
                 document.getElementById('app-footer').classList.remove('hide');
             }
 
-            if(viewId === 'admin' && currentUserProfileData?.role === 'admin') {
+            if(viewId === 'admin' && isCurrentUserAdmin()) {
                 updateAdminAffiliateManagerUI();
                 updateAdminVoucherManagerUI();
+                updateAdminQuizChapterOptions();
+                loadAdminStandaloneQuizList();
             }
 
             document.querySelectorAll('#app-footer button').forEach(b => b.classList.remove('text-soft-pink'));
@@ -1250,10 +1314,16 @@
                 signInWithEmailAndPassword(auth, email, password)
                 .then(async (uc) => {
                     const user = uc.user;
-                    const roleSnap = await get(ref(db, `users/${user.uid}/role`));
-                    const role = roleSnap.exists() ? roleSnap.val() : "student";
+                    let loginProfileData = {};
+                    try {
+                        const loginProfileSnap = await get(ref(db, `users/${user.uid}`));
+                        loginProfileData = loginProfileSnap.exists() ? loginProfileSnap.val() : {};
+                    } catch (e) {
+                        console.warn('Login profile check skipped:', e.message);
+                    }
+                    const isAdminLogin = await checkAdminStatus(user, loginProfileData);
 
-                    if(!user.emailVerified && role !== "admin") {
+                    if(!user.emailVerified && !isAdminLogin) {
                         try { await sendEmailVerification(user); } catch(e) {}
                         await signOut(auth);
                         alert("E-mel anda belum disahkan. Sila semak Gmail/inbox dan bahagian SPAM. Jika activation link tidak berwarna biru, sila tekan NOT SPAM. Kami juga cuba hantar semula verification email.");
@@ -2098,9 +2168,6 @@
             return `${formNum}_${chKey}_${quizLevel}`.replace(/[^a-zA-Z0-9_-]/g, '_');
         }
 
-        function isCurrentUserAdmin() {
-            return currentUserProfileData?.role === 'admin';
-        }
 
         function getSavedQuizAnswerMap(resultData) {
             const map = {};
