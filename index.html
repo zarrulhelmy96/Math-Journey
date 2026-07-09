@@ -3772,6 +3772,64 @@
                 .replace(/'/g, '&#39;');
         }
 
+        function getWithdrawalStatusLabel(status) {
+            const clean = (status || 'pending').toString().toLowerCase();
+            if(clean === 'paid') return 'Withdraw berjaya';
+            if(clean === 'rejected') return 'Ditolak';
+            return 'Sedang diproses';
+        }
+
+        function getWithdrawalStatusClass(status) {
+            const clean = (status || 'pending').toString().toLowerCase();
+            if(clean === 'paid') return 'bg-emerald-100 text-emerald-700';
+            if(clean === 'rejected') return 'bg-red-100 text-red-700';
+            return 'bg-amber-100 text-amber-700';
+        }
+
+        async function loadAffiliateWithdrawalHistory() {
+            const historyBox = document.getElementById('aff-withdraw-history');
+            if(!historyBox || !currentUser) return;
+
+            historyBox.innerHTML = `<p class="text-[10px] text-gray-400 text-center py-2">Memuatkan history withdraw...</p>`;
+
+            try {
+                const histSnap = await get(ref(db, `userWithdrawals/${currentUser.uid}`));
+                const history = histSnap.exists() ? histSnap.val() : {};
+                const items = Object.entries(history).sort((a,b) => (b[1].requestedAt || 0) - (a[1].requestedAt || 0));
+
+                if(items.length === 0) {
+                    historyBox.innerHTML = `<p class="text-[10px] text-gray-500 text-center py-3">Belum ada history withdraw.</p>`;
+                    return;
+                }
+
+                historyBox.innerHTML = items.slice(0, 12).map(([id, w]) => {
+                    const status = w.status || 'pending';
+                    const requestedAt = w.requestedAt ? new Date(w.requestedAt).toLocaleString('ms-MY') : '-';
+                    const paidAt = w.paidAt ? new Date(w.paidAt).toLocaleString('ms-MY') : '';
+                    const rejectedAt = w.rejectedAt ? new Date(w.rejectedAt).toLocaleString('ms-MY') : '';
+                    const extraDate = paidAt ? `<p class="text-[10px] text-emerald-700 mt-1">Berjaya: ${paidAt}</p>` : (rejectedAt ? `<p class="text-[10px] text-red-600 mt-1">Ditolak: ${rejectedAt}</p>` : '');
+                    const rejectReason = w.rejectReason ? `<p class="text-[10px] text-red-500 mt-1">Sebab: ${escapeHtml(w.rejectReason)}</p>` : '';
+
+                    return `
+                        <div class="border border-emerald-100 bg-emerald-50/30 rounded-xl p-3 text-[11px]">
+                            <div class="flex items-start justify-between gap-2">
+                                <div>
+                                    <p class="font-extrabold text-slate-900">${formatRM(w.amount || 0)}</p>
+                                    <p class="text-gray-500">Request: ${requestedAt}</p>
+                                    ${extraDate}
+                                    ${rejectReason}
+                                </div>
+                                <span class="${getWithdrawalStatusClass(status)} px-2 py-1 rounded-full text-[9px] font-bold whitespace-nowrap">${getWithdrawalStatusLabel(status)}</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (err) {
+                console.warn('Load withdrawal history error:', err);
+                historyBox.innerHTML = `<p class="text-red-500 text-[10px] text-center py-2">Ralat load history withdraw: ${err.message}</p>`;
+            }
+        }
+
         function renderAffiliateProfileSection(udata = {}) {
             const box = document.getElementById('affiliate-profile-section');
             if(!box) return;
@@ -3825,8 +3883,9 @@
                                 <p class="font-extrabold text-lg text-slate-900">${paidReferralCount}</p>
                             </div>
                             <div class="bg-white p-3 rounded-xl border border-emerald-100">
-                                <p class="text-[10px] text-gray-400 uppercase font-bold">Available</p>
+                                <p class="text-[10px] text-gray-400 uppercase font-bold">Balance Komisen</p>
                                 <p class="font-extrabold text-lg text-emerald-700">${formatRM(availableBalance)}</p>
+                                <p class="text-[9px] text-gray-400 mt-0.5">Baki boleh withdraw</p>
                             </div>
                             <div class="bg-white p-3 rounded-xl border border-emerald-100">
                                 <p class="text-[10px] text-gray-400 uppercase font-bold">Pending Withdraw</p>
@@ -3849,12 +3908,23 @@
 
                         <div class="bg-white p-3 rounded-xl border border-emerald-100 space-y-2">
                             <p class="font-bold text-emerald-900">Withdraw Commission</p>
-                            <p class="text-[10px] text-gray-500">Minimum RM30, maximum RM500. Hanya 1 request withdrawal sehari.</p>
+                            <p class="text-[10px] text-gray-500">Minimum RM30, maximum RM500. Hanya 1 request withdrawal sehari. Bila admin tekan “Withdraw Berjaya”, balance semasa akan kekal sebagai baki komisen yang belum withdraw.</p>
                             <input type="number" id="aff-withdraw-amount" min="30" max="500" placeholder="Masukkan jumlah withdraw" class="w-full border p-2 rounded-lg text-xs">
                             <button onclick="requestAffiliateWithdrawal()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-lg text-xs">Withdraw Commission</button>
                         </div>
+
+                        <div class="bg-white p-3 rounded-xl border border-emerald-100 space-y-2">
+                            <div class="flex items-center justify-between gap-2">
+                                <p class="font-bold text-emerald-900">History Withdraw</p>
+                                <span class="text-[10px] text-gray-400 font-semibold">Status request anda</span>
+                            </div>
+                            <div id="aff-withdraw-history" class="space-y-2">
+                                <p class="text-[10px] text-gray-400 text-center py-2">Memuatkan history withdraw...</p>
+                            </div>
+                        </div>
                     </div>
                 `;
+                loadAffiliateWithdrawalHistory();
             } else if(status === 'pending') {
                 box.innerHTML = `
                     <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-xs shadow-sm">
@@ -3974,7 +4044,9 @@
                 }
 
                 const withdrawalRef = push(ref(db, 'withdrawalRequests'));
-                await set(withdrawalRef, {
+                const withdrawalId = withdrawalRef.key;
+                const withdrawalData = {
+                    id: withdrawalId,
                     uid: currentUser.uid,
                     email: currentUser.email,
                     contactEmail: userData.contactEmail || currentUser.email,
@@ -3987,7 +4059,16 @@
                     requestedAt: Date.now(),
                     paidAt: null,
                     rejectedAt: null
-                });
+                };
+
+                await set(withdrawalRef, withdrawalData);
+
+                // Simpan salinan history khas untuk user supaya user boleh tengok status withdraw sendiri.
+                try {
+                    await set(ref(db, `userWithdrawals/${currentUser.uid}/${withdrawalId}`), withdrawalData);
+                } catch(historyErr) {
+                    console.warn('User withdrawal history write skipped:', historyErr.message);
+                }
 
                 await update(ref(db, `users/${currentUser.uid}/affiliate`), {
                     availableBalance: Number(affiliate.availableBalance || 0) - amount,
@@ -4722,7 +4803,7 @@
                                     <p class="text-gray-400">Request: ${w.requestedAt ? new Date(w.requestedAt).toLocaleString('ms-MY') : '-'}</p>
                                 </div>
                                 <div class="grid grid-cols-2 gap-2">
-                                    <button onclick="markWithdrawalPaid('${wid}')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-lg text-xs">Mark as Paid</button>
+                                    <button onclick="markWithdrawalPaid('${wid}')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-lg text-xs">Withdraw Berjaya</button>
                                     <button onclick="rejectWithdrawalRequest('${wid}')" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 rounded-lg text-xs">Reject</button>
                                 </div>
                             `;
@@ -4753,7 +4834,8 @@
                                 <div class="grid grid-cols-2 gap-1 mt-1">
                                     <p>Referral: <span class="font-bold">${aff.referralCount || 0}</span></p>
                                     <p>Paid: <span class="font-bold">${aff.paidReferralCount || 0}</span></p>
-                                    <p>Available: <span class="font-bold text-emerald-700">${formatRM(aff.availableBalance || 0)}</span></p>
+                                    <p>Balance: <span class="font-bold text-emerald-700">${formatRM(aff.availableBalance || 0)}</span></p>
+                                    <p>Pending WD: <span class="font-bold text-amber-600">${formatRM(aff.pendingWithdrawal || 0)}</span></p>
                                     <p>Withdrawn: <span class="font-bold">${formatRM(aff.totalWithdrawn || 0)}</span></p>
                                 </div>
                             `;
@@ -4881,12 +4963,21 @@
                     pendingWithdrawal: Math.max(0, Number(aff.pendingWithdrawal || 0) - amount),
                     totalWithdrawn: Number(aff.totalWithdrawn || 0) + amount
                 });
+                const paidAt = Date.now();
                 await update(ref(db, `withdrawalRequests/${withdrawalId}`), {
                     status: "paid",
-                    paidAt: Date.now()
+                    paidAt: paidAt
                 });
+                try {
+                    await update(ref(db, `userWithdrawals/${w.uid}/${withdrawalId}`), {
+                        status: "paid",
+                        paidAt: paidAt
+                    });
+                } catch(historyErr) {
+                    console.warn('User withdrawal history paid update skipped:', historyErr.message);
+                }
 
-                alert("Withdrawal sudah ditanda sebagai paid.");
+                alert("Withdraw berjaya ditanda. History user akan tunjuk status Withdraw berjaya.");
                 updateAdminAffiliateManagerUI();
             } catch (err) {
                 alert("Ralat mark paid: " + err.message);
@@ -4910,11 +5001,21 @@
                     availableBalance: Number(aff.availableBalance || 0) + amount,
                     pendingWithdrawal: Math.max(0, Number(aff.pendingWithdrawal || 0) - amount)
                 });
+                const rejectedAt = Date.now();
                 await update(ref(db, `withdrawalRequests/${withdrawalId}`), {
                     status: "rejected",
                     rejectReason: reason,
-                    rejectedAt: Date.now()
+                    rejectedAt: rejectedAt
                 });
+                try {
+                    await update(ref(db, `userWithdrawals/${w.uid}/${withdrawalId}`), {
+                        status: "rejected",
+                        rejectReason: reason,
+                        rejectedAt: rejectedAt
+                    });
+                } catch(historyErr) {
+                    console.warn('User withdrawal history reject update skipped:', historyErr.message);
+                }
 
                 alert("Withdrawal rejected dan balance dipulangkan.");
                 updateAdminAffiliateManagerUI();
