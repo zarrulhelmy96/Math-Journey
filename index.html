@@ -1053,7 +1053,7 @@
                         <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
                             <i class="fa-solid fa-ranking-star text-soft-pink"></i> Leaderboard Quiz
                         </h3>
-                        <p class="text-[11px] text-gray-500 mt-1">Ranking berdasarkan jumlah jawapan quiz yang betul.</p>
+                        <p class="text-[11px] text-gray-500 mt-1">Ranking berdasarkan jumlah markah quiz yang dikumpul.</p>
                     </div>
                     <button onclick="loadLeaderboard()" class="text-[10px] font-bold bg-green-50 text-green-700 px-3 py-1.5 rounded-full border border-green-100">
                         Refresh
@@ -1643,6 +1643,7 @@
         const AFFILIATE_COMMISSION_PER_PREMIUM = 10;
         const CHAPTER_KEY_COLLATOR = new Intl.Collator('ms', { numeric: true, sensitivity: 'base' });
         const QUIZ_LEVELS = { easy: 'Easy', medium: 'Medium', hard: 'Hard' };
+        const QUIZ_LEVEL_MARKS = { easy: 1, medium: 3, hard: 5 };
 
         // === ADMIN RECOVERY FIX ===
         // UID ini diambil daripada Firebase Realtime Database screenshot semasa kecemasan.
@@ -1713,6 +1714,7 @@
                 streak: Number(existing.streak || 1),
                 answeredCount: Number(existing.answeredCount || 0),
                 correctAnswerCount: Number(existing.correctAnswerCount || existing.totalCorrectAnswers || 0),
+                leaderboardScore: Number(existing.leaderboardScore || existing.quizMarks || existing.quizScore || 0),
                 createdAt: existing.createdAt || Date.now(),
                 lastActiveTimestamp: Date.now()
             };
@@ -1733,6 +1735,7 @@
                     schoolForm: profileData.schoolForm || "",
                     answeredCount: Number(profileData.answeredCount || 0),
                     correctAnswerCount: Number(profileData.correctAnswerCount || 0),
+                    leaderboardScore: Number(profileData.leaderboardScore || 0),
                     lastActiveTimestamp: Date.now()
                 };
                 try {
@@ -1810,6 +1813,15 @@
 
         function getQuizLevelLabel(level) {
             return QUIZ_LEVELS[normalizeQuizLevel(level)] || 'Easy';
+        }
+
+        function getQuizLevelMark(level) {
+            return QUIZ_LEVEL_MARKS[normalizeQuizLevel(level)] || 1;
+        }
+
+        function getQuizLevelMarkText(level) {
+            const mark = getQuizLevelMark(level);
+            return `${mark} markah / soalan`;
         }
 
         function getQuizLevelBadgeClass(level) {
@@ -2258,6 +2270,7 @@
                         schoolName: "",
                         schoolForm: "",
                         correctAnswerCount: 0,
+                        leaderboardScore: 0,
                         premium: false,
                         hasAccess: false,
                         role: "student"
@@ -3249,6 +3262,20 @@
                     <button onclick="backToQuizChapters()" class="text-gray-500 text-sm"><i class="fa-solid fa-arrow-left"></i> Pilih Bab</button>
                     <h3 class="text-lg font-bold text-slate-900 mt-3">${chapterName}</h3>
                     <p class="text-xs text-gray-500 mt-1">Pilih level quiz yang anda mahu jawab.</p>
+                    <div class="mt-3 grid grid-cols-3 gap-2 text-center">
+                        <div class="bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-xl p-2">
+                            <p class="text-[10px] font-extrabold uppercase">Easy</p>
+                            <p class="text-[11px] font-bold">1 markah</p>
+                        </div>
+                        <div class="bg-amber-50 text-amber-700 border border-amber-100 rounded-xl p-2">
+                            <p class="text-[10px] font-extrabold uppercase">Medium</p>
+                            <p class="text-[11px] font-bold">3 markah</p>
+                        </div>
+                        <div class="bg-red-50 text-red-700 border border-red-100 rounded-xl p-2">
+                            <p class="text-[10px] font-extrabold uppercase">Hard</p>
+                            <p class="text-[11px] font-bold">5 markah</p>
+                        </div>
+                    </div>
                 </div>
                 <div class="space-y-3">
             `;
@@ -3264,7 +3291,9 @@
                     : done
                         ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
                         : 'bg-white text-slate-900 border-gray-100 hover:border-soft-pink';
-                const scoreText = done ? `Skor: ${resultSnap.val().percent || 0}%` : `${quizCount} soalan`;
+                const markText = getQuizLevelMarkText(level);
+                const totalMarkText = `${quizCount * getQuizLevelMark(level)} markah maksimum`;
+                const scoreText = done ? `Skor: ${resultSnap.val().percent || 0}% • ${resultSnap.val().earnedMarks || 0} markah` : `${quizCount} soalan • ${markText} • ${totalMarkText}`;
 
                 html += `
                     <button ${disabled} onclick="startStandaloneQuiz('${formNum}', '${chKey}', '${level}')" class="w-full ${btnClass} border p-4 rounded-xl text-left font-bold text-sm flex justify-between items-center shadow-sm transition">
@@ -3328,6 +3357,7 @@
                 chapterName: getChapterDisplayName(formNum, chKey),
                 level: quizLevel,
                 levelLabel: getQuizLevelLabel(quizLevel),
+                markPerQuestion: getQuizLevelMark(quizLevel),
                 adminMode,
                 previousResultExists: !!previousResult
             };
@@ -3359,6 +3389,7 @@
                     <div>
                         <span class="bg-blue-100 text-blue-700 font-bold px-2.5 py-1 rounded-lg text-[10px] uppercase tracking-wider">${window.standaloneQuizContext.chapterName}</span>
                         <span class="ml-1 ${getQuizLevelBadgeClass(window.standaloneQuizContext.level)} font-bold px-2.5 py-1 rounded-lg text-[10px] uppercase tracking-wider">${window.standaloneQuizContext.levelLabel}</span>
+                        <span class="ml-1 bg-slate-100 text-slate-700 font-bold px-2.5 py-1 rounded-lg text-[10px] uppercase tracking-wider">${getQuizLevelMark(window.standaloneQuizContext.level)} markah / soalan</span>
                         ${lockedByPreviousAttempt ? '<span class="ml-1 bg-amber-100 text-amber-700 font-bold px-2.5 py-1 rounded-lg text-[10px] uppercase tracking-wider">Sudah dijawab</span>' : ''}
                         <p class="text-slate-900 font-bold text-sm mt-3 leading-relaxed">${q.soalan || ''}</p>
                         ${renderImageGallery(q.imageUrls, '')}
@@ -3560,11 +3591,20 @@
                     0
                 );
 
+                const leaderboardScore = Number(
+                    merged.leaderboardScore ||
+                    merged.quizMarks ||
+                    merged.quizScore ||
+                    merged.totalMarks ||
+                    0
+                );
+
                 await set(ref(db, `leaderboard/${currentUser.uid}`), {
                     uid: currentUser.uid,
                     displayName: getLeaderboardDisplayName(merged),
                     schoolName: merged.schoolName || merged.school || "",
                     schoolForm: merged.schoolForm || merged.formLevel || merged.form || "",
+                    leaderboardScore: leaderboardScore,
                     correctAnswerCount: correctAnswerCount,
                     answeredCount: answeredCount,
                     updatedAt: Date.now()
@@ -3589,17 +3629,17 @@
                 const raw = snap.exists() ? snap.val() : {};
                 const rows = Object.entries(raw || {})
                     .map(([uid, data]) => ({ uid, ...(data || {}) }))
-                    .filter(row => Number(row.correctAnswerCount || 0) > 0)
+                    .filter(row => Number(row.leaderboardScore || row.quizMarks || row.quizScore || 0) > 0)
                     .sort((a, b) => {
-                        const correctDiff = Number(b.correctAnswerCount || 0) - Number(a.correctAnswerCount || 0);
-                        if(correctDiff !== 0) return correctDiff;
-                        return Number(b.answeredCount || 0) - Number(a.answeredCount || 0);
+                        const scoreDiff = Number(b.leaderboardScore || b.quizMarks || b.quizScore || 0) - Number(a.leaderboardScore || a.quizMarks || a.quizScore || 0);
+                        if(scoreDiff !== 0) return scoreDiff;
+                        return Number(b.updatedAt || 0) - Number(a.updatedAt || 0);
                     });
 
                 if(rows.length === 0) {
                     box.innerHTML = `
                         <div class="text-center text-xs text-gray-400 py-5 bg-slate-50 rounded-xl border border-gray-100">
-                            Belum ada ranking. Jawab quiz dan tekan Lihat Result untuk masuk leaderboard.
+                            Belum ada markah lagi. Jawab quiz dengan betul dan tekan Lihat Result untuk masuk leaderboard.
                         </div>
                     `;
                     return;
@@ -3612,8 +3652,7 @@
                     const name = row.displayName || 'Pelajar';
                     const school = row.schoolName || 'Sekolah belum diisi';
                     const form = row.schoolForm || 'Tingkatan belum diisi';
-                    const correct = Number(row.correctAnswerCount || 0);
-                    const answered = Number(row.answeredCount || 0);
+                    const marks = Number(row.leaderboardScore || row.quizMarks || row.quizScore || 0);
 
                     return `
                         <div class="${isMe ? 'bg-pink-50 border-pink-200' : 'bg-white border-gray-100'} border rounded-2xl p-3 flex items-center gap-3 shadow-sm">
@@ -3628,8 +3667,8 @@
                                 <p class="text-[11px] text-gray-500 truncate">${school} • ${form}</p>
                             </div>
                             <div class="text-right shrink-0">
-                                <p class="text-lg font-extrabold text-neon-green">${correct}</p>
-                                <p class="text-[10px] text-gray-400">betul / ${answered} jawab</p>
+                                <p class="text-lg font-extrabold text-neon-green">${marks}</p>
+                                <p class="text-[10px] text-gray-400">markah</p>
                             </div>
                         </div>
                     `;
@@ -3669,7 +3708,7 @@
                 if(weakEl) weakEl.innerText = updates.weakestTopic || 'Tiada data lagi';
             }
 
-            if(Object.prototype.hasOwnProperty.call(updates, 'correctAnswerCount')) {
+            if(Object.prototype.hasOwnProperty.call(updates, 'correctAnswerCount') || Object.prototype.hasOwnProperty.call(updates, 'leaderboardScore')) {
                 loadLeaderboard();
             }
         }
@@ -3705,6 +3744,9 @@
                 const percent = Math.round((correctCount / questions.length) * 100);
                 const wrongAnswers = answers.filter(a => !a.correct);
                 const ctx = window.standaloneQuizContext || {};
+                const markPerQuestion = getQuizLevelMark(ctx.level);
+                const earnedMarks = correctCount * markPerQuestion;
+                const totalPossibleMarks = questions.length * markPerQuestion;
 
                 const resultData = {
                     formNum: ctx.formNum,
@@ -3716,6 +3758,9 @@
                     correct: correctCount,
                     wrong: wrongAnswers.length,
                     percent,
+                    markPerQuestion,
+                    earnedMarks,
+                    totalPossibleMarks,
                     answers,
                     wrongAnswers,
                     completedAt: Date.now(),
@@ -3744,8 +3789,10 @@
 
                         if(!ctx.previousResultExists) {
                             updates.correctAnswerCount = Number(udata.correctAnswerCount || udata.totalCorrectAnswers || 0) + correctCount;
+                            updates.leaderboardScore = Number(udata.leaderboardScore || udata.quizMarks || udata.quizScore || 0) + earnedMarks;
                         } else {
                             updates.correctAnswerCount = Number(udata.correctAnswerCount || udata.totalCorrectAnswers || 0);
+                            updates.leaderboardScore = Number(udata.leaderboardScore || udata.quizMarks || udata.quizScore || 0);
                         }
 
                         if(!ctx.previousResultExists) {
@@ -3772,7 +3819,8 @@
                         const newlyAnswered = Number(window.standaloneQuizNewlyAnsweredCount || answers.length || questions.length || 0);
                         leaderboardUpdates = {
                             answeredCount: Number(baseProfile.answeredCount || 0) + newlyAnswered,
-                            correctAnswerCount: Number(baseProfile.correctAnswerCount || baseProfile.totalCorrectAnswers || 0) + correctCount
+                            correctAnswerCount: Number(baseProfile.correctAnswerCount || baseProfile.totalCorrectAnswers || 0) + correctCount,
+                            leaderboardScore: Number(baseProfile.leaderboardScore || baseProfile.quizMarks || baseProfile.quizScore || 0) + earnedMarks
                         };
                         refreshQuizStatsInUI(leaderboardUpdates);
                     }
@@ -3812,6 +3860,7 @@
                     <p class="text-xs text-gray-500 mt-1">${resultData.chapterName || ''} • ${resultData.levelLabel || getQuizLevelLabel(resultData.level)}</p>
                     <div class="text-4xl font-extrabold text-soft-pink my-4">${resultData.percent}%</div>
                     <p class="text-xs text-gray-600">Betul <strong>${resultData.correct}</strong> daripada <strong>${resultData.total}</strong> soalan.</p>
+                    <p class="text-xs text-gray-600 mt-1">Markah diperoleh: <strong>${resultData.earnedMarks || 0}</strong> / <strong>${resultData.totalPossibleMarks || 0}</strong> markah.</p>
                     <p class="text-xs mt-2 font-semibold ${resultData.percent >= 70 ? 'text-green-700' : 'text-red-700'}">${statusText}</p>
                 </div>
                 <div>
