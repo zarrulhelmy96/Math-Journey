@@ -1429,6 +1429,31 @@
                     <input type="text" id="adm-standalone-quiz-c" placeholder="Pilihan C" class="w-full border p-2 rounded-lg bg-white outline-none">
                     <input type="text" id="adm-standalone-quiz-d" placeholder="Pilihan D" class="w-full border p-2 rounded-lg bg-white outline-none">
                 </div>
+
+                <div class="bg-blue-50 border border-blue-100 rounded-xl p-3 space-y-3">
+                    <div>
+                        <label class="block font-bold text-blue-800 mb-1">Gambar Untuk Pilihan Jawapan A/B/C/D</label>
+                        <p class="text-[10px] text-blue-700 leading-relaxed">Optional. Admin boleh letak gambar kecil untuk setiap pilihan jawapan. Di bahagian user, gambar ini akan dipaparkan dalam saiz kecil supaya tidak terlalu besar.</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div class="bg-white border border-blue-100 rounded-lg p-2">
+                            <label class="block text-[10px] font-bold text-gray-600 mb-1">Gambar Pilihan A</label>
+                            <input type="file" id="adm-standalone-quiz-option-a-image-file" accept="image/jpeg, image/png, image/webp" class="w-full text-[10px]">
+                        </div>
+                        <div class="bg-white border border-blue-100 rounded-lg p-2">
+                            <label class="block text-[10px] font-bold text-gray-600 mb-1">Gambar Pilihan B</label>
+                            <input type="file" id="adm-standalone-quiz-option-b-image-file" accept="image/jpeg, image/png, image/webp" class="w-full text-[10px]">
+                        </div>
+                        <div class="bg-white border border-blue-100 rounded-lg p-2">
+                            <label class="block text-[10px] font-bold text-gray-600 mb-1">Gambar Pilihan C</label>
+                            <input type="file" id="adm-standalone-quiz-option-c-image-file" accept="image/jpeg, image/png, image/webp" class="w-full text-[10px]">
+                        </div>
+                        <div class="bg-white border border-blue-100 rounded-lg p-2">
+                            <label class="block text-[10px] font-bold text-gray-600 mb-1">Gambar Pilihan D</label>
+                            <input type="file" id="adm-standalone-quiz-option-d-image-file" accept="image/jpeg, image/png, image/webp" class="w-full text-[10px]">
+                        </div>
+                    </div>
+                </div>
                 <div>
                     <label class="block font-semibold text-gray-700 mb-1">Jawapan Betul (A/B/C/D)</label>
                     <input type="text" id="adm-standalone-quiz-jawapan" maxlength="1" placeholder="A" class="w-full border p-2.5 rounded-lg bg-white outline-none uppercase font-bold tracking-wider max-w-[100px]">
@@ -3343,7 +3368,15 @@
 
             ['A','B','C','D'].forEach(opt => {
                 const optText = q[opt.toLowerCase()] || '';
-                if(!optText) return;
+                const optionImageMap = q.optionImageUrls || q.optionImages || {};
+                const optImagesRaw = optionImageMap[opt] || optionImageMap[opt.toLowerCase()] || [];
+                const optImages = Array.isArray(optImagesRaw) ? optImagesRaw.filter(Boolean) : [];
+                if(!optText && optImages.length === 0) return;
+
+                const optionImageHtml = optImages.map((url, imgIndex) => `
+                    <img src="${url}" class="mt-2 w-full max-h-28 object-contain rounded-lg border border-gray-100 bg-white p-1" alt="Gambar pilihan ${opt} ${imgIndex + 1}">
+                `).join('');
+
                 let style = 'border-gray-200 bg-white text-slate-700 hover:bg-slate-50';
                 let icon = '';
 
@@ -3363,8 +3396,14 @@
                 }
 
                 html += `
-                    <button ${answered ? 'disabled' : ''} onclick="answerStandaloneQuiz('${opt}')" class="w-full text-left p-3 rounded-xl border ${style} transition text-xs flex items-center justify-between">
-                        <span><strong class="mr-1">${opt}.</strong> ${optText}</span>${icon}
+                    <button ${answered ? 'disabled' : ''} onclick="answerStandaloneQuiz('${opt}')" class="w-full text-left p-3 rounded-xl border ${style} transition text-xs">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="flex-1 min-w-0">
+                                <p><strong class="mr-1">${opt}.</strong> ${optText ? escapeHtml(optText) : `Pilihan ${opt}`}</p>
+                                ${optionImageHtml}
+                            </div>
+                            <span class="shrink-0 pt-0.5">${icon}</span>
+                        </div>
                     </button>
                 `;
             });
@@ -3432,6 +3471,7 @@
                 correctAnswer: q.jawapan,
                 correct: chosen === q.jawapan,
                 answerImageUrls: q.answerImageUrls || [],
+                optionImageUrls: q.optionImageUrls || q.optionImages || {},
                 answeredAt: Date.now()
             };
 
@@ -3856,18 +3896,33 @@
             const c = document.getElementById('adm-standalone-quiz-c').value.trim();
             const d = document.getElementById('adm-standalone-quiz-d').value.trim();
             const jawapan = document.getElementById('adm-standalone-quiz-jawapan').value.trim().toUpperCase();
+
+            const hasOptionAImage = (document.getElementById('adm-standalone-quiz-option-a-image-file')?.files?.length || 0) > 0;
+            const hasOptionBImage = (document.getElementById('adm-standalone-quiz-option-b-image-file')?.files?.length || 0) > 0;
+            const hasOptionCImage = (document.getElementById('adm-standalone-quiz-option-c-image-file')?.files?.length || 0) > 0;
+            const hasOptionDImage = (document.getElementById('adm-standalone-quiz-option-d-image-file')?.files?.length || 0) > 0;
+
             if(!formNum || !chKey) return alert('Sila pilih Tingkatan dan Bab.');
             if(!soalan) return alert('Sila taip soalan quiz.');
-            if(!a || !b || !c || !d) return alert('Sila isi semua pilihan jawapan A, B, C dan D.');
+            if(!a && !hasOptionAImage) return alert('Sila isi teks atau upload gambar untuk pilihan A.');
+            if(!b && !hasOptionBImage) return alert('Sila isi teks atau upload gambar untuk pilihan B.');
+            if(!c && !hasOptionCImage) return alert('Sila isi teks atau upload gambar untuk pilihan C.');
+            if(!d && !hasOptionDImage) return alert('Sila isi teks atau upload gambar untuk pilihan D.');
             if(!['A','B','C','D'].includes(jawapan)) return alert('Jawapan betul mesti A, B, C atau D.');
 
             try {
                 const imageUrls = await uploadMultipleFilesHelper('adm-standalone-quiz-image-file', 'standalone_quiz_questions');
                 const answerImageUrls = await uploadMultipleFilesHelper('adm-standalone-quiz-answer-image-file', 'standalone_quiz_answers');
+                const optionImageUrls = {
+                    A: await uploadMultipleFilesHelper('adm-standalone-quiz-option-a-image-file', 'standalone_quiz_option_answers/A'),
+                    B: await uploadMultipleFilesHelper('adm-standalone-quiz-option-b-image-file', 'standalone_quiz_option_answers/B'),
+                    C: await uploadMultipleFilesHelper('adm-standalone-quiz-option-c-image-file', 'standalone_quiz_option_answers/C'),
+                    D: await uploadMultipleFilesHelper('adm-standalone-quiz-option-d-image-file', 'standalone_quiz_option_answers/D')
+                };
                 const sortOrder = await getNextStandaloneQuizSortOrder(formNum, chKey, quizLevel);
                 const newRef = push(ref(db, `quizzes/${formNum}/${chKey}/${quizLevel}`));
                 await set(newRef, {
-                    soalan, imageUrls, a, b, c, d, jawapan, answerImageUrls,
+                    soalan, imageUrls, a, b, c, d, jawapan, answerImageUrls, optionImageUrls,
                     formNum, chapterKey: chKey,
                     chapterName: getChapterDisplayName(formNum, chKey),
                     level: quizLevel,
@@ -3877,7 +3932,7 @@
                     createdBy: currentUser?.uid || ''
                 });
                 alert(`Soalan quiz level ${getQuizLevelLabel(quizLevel)} berjaya diupload.`);
-                ['adm-standalone-quiz-soalan','adm-standalone-quiz-image-file','adm-standalone-quiz-a','adm-standalone-quiz-b','adm-standalone-quiz-c','adm-standalone-quiz-d','adm-standalone-quiz-jawapan','adm-standalone-quiz-answer-image-file'].forEach(id => {
+                ['adm-standalone-quiz-soalan','adm-standalone-quiz-image-file','adm-standalone-quiz-a','adm-standalone-quiz-b','adm-standalone-quiz-c','adm-standalone-quiz-d','adm-standalone-quiz-option-a-image-file','adm-standalone-quiz-option-b-image-file','adm-standalone-quiz-option-c-image-file','adm-standalone-quiz-option-d-image-file','adm-standalone-quiz-jawapan','adm-standalone-quiz-answer-image-file'].forEach(id => {
                     const el = document.getElementById(id);
                     if(el) el.value = '';
                 });
@@ -3930,6 +3985,11 @@
                     const shortQuestion = safeQuestion.length > 75 ? safeQuestion.substring(0, 75) + '...' : safeQuestion;
                     const questionImageCount = Array.isArray(q.imageUrls) ? q.imageUrls.length : 0;
                     const answerImageCount = Array.isArray(q.answerImageUrls) ? q.answerImageUrls.length : 0;
+                    const optionImageMap = q.optionImageUrls || q.optionImages || {};
+                    const optionImageCount = ['A','B','C','D'].reduce((sum, opt) => {
+                        const imgs = optionImageMap[opt] || optionImageMap[opt.toLowerCase()] || [];
+                        return sum + (Array.isArray(imgs) ? imgs.length : 0);
+                    }, 0);
                     const sourceBadge = sourceMode === 'legacy'
                         ? '<span class="bg-amber-100 text-amber-700 font-bold px-1.5 py-0.5 rounded">Legacy Easy</span>'
                         : `<span class="font-bold">${getQuizLevelLabel(quizLevel)}</span>`;
@@ -3938,7 +3998,7 @@
                             <div class="flex justify-between gap-3 items-start">
                                 <div class="flex-1">
                                     <p class="font-bold text-slate-800 leading-relaxed">${index + 1}. ${shortQuestion}</p>
-                                    <p class="text-[10px] text-gray-500 mt-1">Level: ${sourceBadge} | Jawapan betul: <span class="font-bold text-emerald-700">${escapeHtml(q.jawapan || '-')}</span> | Gambar soalan: ${questionImageCount} | Gambar jawapan: ${answerImageCount}</p>
+                                    <p class="text-[10px] text-gray-500 mt-1">Level: ${sourceBadge} | Jawapan betul: <span class="font-bold text-emerald-700">${escapeHtml(q.jawapan || '-')}</span> | Gambar soalan: ${questionImageCount} | Gambar pilihan: ${optionImageCount} | Gambar solusi: ${answerImageCount}</p>
                                 </div>
                                 <button onclick='deleteStandaloneQuizQuestion(${JSON.stringify(formNum)}, ${JSON.stringify(chKey)}, ${JSON.stringify(quizLevel)}, ${JSON.stringify(id)}, ${JSON.stringify(sourceMode)})' class="bg-red-50 text-red-600 font-bold px-3 py-1.5 rounded-lg text-[10px] hover:bg-red-100 transition">
                                     <i class="fa-solid fa-trash"></i> Padam
