@@ -3491,13 +3491,34 @@
         }
 
         async function updateLeaderboardEntryForCurrentUser(extraData = {}) {
-            if(!currentUser) return;
+            if(!currentUser) return false;
 
             try {
-                const userSnap = await get(ref(db, `users/${currentUser.uid}`));
-                const udata = userSnap.exists() ? userSnap.val() : (currentUserProfileData || {});
-                const merged = { ...(udata || {}), ...(currentUserProfileData || {}), ...(extraData || {}) };
-                const correctAnswerCount = Number(merged.correctAnswerCount || merged.totalCorrectAnswers || 0);
+                let udata = {};
+                try {
+                    const userSnap = await get(ref(db, `users/${currentUser.uid}`));
+                    udata = userSnap.exists() ? userSnap.val() : {};
+                } catch (profileReadErr) {
+                    console.warn('Leaderboard profile read skipped:', profileReadErr.message);
+                }
+
+                const merged = {
+                    ...(udata || {}),
+                    ...(currentUserProfileData || {}),
+                    ...(extraData || {})
+                };
+
+                const correctAnswerCount = Number(
+                    merged.correctAnswerCount ||
+                    merged.totalCorrectAnswers ||
+                    0
+                );
+
+                const answeredCount = Number(
+                    merged.answeredCount ||
+                    merged.totalAnswered ||
+                    0
+                );
 
                 await set(ref(db, `leaderboard/${currentUser.uid}`), {
                     uid: currentUser.uid,
@@ -3505,11 +3526,15 @@
                     schoolName: merged.schoolName || merged.school || "",
                     schoolForm: merged.schoolForm || merged.formLevel || merged.form || "",
                     correctAnswerCount: correctAnswerCount,
-                    answeredCount: Number(merged.answeredCount || 0),
+                    answeredCount: answeredCount,
                     updatedAt: Date.now()
                 });
+
+                loadLeaderboard();
+                return true;
             } catch (err) {
                 console.warn('Leaderboard update skipped:', err.message);
+                return false;
             }
         }
 
@@ -3534,7 +3559,7 @@
                 if(rows.length === 0) {
                     box.innerHTML = `
                         <div class="text-center text-xs text-gray-400 py-5 bg-slate-50 rounded-xl border border-gray-100">
-                            Belum ada ranking. Jawab quiz untuk masuk leaderboard.
+                            Belum ada ranking. Jawab quiz dan tekan Lihat Result untuk masuk leaderboard.
                         </div>
                     `;
                     return;
@@ -3668,6 +3693,7 @@
                         console.warn('Quiz result save skipped:', saveResultErr.message);
                     }
 
+                    let leaderboardUpdates = {};
                     try {
                         const userSnap = await get(ref(db, `users/${currentUser.uid}`));
                         const udata = userSnap.exists() ? userSnap.val() : {};
@@ -3693,12 +3719,25 @@
                         }
 
                         if(percent < 70) updates.weakestTopic = ctx.chapterName;
+
+                        leaderboardUpdates = updates;
                         await update(ref(db, `users/${currentUser.uid}`), updates);
                         refreshQuizStatsInUI(updates);
-                        await updateLeaderboardEntryForCurrentUser(updates);
                     } catch (statsErr) {
                         console.warn('Quiz stats update skipped:', statsErr.message);
+
+                        // Fallback: kalau rules block update users/{uid}/correctAnswerCount,
+                        // leaderboard tetap cuba update supaya ranking tidak kosong.
+                        const baseProfile = currentUserProfileData || {};
+                        const newlyAnswered = Number(window.standaloneQuizNewlyAnsweredCount || answers.length || questions.length || 0);
+                        leaderboardUpdates = {
+                            answeredCount: Number(baseProfile.answeredCount || 0) + newlyAnswered,
+                            correctAnswerCount: Number(baseProfile.correctAnswerCount || baseProfile.totalCorrectAnswers || 0) + correctCount
+                        };
+                        refreshQuizStatsInUI(leaderboardUpdates);
                     }
+
+                    await updateLeaderboardEntryForCurrentUser(leaderboardUpdates);
                 }
             } catch (err) {
                 console.error('finishStandaloneQuiz failed:', err);
