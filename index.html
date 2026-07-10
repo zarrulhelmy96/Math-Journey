@@ -1046,6 +1046,23 @@
                 <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Lencana Pencapaian</h3>
                 <div class="grid grid-cols-4 gap-2 text-center" id="dash-badges"></div>
             </div>
+
+            <div class="mb-6 bg-white p-4 rounded-2xl border border-pink-100 shadow-sm">
+                <div class="flex items-center justify-between mb-3">
+                    <div>
+                        <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                            <i class="fa-solid fa-ranking-star text-soft-pink"></i> Leaderboard Quiz
+                        </h3>
+                        <p class="text-[11px] text-gray-500 mt-1">Ranking berdasarkan jumlah jawapan quiz yang betul.</p>
+                    </div>
+                    <button onclick="loadLeaderboard()" class="text-[10px] font-bold bg-green-50 text-green-700 px-3 py-1.5 rounded-full border border-green-100">
+                        Refresh
+                    </button>
+                </div>
+                <div id="leaderboard-list" class="max-h-72 overflow-y-auto space-y-2 pr-1">
+                    <div class="text-center text-xs text-gray-400 py-4">Memuatkan leaderboard...</div>
+                </div>
+            </div>
         </section>
 
         <section id="view-levels" class="view p-5 hide">
@@ -1159,9 +1176,46 @@
                     <input type="tel" id="prof-phone" placeholder="Contoh: 0123456789" class="w-full border border-gray-200 p-2.5 rounded-lg text-sm focus:outline-none focus:border-soft-pink">
                     <p class="text-[10px] text-gray-400 mt-1">Nombor ini akan membantu admin hubungi anda tentang affiliate atau withdrawal.</p>
                 </div>
+                <div>
+                    <label class="block font-semibold text-gray-600 mb-1">Nama Sekolah</label>
+                    <input type="text" id="prof-school" placeholder="Contoh: SMK Math Journey" class="w-full border border-gray-200 p-2.5 rounded-lg text-sm focus:outline-none focus:border-soft-pink">
+                    <p class="text-[10px] text-gray-400 mt-1">Nama sekolah ini akan dipaparkan kepada leaderboard.</p>
+                </div>
+                <div>
+                    <label class="block font-semibold text-gray-600 mb-1">Tingkatan</label>
+                    <select id="prof-form-level" class="w-full border border-gray-200 p-2.5 rounded-lg text-sm bg-white focus:outline-none focus:border-soft-pink">
+                        <option value="">-- Pilih Tingkatan --</option>
+                        <option value="Tingkatan 1">Tingkatan 1</option>
+                        <option value="Tingkatan 2">Tingkatan 2</option>
+                        <option value="Tingkatan 3">Tingkatan 3</option>
+                        <option value="Tingkatan 4">Tingkatan 4</option>
+                        <option value="Tingkatan 5">Tingkatan 5</option>
+                    </select>
+                    <p class="text-[10px] text-gray-400 mt-1">Tingkatan ini akan dipaparkan kepada leaderboard.</p>
+                </div>
                 <button onclick="updateUserProfileData()" class="w-full bg-slate-900 text-white font-bold py-2.5 rounded-xl text-xs transition hover:bg-slate-800">
                     Kemas Kini Profil
                 </button>
+            </div>
+
+            <div class="bg-white border border-pink-100 p-4 rounded-xl space-y-3 mb-6 text-xs shadow-sm">
+                <h3 class="font-bold text-sm text-slate-800 border-b pb-2"><i class="fa-solid fa-lock text-soft-pink"></i> Tukar Password</h3>
+                <div>
+                    <label class="block font-semibold text-gray-600 mb-1">Password Semasa</label>
+                    <input type="password" id="prof-current-password" placeholder="Masukkan password semasa" class="w-full border border-gray-200 p-2.5 rounded-lg text-sm focus:outline-none focus:border-soft-pink">
+                </div>
+                <div>
+                    <label class="block font-semibold text-gray-600 mb-1">Password Baru</label>
+                    <input type="password" id="prof-new-password" placeholder="Minimal 6 aksara" class="w-full border border-gray-200 p-2.5 rounded-lg text-sm focus:outline-none focus:border-soft-pink">
+                </div>
+                <div>
+                    <label class="block font-semibold text-gray-600 mb-1">Sahkan Password Baru</label>
+                    <input type="password" id="prof-confirm-new-password" placeholder="Masukkan password baru sekali lagi" class="w-full border border-gray-200 p-2.5 rounded-lg text-sm focus:outline-none focus:border-soft-pink">
+                </div>
+                <button onclick="handleChangePassword()" class="w-full btn-primary font-bold py-2.5 rounded-xl text-xs transition">
+                    Tukar Password
+                </button>
+                <p class="text-[10px] text-gray-400 leading-relaxed">Untuk keselamatan, sistem akan semak password semasa sebelum password baru disimpan.</p>
             </div>
 
             <div class="bg-slate-900 text-white p-5 rounded-2xl mb-6">
@@ -1532,7 +1586,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail, sendEmailVerification, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-auth.js";
         import { getDatabase, ref, set, get, child, push, remove, update, runTransaction, onValue } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-database.js";
         import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-storage.js";
 
@@ -1624,6 +1678,8 @@
                 email: existing.email || email,
                 contactEmail: existing.contactEmail || existing.email || email,
                 phone: existing.phone || existing.phoneNumber || "",
+                schoolName: existing.schoolName || existing.school || "",
+                schoolForm: existing.schoolForm || existing.formLevel || existing.form || "",
                 fullname: existing.fullname || "Pelajar Baru",
                 nickname: existing.nickname || emailName,
                 premium: existing.premium === true,
@@ -1631,6 +1687,7 @@
                 role: existing.role || "student",
                 streak: Number(existing.streak || 1),
                 answeredCount: Number(existing.answeredCount || 0),
+                correctAnswerCount: Number(existing.correctAnswerCount || existing.totalCorrectAnswers || 0),
                 createdAt: existing.createdAt || Date.now(),
                 lastActiveTimestamp: Date.now()
             };
@@ -1647,7 +1704,10 @@
                     nickname: profileData.nickname || "Pelajar",
                     contactEmail: profileData.contactEmail || profileData.email || "",
                     phone: profileData.phone || "",
+                    schoolName: profileData.schoolName || "",
+                    schoolForm: profileData.schoolForm || "",
                     answeredCount: Number(profileData.answeredCount || 0),
+                    correctAnswerCount: Number(profileData.correctAnswerCount || 0),
                     lastActiveTimestamp: Date.now()
                 };
                 try {
@@ -1917,6 +1977,10 @@
                 const profPhoneEl = document.getElementById('prof-phone');
                 if(profContactEmailEl) profContactEmailEl.value = udata.contactEmail || udata.email || currentUser.email || "";
                 if(profPhoneEl) profPhoneEl.value = udata.phone || udata.phoneNumber || "";
+                const profSchoolEl = document.getElementById('prof-school');
+                const profFormLevelEl = document.getElementById('prof-form-level');
+                if(profSchoolEl) profSchoolEl.value = udata.schoolName || udata.school || "";
+                if(profFormLevelEl) profFormLevelEl.value = udata.schoolForm || udata.formLevel || udata.form || "";
                 document.getElementById('prof-completed-count').innerText = `${udata.completedChaptersCount || 0} Bab`;
                 document.getElementById('prof-avg-score').innerText = `${udata.averageQuizScore || 0}%`;
                 document.getElementById('prof-weakest-topic').innerText = udata.weakestTopic || "Tiada data lagi";
@@ -1925,7 +1989,8 @@
 
                 renderBadges(udata.badges || {});
                 
-                const announceSnap = await get(ref(db, 'announcement'));
+                
+                loadLeaderboard();const announceSnap = await get(ref(db, 'announcement'));
                 if(announceSnap.exists() && announceSnap.val().trim() !== "") {
                     document.getElementById('dash-announcement-text').innerText = announceSnap.val();
                     document.getElementById('dash-announcement-box').classList.remove('hide');
@@ -2165,6 +2230,9 @@
                         phone: "",
                         fullname: "Pelajar Baru",
                         nickname: (newUser.email || 'pelajar').split('@')[0],
+                        schoolName: "",
+                        schoolForm: "",
+                        correctAnswerCount: 0,
                         premium: false,
                         hasAccess: false,
                         role: "student"
@@ -3418,6 +3486,98 @@
             document.getElementById('quiz-answer-modal').classList.add('hide');
         };
 
+        function getLeaderboardDisplayName(userData = {}) {
+            return (userData.nickname || userData.fullname || userData.email || 'Pelajar').toString().trim();
+        }
+
+        async function updateLeaderboardEntryForCurrentUser(extraData = {}) {
+            if(!currentUser) return;
+
+            try {
+                const userSnap = await get(ref(db, `users/${currentUser.uid}`));
+                const udata = userSnap.exists() ? userSnap.val() : (currentUserProfileData || {});
+                const merged = { ...(udata || {}), ...(currentUserProfileData || {}), ...(extraData || {}) };
+                const correctAnswerCount = Number(merged.correctAnswerCount || merged.totalCorrectAnswers || 0);
+
+                await set(ref(db, `leaderboard/${currentUser.uid}`), {
+                    uid: currentUser.uid,
+                    displayName: getLeaderboardDisplayName(merged),
+                    schoolName: merged.schoolName || merged.school || "",
+                    schoolForm: merged.schoolForm || merged.formLevel || merged.form || "",
+                    correctAnswerCount: correctAnswerCount,
+                    answeredCount: Number(merged.answeredCount || 0),
+                    updatedAt: Date.now()
+                });
+            } catch (err) {
+                console.warn('Leaderboard update skipped:', err.message);
+            }
+        }
+
+        window.loadLeaderboard = async function() {
+            const box = document.getElementById('leaderboard-list');
+            if(!box) return;
+
+            box.innerHTML = '<div class="text-center text-xs text-gray-400 py-4">Memuatkan leaderboard...</div>';
+
+            try {
+                const snap = await get(ref(db, 'leaderboard'));
+                const raw = snap.exists() ? snap.val() : {};
+                const rows = Object.entries(raw || {})
+                    .map(([uid, data]) => ({ uid, ...(data || {}) }))
+                    .filter(row => Number(row.correctAnswerCount || 0) > 0)
+                    .sort((a, b) => {
+                        const correctDiff = Number(b.correctAnswerCount || 0) - Number(a.correctAnswerCount || 0);
+                        if(correctDiff !== 0) return correctDiff;
+                        return Number(b.answeredCount || 0) - Number(a.answeredCount || 0);
+                    });
+
+                if(rows.length === 0) {
+                    box.innerHTML = `
+                        <div class="text-center text-xs text-gray-400 py-5 bg-slate-50 rounded-xl border border-gray-100">
+                            Belum ada ranking. Jawab quiz untuk masuk leaderboard.
+                        </div>
+                    `;
+                    return;
+                }
+
+                box.innerHTML = rows.map((row, index) => {
+                    const rank = index + 1;
+                    const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
+                    const isMe = currentUser && row.uid === currentUser.uid;
+                    const name = row.displayName || 'Pelajar';
+                    const school = row.schoolName || 'Sekolah belum diisi';
+                    const form = row.schoolForm || 'Tingkatan belum diisi';
+                    const correct = Number(row.correctAnswerCount || 0);
+                    const answered = Number(row.answeredCount || 0);
+
+                    return `
+                        <div class="${isMe ? 'bg-pink-50 border-pink-200' : 'bg-white border-gray-100'} border rounded-2xl p-3 flex items-center gap-3 shadow-sm">
+                            <div class="w-10 h-10 rounded-2xl ${rank <= 3 ? 'bg-amber-50 text-amber-700' : 'bg-slate-50 text-slate-600'} flex items-center justify-center font-extrabold text-sm shrink-0">
+                                ${medal}
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-1">
+                                    <p class="font-extrabold text-sm text-slate-900 truncate">${name}</p>
+                                    ${isMe ? '<span class="text-[9px] font-bold bg-soft-pink text-soft-pink px-2 py-0.5 rounded-full">Anda</span>' : ''}
+                                </div>
+                                <p class="text-[11px] text-gray-500 truncate">${school} • ${form}</p>
+                            </div>
+                            <div class="text-right shrink-0">
+                                <p class="text-lg font-extrabold text-neon-green">${correct}</p>
+                                <p class="text-[10px] text-gray-400">betul / ${answered} jawab</p>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (err) {
+                box.innerHTML = `
+                    <div class="text-center text-xs text-red-500 py-5 bg-red-50 rounded-xl border border-red-100">
+                        Ralat load leaderboard: ${err.message}
+                    </div>
+                `;
+            }
+        };
+
         function refreshQuizStatsInUI(updates = {}) {
             // Refresh nombor di dashboard/profile tanpa panggil semula checkUserPremiumAndLoadDashboard().
             // Kalau panggil function penuh itu semasa view quiz terbuka, ia akan trigger loadQuizChaptersForUser()
@@ -3442,6 +3602,10 @@
             if(Object.prototype.hasOwnProperty.call(updates, 'weakestTopic')) {
                 const weakEl = document.getElementById('prof-weakest-topic');
                 if(weakEl) weakEl.innerText = updates.weakestTopic || 'Tiada data lagi';
+            }
+
+            if(Object.prototype.hasOwnProperty.call(updates, 'correctAnswerCount')) {
+                loadLeaderboard();
             }
         }
 
@@ -3513,6 +3677,12 @@
                         };
 
                         if(!ctx.previousResultExists) {
+                            updates.correctAnswerCount = Number(udata.correctAnswerCount || udata.totalCorrectAnswers || 0) + correctCount;
+                        } else {
+                            updates.correctAnswerCount = Number(udata.correctAnswerCount || udata.totalCorrectAnswers || 0);
+                        }
+
+                        if(!ctx.previousResultExists) {
                             const previousCompleted = Number(udata.completedChaptersCount || 0);
                             const previousAvg = Number(udata.averageQuizScore || 0);
                             const newCompleted = previousCompleted + 1;
@@ -3525,6 +3695,7 @@
                         if(percent < 70) updates.weakestTopic = ctx.chapterName;
                         await update(ref(db, `users/${currentUser.uid}`), updates);
                         refreshQuizStatsInUI(updates);
+                        await updateLeaderboardEntryForCurrentUser(updates);
                     } catch (statsErr) {
                         console.warn('Quiz stats update skipped:', statsErr.message);
                     }
@@ -4226,24 +4397,77 @@
             }
         };
 
-        window.updateUserProfileData = function() {
+        window.updateUserProfileData = async function() {
             if(!currentUser) return;
             const fullname = document.getElementById('prof-fullname').value.trim();
             const nickname = document.getElementById('prof-nickname').value.trim();
             const contactEmail = (document.getElementById('prof-contact-email')?.value || '').trim() || currentUser.email;
             const phone = (document.getElementById('prof-phone')?.value || '').trim();
+            const schoolName = (document.getElementById('prof-school')?.value || '').trim();
+            const schoolForm = (document.getElementById('prof-form-level')?.value || '').trim();
 
             if(!fullname || !nickname) return alert("Sila isi semua ruangan nama.");
 
-            update(ref(db, `users/${currentUser.uid}`), {
+            const profileUpdates = {
                 fullname: fullname,
                 nickname: nickname,
                 contactEmail: contactEmail,
-                phone: phone
-            }).then(() => {
+                phone: phone,
+                schoolName: schoolName,
+                schoolForm: schoolForm
+            };
+
+            try {
+                await update(ref(db, `users/${currentUser.uid}`), profileUpdates);
+                currentUserProfileData = { ...(currentUserProfileData || {}), ...profileUpdates };
+                await updateLeaderboardEntryForCurrentUser(profileUpdates);
                 alert("Profil anda berjaya dikemaskini!");
                 checkUserPremiumAndLoadDashboard();
-            }).catch(e => alert(e.message));
+            } catch(e) {
+                alert(e.message);
+            }
+        };
+
+        window.handleChangePassword = async function() {
+            if(!currentUser || !currentUser.email) return alert("Sila login semula dahulu.");
+
+            const currentPassword = (document.getElementById('prof-current-password')?.value || '').trim();
+            const newPassword = (document.getElementById('prof-new-password')?.value || '').trim();
+            const confirmNewPassword = (document.getElementById('prof-confirm-new-password')?.value || '').trim();
+
+            if(!currentPassword || !newPassword || !confirmNewPassword) {
+                return alert("Sila isi password semasa, password baru dan sahkan password baru.");
+            }
+
+            if(newPassword.length < 6) {
+                return alert("Password baru mesti sekurang-kurangnya 6 aksara.");
+            }
+
+            if(newPassword !== confirmNewPassword) {
+                return alert("Password baru dan pengesahan password tidak sama.");
+            }
+
+            try {
+                const credential = EmailAuthProvider.credential(currentUser.email, currentPassword);
+                await reauthenticateWithCredential(currentUser, credential);
+                await updatePassword(currentUser, newPassword);
+
+                document.getElementById('prof-current-password').value = '';
+                document.getElementById('prof-new-password').value = '';
+                document.getElementById('prof-confirm-new-password').value = '';
+
+                alert("Password berjaya ditukar. Sila simpan password baru anda.");
+            } catch(e) {
+                let msg = e.message;
+                if(e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential') {
+                    msg = "Password semasa tidak betul.";
+                } else if(e.code === 'auth/weak-password') {
+                    msg = "Password baru terlalu lemah. Guna sekurang-kurangnya 6 aksara.";
+                } else if(e.code === 'auth/requires-recent-login') {
+                    msg = "Untuk keselamatan, sila log out dan log in semula sebelum tukar password.";
+                }
+                alert("Gagal tukar password: " + msg);
+            }
         };
 
         window.handleContactSubmit = function() {
