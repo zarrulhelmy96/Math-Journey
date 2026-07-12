@@ -3647,6 +3647,8 @@
             window.standaloneQuizAnsweredCurrent = !!answered;
             const isFirst = idx === 0;
             const isLast = idx === window.standaloneQuizQuestions.length - 1;
+            const isAdminPreview = !!window.standaloneQuizContext?.adminMode;
+            const canNavigateNext = answered || isAdminPreview;
 
             let html = `
                 <div class="flex justify-between items-center text-xs text-gray-400 font-bold">
@@ -3711,9 +3713,9 @@
 
             if(!answered) {
                 html += `
-                    <div class="p-3 rounded-xl border bg-blue-50 text-blue-700 border-blue-100">
-                        <p class="font-bold">${selectedChoice ? `Pilihan anda: ${selectedChoice}. Tekan Confirm untuk lock jawapan.` : 'Pilih satu jawapan, kemudian tekan Confirm.'}</p>
-                        <button onclick="confirmStandaloneQuizAnswer()" ${selectedChoice ? '' : 'disabled'} class="mt-2 ${selectedChoice ? 'bg-slate-900 text-white hover:bg-slate-800' : 'bg-gray-100 text-gray-300 cursor-not-allowed'} text-[11px] font-bold px-4 py-2 rounded-lg transition">Confirm</button>
+                    <div class="p-3 rounded-xl border ${isAdminPreview ? 'bg-amber-50 text-amber-700 border-amber-100' : 'bg-blue-50 text-blue-700 border-blue-100'}">
+                        <p class="font-bold">${isAdminPreview ? 'Admin preview: anda boleh tekan Back / Next tanpa jawab soalan.' : (selectedChoice ? `Pilihan anda: ${selectedChoice}. Tekan Confirm untuk lock jawapan.` : 'Pilih satu jawapan, kemudian tekan Confirm.')}</p>
+                        ${isAdminPreview ? '' : `<button onclick="confirmStandaloneQuizAnswer()" ${selectedChoice ? '' : 'disabled'} class="mt-2 ${selectedChoice ? 'bg-slate-900 text-white hover:bg-slate-800' : 'bg-gray-100 text-gray-300 cursor-not-allowed'} text-[11px] font-bold px-4 py-2 rounded-lg transition">Confirm</button>`}
                     </div>
                 `;
             }
@@ -3733,7 +3735,7 @@
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <button onclick="navigateStandaloneQuiz('back')" ${isFirst ? 'disabled' : ''} class="${isFirst ? 'bg-gray-100 text-gray-300' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'} font-bold py-3 rounded-xl transition">← Back</button>
-                    <button onclick="navigateStandaloneQuiz('next')" ${answered ? '' : 'disabled'} class="${answered ? 'btn-primary' : 'bg-gray-100 text-gray-300 cursor-not-allowed'} font-bold py-3 rounded-xl transition">${isLast ? 'Lihat Result' : 'Next →'}</button>
+                    <button onclick="navigateStandaloneQuiz('next')" ${canNavigateNext ? '' : 'disabled'} class="${canNavigateNext ? 'btn-primary' : 'bg-gray-100 text-gray-300 cursor-not-allowed'} font-bold py-3 rounded-xl transition">${isLast ? (isAdminPreview ? 'Selesai Preview' : 'Lihat Result') : 'Next →'}</button>
                 </div>
             `;
             runner.innerHTML = html;
@@ -3792,7 +3794,9 @@
                 return;
             }
 
-            if(!window.standaloneQuizAnswers[window.standaloneQuizIndex]) {
+            const isAdminPreview = !!window.standaloneQuizContext?.adminMode;
+
+            if(!window.standaloneQuizAnswers[window.standaloneQuizIndex] && !isAdminPreview) {
                 alert('Sila jawab soalan ini dahulu sebelum pergi ke soalan seterusnya.');
                 return;
             }
@@ -3801,6 +3805,8 @@
                 window.standaloneQuizIndex++;
                 window.standaloneQuizSelectedChoice = null;
                 renderStandaloneQuizQuestion();
+            } else if(isAdminPreview) {
+                backToQuizPicker();
             } else {
                 try {
                     await finishStandaloneQuiz();
@@ -4136,7 +4142,7 @@
                     <div class="space-y-2">${wrongHtml}</div>
                 </div>
                 <div class="grid grid-cols-1 gap-2">
-                    <button onclick="retryStandaloneQuiz()" class="w-full btn-primary font-bold py-3 rounded-xl text-sm">Cuba Lagi</button>
+                    <button onclick="retryStandaloneQuiz()" class="w-full btn-primary font-bold py-3 rounded-xl text-sm">Semak Jawapan</button>
                     <button onclick="backToQuizPicker()" class="w-full bg-slate-900 text-white font-bold py-3 rounded-xl text-sm">Kembali ke Senarai Quiz</button>
                 </div>
             `;
