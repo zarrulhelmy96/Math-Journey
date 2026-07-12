@@ -627,6 +627,27 @@
             transform: translateY(-1px);
         }
 
+        .quiz-fraction {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            vertical-align: middle;
+            margin: 0 0.12rem;
+            font-weight: 800;
+            line-height: 1.05;
+            min-width: 1.1rem;
+        }
+        .quiz-fraction .frac-top {
+            display: block;
+            border-bottom: 2px solid currentColor;
+            padding: 0 0.22rem 0.08rem;
+        }
+        .quiz-fraction .frac-bottom {
+            display: block;
+            padding: 0.08rem 0.22rem 0;
+        }
+
     </style>
 </head>
 <body class="text-slate-800 antialiased">
@@ -1480,8 +1501,15 @@
                         <button type="button" onclick="insertQuizMathSymbol('x²')" class="math-symbol-btn">x²</button>
                         <button type="button" onclick="insertQuizMathSymbol('cm²')" class="math-symbol-btn">cm²</button>
                         <button type="button" onclick="insertQuizMathSymbol('m³')" class="math-symbol-btn">m³</button>
+                        <button type="button" onclick="insertQuizFraction()" class="math-symbol-btn col-span-2 bg-pink-50">Pecahan</button>
+                        <button type="button" onclick="insertQuizMathSymbol('⅓')" class="math-symbol-btn">⅓</button>
+                        <button type="button" onclick="insertQuizMathSymbol('⅔')" class="math-symbol-btn">⅔</button>
+                        <button type="button" onclick="insertQuizMathSymbol('⅕')" class="math-symbol-btn">⅕</button>
+                        <button type="button" onclick="insertQuizMathSymbol('⅖')" class="math-symbol-btn">⅖</button>
+                        <button type="button" onclick="insertQuizMathSymbol('⅗')" class="math-symbol-btn">⅗</button>
+                        <button type="button" onclick="insertQuizMathSymbol('⅘')" class="math-symbol-btn">⅘</button>
                     </div>
-                    <p class="text-[10px] text-gray-500 leading-relaxed">Untuk formula panjang atau pecahan bertingkat, masih boleh guna gambar pilihan jawapan A/B/C/D.</p>
+                    <p class="text-[10px] text-gray-500 leading-relaxed">Tekan <strong>Pecahan</strong> untuk buat pecahan bertingkat seperti 3 atas 5. Untuk formula yang sangat panjang, masih boleh guna gambar pilihan jawapan A/B/C/D.</p>
                 </div>
 
                 <div class="bg-blue-50 border border-blue-100 rounded-xl p-3 space-y-3">
@@ -1915,6 +1943,39 @@
             const newCursorPos = start + symbol.length;
             target.focus();
             target.setSelectionRange(newCursorPos, newCursorPos);
+        };
+
+        window.insertQuizFraction = function() {
+            const target = window.currentMathKeyboardTarget;
+            if(!target || !['INPUT', 'TEXTAREA'].includes(target.tagName)) {
+                alert('Klik dulu kotak soalan atau pilihan jawapan A/B/C/D, kemudian tekan Pecahan.');
+                return;
+            }
+
+            const numerator = prompt('Masukkan pengangka pecahan. Contoh: 3 atau x + 1');
+            if(numerator === null) return;
+
+            const denominator = prompt('Masukkan penyebut pecahan. Contoh: 5 atau x - 2');
+            if(denominator === null) return;
+
+            const top = numerator.trim();
+            const bottom = denominator.trim();
+
+            if(!top || !bottom) {
+                alert('Pengangka dan penyebut tidak boleh kosong.');
+                return;
+            }
+
+            insertQuizMathSymbol(`[[frac:${top}:${bottom}]]`);
+        };
+
+        function renderQuizMathText(rawText = '') {
+            const escaped = escapeHtml((rawText || '').toString());
+            return escaped
+                .replace(/\[\[frac:([^:\]]+):([^\]]+)\]\]/g, (match, numerator, denominator) => {
+                    return `<span class="quiz-fraction"><span class="frac-top">${numerator}</span><span class="frac-bottom">${denominator}</span></span>`;
+                })
+                .replace(/\n/g, '<br>');
         };
 
         function getQuizQuestionSortValue(q = {}, fallbackIndex = 0) {
@@ -3477,7 +3538,7 @@
                         <span class="ml-1 ${getQuizLevelBadgeClass(window.standaloneQuizContext.level)} font-bold px-2.5 py-1 rounded-lg text-[10px] uppercase tracking-wider">${window.standaloneQuizContext.levelLabel}</span>
                         <span class="ml-1 bg-slate-100 text-slate-700 font-bold px-2.5 py-1 rounded-lg text-[10px] uppercase tracking-wider">${getQuizLevelMark(window.standaloneQuizContext.level)} markah / soalan</span>
                         ${lockedByPreviousAttempt ? '<span class="ml-1 bg-amber-100 text-amber-700 font-bold px-2.5 py-1 rounded-lg text-[10px] uppercase tracking-wider">Sudah dijawab</span>' : ''}
-                        <p class="text-slate-900 font-bold text-sm mt-3 leading-relaxed">${q.soalan || ''}</p>
+                        <p class="text-slate-900 font-bold text-base mt-3 leading-relaxed">${renderQuizMathText(q.soalan || '')}</p>
                         ${renderImageGallery(q.imageUrls, '')}
                     </div>
                     <div class="grid grid-cols-1 gap-2 pt-1">
@@ -3516,7 +3577,7 @@
                     <button ${answered ? 'disabled' : ''} onclick="answerStandaloneQuiz('${opt}')" class="w-full text-left p-4 rounded-xl border ${style} transition text-base">
                         <div class="flex items-start justify-between gap-3">
                             <div class="flex-1 min-w-0">
-                                <p class="text-base md:text-lg leading-relaxed"><strong class="mr-1">${opt}.</strong> ${optText ? escapeHtml(optText) : `Pilihan ${opt}`}</p>
+                                <p class="text-base md:text-lg leading-relaxed"><strong class="mr-1">${opt}.</strong> ${optText ? renderQuizMathText(optText) : `Pilihan ${opt}`}</p>
                                 ${optionImageHtml}
                             </div>
                             <span class="shrink-0 pt-0.5">${icon}</span>
@@ -3932,7 +3993,7 @@
                 ? '<p class="text-xs text-green-700 bg-green-50 border border-green-100 rounded-xl p-3 font-bold">Semua jawapan betul. Mantap! 🎉</p>'
                 : (resultData.wrongAnswers || []).map((a, i) => `
                     <div class="bg-red-50 border border-red-100 rounded-xl p-3 text-xs text-left">
-                        <p class="font-bold text-red-800">${i + 1}. ${a.question || 'Soalan'}</p>
+                        <p class="font-bold text-red-800">${i + 1}. ${renderQuizMathText(a.question || 'Soalan')}</p>
                         <p class="mt-1 text-red-700">Jawapan anda: <strong>${a.chosen}</strong></p>
                         <p class="text-green-700">Jawapan betul: <strong>${a.correctAnswer}</strong></p>
                     </div>
