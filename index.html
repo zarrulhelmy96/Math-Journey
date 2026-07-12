@@ -1542,6 +1542,88 @@
                     <p class="text-[10px] text-gray-500 leading-relaxed">Panel ini berfungsi sebagai <strong>scientific math keyboard</strong> untuk tulis soalan dan pilihan jawapan, bukan untuk kira automatik. Tekan <strong>xⁿ</strong> untuk letak kuasa bebas seperti 5, 6, 7 atau x+1. Tekan <strong>Pecahan</strong> untuk buat pecahan bertingkat. Untuk formula yang sangat panjang, masih boleh guna gambar pilihan jawapan A/B/C/D.</p>
                 </div>
 
+                <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-3 space-y-3">
+                    <div class="flex items-start justify-between gap-2">
+                        <div>
+                            <label class="block font-extrabold text-emerald-900 mb-1">
+                                <i class="fa-solid fa-pen-ruler"></i> Math Equation Builder
+                            </label>
+                            <p class="text-[10px] text-emerald-700 leading-relaxed">Bina equation di sini, tekan Build, kemudian copy dan paste ke bahagian Soalan Quiz atau pilihan jawapan.</p>
+                        </div>
+                        <button type="button" onclick="clearEquationBuilder()" class="text-[10px] font-bold bg-white border border-emerald-200 text-emerald-700 px-3 py-1.5 rounded-lg">Clear</button>
+                    </div>
+
+                    <textarea id="equation-builder-input" rows="2" onfocus="setEquationBuilderTarget(this)" class="w-full border border-emerald-200 bg-white rounded-xl p-2.5 text-base font-semibold outline-none focus:border-emerald-400" placeholder="Contoh: y = mx + c atau guna butang builder di bawah"></textarea>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <div class="bg-white border border-emerald-100 rounded-xl p-2 space-y-1">
+                            <p class="text-[10px] font-bold text-emerald-800">Pecahan</p>
+                            <input id="eq-frac-top" type="text" placeholder="Pengangka" class="w-full border p-2 rounded-lg text-xs">
+                            <input id="eq-frac-bottom" type="text" placeholder="Penyebut" class="w-full border p-2 rounded-lg text-xs">
+                            <button type="button" onclick="builderAddFraction()" class="w-full bg-emerald-600 text-white font-bold py-2 rounded-lg text-[10px]">Tambah Pecahan</button>
+                        </div>
+
+                        <div class="bg-white border border-emerald-100 rounded-xl p-2 space-y-1">
+                            <p class="text-[10px] font-bold text-emerald-800">Kuasa</p>
+                            <input id="eq-power-base" type="text" placeholder="Base, contoh x" class="w-full border p-2 rounded-lg text-xs">
+                            <input id="eq-power-value" type="text" placeholder="Kuasa, contoh 5" class="w-full border p-2 rounded-lg text-xs">
+                            <button type="button" onclick="builderAddPower()" class="w-full bg-emerald-600 text-white font-bold py-2 rounded-lg text-[10px]">Tambah Kuasa</button>
+                        </div>
+
+                        <div class="bg-white border border-emerald-100 rounded-xl p-2 space-y-1">
+                            <p class="text-[10px] font-bold text-emerald-800">Akar</p>
+                            <input id="eq-root-value" type="text" placeholder="Dalam akar, contoh 49" class="w-full border p-2 rounded-lg text-xs">
+                            <button type="button" onclick="builderAddRoot('square')" class="w-full bg-emerald-600 text-white font-bold py-2 rounded-lg text-[10px]">Tambah √</button>
+                            <button type="button" onclick="builderAddRoot('cube')" class="w-full bg-white border border-emerald-200 text-emerald-700 font-bold py-2 rounded-lg text-[10px]">Tambah ∛</button>
+                        </div>
+
+                        <div class="bg-white border border-emerald-100 rounded-xl p-2 space-y-1">
+                            <p class="text-[10px] font-bold text-emerald-800">Fungsi</p>
+                            <select id="eq-function-select" class="w-full border p-2 rounded-lg text-xs bg-white">
+                                <option value="sin">sin</option>
+                                <option value="cos">cos</option>
+                                <option value="tan">tan</option>
+                                <option value="log">log</option>
+                                <option value="ln">ln</option>
+                            </select>
+                            <input id="eq-function-value" type="text" placeholder="Input, contoh θ" class="w-full border p-2 rounded-lg text-xs">
+                            <button type="button" onclick="builderAddFunction()" class="w-full bg-emerald-600 text-white font-bold py-2 rounded-lg text-[10px]">Tambah Fungsi</button>
+                        </div>
+                    </div>
+
+                    <div class="bg-white border border-emerald-100 rounded-xl p-2">
+                        <p class="text-[10px] font-bold text-emerald-800 mb-2">Template Cepat</p>
+                        <div class="grid grid-cols-3 gap-1.5">
+                            <button type="button" onclick="builderAddText('y = mx + c')" class="math-symbol-btn">y=mx+c</button>
+                            <button type="button" onclick="builderAddText('a² + b² = c²')" class="math-symbol-btn">Pythagoras</button>
+                            <button type="button" onclick="builderAddText('A = πr²')" class="math-symbol-btn">Luas Bulatan</button>
+                            <button type="button" onclick="builderAddText('V = [[frac:4:3]]πr³')" class="math-symbol-btn">V Sfera</button>
+                            <button type="button" onclick="builderAddText('sin θ = [[frac:opposite:hypotenuse]]')" class="math-symbol-btn">sin θ</button>
+                            <button type="button" onclick="builderAddText('cos θ = [[frac:adjacent:hypotenuse]]')" class="math-symbol-btn">cos θ</button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <button type="button" onclick="buildEquationPreview()" class="bg-slate-900 text-white font-bold py-2.5 rounded-xl text-xs">Build Equation</button>
+                        <button type="button" onclick="copyBuiltEquation()" class="bg-soft-pink text-white font-bold py-2.5 rounded-xl text-xs">Copy Equation</button>
+                    </div>
+
+                    <div class="bg-white border border-emerald-100 rounded-xl p-3 space-y-2">
+                        <p class="text-[10px] font-bold text-gray-500 uppercase">Preview Equation</p>
+                        <div id="equation-builder-preview" class="min-h-[44px] rounded-lg bg-slate-50 border border-gray-100 p-3 text-lg font-bold text-slate-900 flex items-center">Belum build equation.</div>
+                        <p class="text-[10px] font-bold text-gray-500 uppercase mt-2">Text untuk copy</p>
+                        <textarea id="equation-builder-output" rows="2" readonly class="w-full border border-gray-200 rounded-lg p-2 text-xs bg-gray-50"></textarea>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button type="button" onclick="appendBuiltEquationToField('adm-standalone-quiz-soalan')" class="bg-blue-50 text-blue-700 border border-blue-100 font-bold py-2 rounded-lg text-[10px]">Masuk Soalan</button>
+                            <button type="button" onclick="appendBuiltEquationToField('adm-standalone-quiz-a')" class="bg-blue-50 text-blue-700 border border-blue-100 font-bold py-2 rounded-lg text-[10px]">Masuk A</button>
+                            <button type="button" onclick="appendBuiltEquationToField('adm-standalone-quiz-b')" class="bg-blue-50 text-blue-700 border border-blue-100 font-bold py-2 rounded-lg text-[10px]">Masuk B</button>
+                            <button type="button" onclick="appendBuiltEquationToField('adm-standalone-quiz-c')" class="bg-blue-50 text-blue-700 border border-blue-100 font-bold py-2 rounded-lg text-[10px]">Masuk C</button>
+                            <button type="button" onclick="appendBuiltEquationToField('adm-standalone-quiz-d')" class="bg-blue-50 text-blue-700 border border-blue-100 font-bold py-2 rounded-lg text-[10px]">Masuk D</button>
+                            <button type="button" onclick="copyBuiltEquation()" class="bg-green-50 text-green-700 border border-green-100 font-bold py-2 rounded-lg text-[10px]">Copy</button>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="bg-blue-50 border border-blue-100 rounded-xl p-3 space-y-3">
                     <div>
                         <label class="block font-bold text-blue-800 mb-1">Gambar Untuk Pilihan Jawapan A/B/C/D</label>
@@ -2035,6 +2117,118 @@
                     return `<span class="quiz-fraction"><span class="frac-top">${numerator}</span><span class="frac-bottom">${denominator}</span></span>`;
                 })
                 .replace(/\n/g, '<br>');
+        };
+
+        window.currentEquationBuilderTarget = null;
+
+        window.setEquationBuilderTarget = function(el) {
+            window.currentEquationBuilderTarget = el;
+        };
+
+        function insertTextAtElement(el, textToInsert) {
+            if(!el || !['INPUT', 'TEXTAREA'].includes(el.tagName)) return false;
+            const start = typeof el.selectionStart === 'number' ? el.selectionStart : el.value.length;
+            const end = typeof el.selectionEnd === 'number' ? el.selectionEnd : el.value.length;
+            const before = el.value.substring(0, start);
+            const after = el.value.substring(end);
+            el.value = before + textToInsert + after;
+            const newCursor = start + textToInsert.length;
+            el.focus();
+            el.setSelectionRange(newCursor, newCursor);
+            return true;
+        }
+
+        window.builderAddText = function(textToInsert) {
+            const input = document.getElementById('equation-builder-input');
+            insertTextAtElement(input, textToInsert);
+            buildEquationPreview();
+        };
+
+        window.builderAddFraction = function() {
+            const top = (document.getElementById('eq-frac-top')?.value || '').trim();
+            const bottom = (document.getElementById('eq-frac-bottom')?.value || '').trim();
+            if(!top || !bottom) return alert('Isi pengangka dan penyebut dahulu.');
+            builderAddText(`[[frac:${top}:${bottom}]]`);
+            document.getElementById('eq-frac-top').value = '';
+            document.getElementById('eq-frac-bottom').value = '';
+        };
+
+        window.builderAddPower = function() {
+            const base = (document.getElementById('eq-power-base')?.value || '').trim();
+            const power = (document.getElementById('eq-power-value')?.value || '').trim();
+            if(!base || !power) return alert('Isi base dan kuasa dahulu.');
+            builderAddText(`${base}${toSuperscriptText(power)}`);
+            document.getElementById('eq-power-base').value = '';
+            document.getElementById('eq-power-value').value = '';
+        };
+
+        window.builderAddRoot = function(type = 'square') {
+            const value = (document.getElementById('eq-root-value')?.value || '').trim();
+            if(!value) return alert('Isi nilai dalam akar dahulu.');
+            builderAddText(`${type === 'cube' ? '∛' : '√'}(${value})`);
+            document.getElementById('eq-root-value').value = '';
+        };
+
+        window.builderAddFunction = function() {
+            const fn = document.getElementById('eq-function-select')?.value || 'sin';
+            const value = (document.getElementById('eq-function-value')?.value || '').trim();
+            if(!value) return alert('Isi input fungsi dahulu.');
+            builderAddText(`${fn}(${value})`);
+            document.getElementById('eq-function-value').value = '';
+        };
+
+        window.buildEquationPreview = function() {
+            const input = document.getElementById('equation-builder-input');
+            const output = document.getElementById('equation-builder-output');
+            const preview = document.getElementById('equation-builder-preview');
+            const equation = (input?.value || '').trim();
+
+            if(output) output.value = equation;
+            if(preview) {
+                preview.innerHTML = equation
+                    ? renderQuizMathText(equation)
+                    : 'Belum build equation.';
+            }
+        };
+
+        window.copyBuiltEquation = async function() {
+            buildEquationPreview();
+            const output = document.getElementById('equation-builder-output');
+            const copyText = output?.value || '';
+            if(!copyText.trim()) return alert('Tiada equation untuk copy.');
+
+            try {
+                await navigator.clipboard.writeText(copyText);
+                alert('Equation berjaya dicopy.');
+            } catch (err) {
+                output.focus();
+                output.select();
+                document.execCommand('copy');
+                alert('Equation berjaya dicopy.');
+            }
+        };
+
+        window.appendBuiltEquationToField = function(fieldId) {
+            buildEquationPreview();
+            const equation = (document.getElementById('equation-builder-output')?.value || '').trim();
+            if(!equation) return alert('Build equation dahulu.');
+
+            const target = document.getElementById(fieldId);
+            if(!target) return alert('Target tidak dijumpai.');
+
+            insertTextAtElement(target, equation);
+            setMathKeyboardTarget(target);
+            alert('Equation dimasukkan.');
+        };
+
+        window.clearEquationBuilder = function() {
+            const ids = ['equation-builder-input','equation-builder-output','eq-frac-top','eq-frac-bottom','eq-power-base','eq-power-value','eq-root-value','eq-function-value'];
+            ids.forEach(id => {
+                const el = document.getElementById(id);
+                if(el) el.value = '';
+            });
+            const preview = document.getElementById('equation-builder-preview');
+            if(preview) preview.innerHTML = 'Belum build equation.';
         };
 
         function getQuizQuestionSortValue(q = {}, fallbackIndex = 0) {
