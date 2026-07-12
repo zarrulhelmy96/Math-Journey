@@ -1472,44 +1472,74 @@
                 <div class="bg-white border border-pink-100 rounded-xl p-3 space-y-2">
                     <div class="flex items-center justify-between gap-2">
                         <p class="text-[11px] font-extrabold text-slate-800">
-                            <i class="fa-solid fa-square-root-variable text-soft-pink"></i> Math Symbol Keyboard
+                            <i class="fa-solid fa-calculator text-soft-pink"></i> Scientific Math Keyboard
                         </p>
                         <p class="text-[10px] text-gray-500">Klik kotak jawapan, kemudian tekan simbol.</p>
                     </div>
                     <div class="grid grid-cols-8 gap-1.5">
-                        <button type="button" onclick="insertQuizMathSymbol('√')" class="math-symbol-btn">√</button>
-                        <button type="button" onclick="insertQuizMathSymbol('π')" class="math-symbol-btn">π</button>
-                        <button type="button" onclick="insertQuizMathSymbol('±')" class="math-symbol-btn">±</button>
+                        <button type="button" onclick="insertQuizMathSymbol('+')" class="math-symbol-btn">+</button>
+                        <button type="button" onclick="insertQuizMathSymbol('-')" class="math-symbol-btn">−</button>
                         <button type="button" onclick="insertQuizMathSymbol('×')" class="math-symbol-btn">×</button>
                         <button type="button" onclick="insertQuizMathSymbol('÷')" class="math-symbol-btn">÷</button>
+                        <button type="button" onclick="insertQuizMathSymbol('=')" class="math-symbol-btn">=</button>
+                        <button type="button" onclick="insertQuizMathSymbol('≈')" class="math-symbol-btn">≈</button>
+                        <button type="button" onclick="insertQuizMathSymbol('≠')" class="math-symbol-btn">≠</button>
+                        <button type="button" onclick="insertQuizMathSymbol('±')" class="math-symbol-btn">±</button>
+
+                        <button type="button" onclick="insertQuizMathSymbol('<')" class="math-symbol-btn">&lt;</button>
+                        <button type="button" onclick="insertQuizMathSymbol('>')" class="math-symbol-btn">&gt;</button>
                         <button type="button" onclick="insertQuizMathSymbol('≤')" class="math-symbol-btn">≤</button>
                         <button type="button" onclick="insertQuizMathSymbol('≥')" class="math-symbol-btn">≥</button>
-                        <button type="button" onclick="insertQuizMathSymbol('≠')" class="math-symbol-btn">≠</button>
-                        <button type="button" onclick="insertQuizMathSymbol('≈')" class="math-symbol-btn">≈</button>
+                        <button type="button" onclick="insertQuizMathSymbol('(')" class="math-symbol-btn">(</button>
+                        <button type="button" onclick="insertQuizMathSymbol(')')" class="math-symbol-btn">)</button>
+                        <button type="button" onclick="insertQuizMathSymbol('[')" class="math-symbol-btn">[</button>
+                        <button type="button" onclick="insertQuizMathSymbol(']')" class="math-symbol-btn">]</button>
+
+                        <button type="button" onclick="insertQuizFraction()" class="math-symbol-btn col-span-2 bg-pink-50">Pecahan</button>
+                        <button type="button" onclick="insertQuizMathSymbol('√()')" class="math-symbol-btn">√</button>
+                        <button type="button" onclick="insertQuizMathSymbol('∛()')" class="math-symbol-btn">∛</button>
+                        <button type="button" onclick="insertQuizMathSymbol('²')" class="math-symbol-btn">x²</button>
+                        <button type="button" onclick="insertQuizMathSymbol('³')" class="math-symbol-btn">x³</button>
+                        <button type="button" onclick="insertQuizPower()" class="math-symbol-btn bg-pink-50">xⁿ</button>
+                        <button type="button" onclick="insertQuizMathSymbol('⁻¹')" class="math-symbol-btn">x⁻¹</button>
+
+                        <button type="button" onclick="insertQuizMathSymbol('sin()')" class="math-symbol-btn">sin</button>
+                        <button type="button" onclick="insertQuizMathSymbol('cos()')" class="math-symbol-btn">cos</button>
+                        <button type="button" onclick="insertQuizMathSymbol('tan()')" class="math-symbol-btn">tan</button>
+                        <button type="button" onclick="insertQuizMathSymbol('sin⁻¹()')" class="math-symbol-btn">sin⁻¹</button>
+                        <button type="button" onclick="insertQuizMathSymbol('cos⁻¹()')" class="math-symbol-btn">cos⁻¹</button>
+                        <button type="button" onclick="insertQuizMathSymbol('tan⁻¹()')" class="math-symbol-btn">tan⁻¹</button>
+                        <button type="button" onclick="insertQuizMathSymbol('log()')" class="math-symbol-btn">log</button>
+                        <button type="button" onclick="insertQuizMathSymbol('ln()')" class="math-symbol-btn">ln</button>
+
+                        <button type="button" onclick="insertQuizMathSymbol('π')" class="math-symbol-btn">π</button>
+                        <button type="button" onclick="insertQuizMathSymbol('e')" class="math-symbol-btn">e</button>
+                        <button type="button" onclick="insertQuizMathSymbol('10^')" class="math-symbol-btn">10ˣ</button>
+                        <button type="button" onclick="insertQuizMathSymbol('e^')" class="math-symbol-btn">eˣ</button>
+                        <button type="button" onclick="insertQuizMathSymbol('| |')" class="math-symbol-btn">|x|</button>
+                        <button type="button" onclick="insertQuizMathSymbol('!')" class="math-symbol-btn">n!</button>
                         <button type="button" onclick="insertQuizMathSymbol('°')" class="math-symbol-btn">°</button>
-                        <button type="button" onclick="insertQuizMathSymbol('²')" class="math-symbol-btn">²</button>
-                        <button type="button" onclick="insertQuizMathSymbol('³')" class="math-symbol-btn">³</button>
-                        <button type="button" onclick="insertQuizMathSymbol('½')" class="math-symbol-btn">½</button>
-                        <button type="button" onclick="insertQuizMathSymbol('¼')" class="math-symbol-btn">¼</button>
-                        <button type="button" onclick="insertQuizMathSymbol('¾')" class="math-symbol-btn">¾</button>
-                        <button type="button" onclick="insertQuizMathSymbol('∠')" class="math-symbol-btn">∠</button>
-                        <button type="button" onclick="insertQuizMathSymbol('Δ')" class="math-symbol-btn">Δ</button>
-                        <button type="button" onclick="insertQuizMathSymbol('∞')" class="math-symbol-btn">∞</button>
+                        <button type="button" onclick="insertQuizMathSymbol('%')" class="math-symbol-btn">%</button>
+
                         <button type="button" onclick="insertQuizMathSymbol('θ')" class="math-symbol-btn">θ</button>
                         <button type="button" onclick="insertQuizMathSymbol('α')" class="math-symbol-btn">α</button>
                         <button type="button" onclick="insertQuizMathSymbol('β')" class="math-symbol-btn">β</button>
-                        <button type="button" onclick="insertQuizMathSymbol('x²')" class="math-symbol-btn">x²</button>
-                        <button type="button" onclick="insertQuizMathSymbol('cm²')" class="math-symbol-btn">cm²</button>
-                        <button type="button" onclick="insertQuizMathSymbol('m³')" class="math-symbol-btn">m³</button>
-                        <button type="button" onclick="insertQuizFraction()" class="math-symbol-btn col-span-2 bg-pink-50">Pecahan</button>
+                        <button type="button" onclick="insertQuizMathSymbol('Δ')" class="math-symbol-btn">Δ</button>
+                        <button type="button" onclick="insertQuizMathSymbol('∠')" class="math-symbol-btn">∠</button>
+                        <button type="button" onclick="insertQuizMathSymbol('∞')" class="math-symbol-btn">∞</button>
+                        <button type="button" onclick="insertQuizMathSymbol('∴')" class="math-symbol-btn">∴</button>
+                        <button type="button" onclick="insertQuizMathSymbol('∵')" class="math-symbol-btn">∵</button>
+
                         <button type="button" onclick="insertQuizMathSymbol('⅓')" class="math-symbol-btn">⅓</button>
                         <button type="button" onclick="insertQuizMathSymbol('⅔')" class="math-symbol-btn">⅔</button>
                         <button type="button" onclick="insertQuizMathSymbol('⅕')" class="math-symbol-btn">⅕</button>
                         <button type="button" onclick="insertQuizMathSymbol('⅖')" class="math-symbol-btn">⅖</button>
                         <button type="button" onclick="insertQuizMathSymbol('⅗')" class="math-symbol-btn">⅗</button>
                         <button type="button" onclick="insertQuizMathSymbol('⅘')" class="math-symbol-btn">⅘</button>
+                        <button type="button" onclick="insertQuizMathSymbol('cm²')" class="math-symbol-btn">cm²</button>
+                        <button type="button" onclick="insertQuizMathSymbol('m³')" class="math-symbol-btn">m³</button>
                     </div>
-                    <p class="text-[10px] text-gray-500 leading-relaxed">Tekan <strong>Pecahan</strong> untuk buat pecahan bertingkat seperti 3 atas 5. Untuk formula yang sangat panjang, masih boleh guna gambar pilihan jawapan A/B/C/D.</p>
+                    <p class="text-[10px] text-gray-500 leading-relaxed">Panel ini berfungsi sebagai <strong>scientific math keyboard</strong> untuk tulis soalan dan pilihan jawapan, bukan untuk kira automatik. Tekan <strong>xⁿ</strong> untuk letak kuasa bebas seperti 5, 6, 7 atau x+1. Tekan <strong>Pecahan</strong> untuk buat pecahan bertingkat. Untuk formula yang sangat panjang, masih boleh guna gambar pilihan jawapan A/B/C/D.</p>
                 </div>
 
                 <div class="bg-blue-50 border border-blue-100 rounded-xl p-3 space-y-3">
@@ -1943,6 +1973,35 @@
             const newCursorPos = start + symbol.length;
             target.focus();
             target.setSelectionRange(newCursorPos, newCursorPos);
+        };
+
+        function toSuperscriptText(value = '') {
+            const map = {
+                '0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹',
+                '+':'⁺','-':'⁻','=':'⁼','(':'⁽',')':'⁾',
+                'n':'ⁿ','i':'ⁱ'
+            };
+
+            return value.toString().split('').map(ch => map[ch] || ch).join('');
+        }
+
+        window.insertQuizPower = function() {
+            const target = window.currentMathKeyboardTarget;
+            if(!target || !['INPUT', 'TEXTAREA'].includes(target.tagName)) {
+                alert('Klik dulu kotak soalan atau pilihan jawapan A/B/C/D, kemudian tekan xⁿ.');
+                return;
+            }
+
+            const power = prompt('Masukkan kuasa. Contoh: 5, 6, 7, -2, n atau x+1');
+            if(power === null) return;
+
+            const cleanPower = power.trim();
+            if(!cleanPower) {
+                alert('Kuasa tidak boleh kosong.');
+                return;
+            }
+
+            insertQuizMathSymbol(toSuperscriptText(cleanPower));
         };
 
         window.insertQuizFraction = function() {
