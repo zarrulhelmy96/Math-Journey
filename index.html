@@ -609,6 +609,24 @@
             50% { transform: translateY(-8px); }
         }
         .hide { display: none !important; }
+    
+        .math-symbol-btn {
+            border: 1px solid #f8c7df;
+            background: #fff;
+            color: #0f172a;
+            border-radius: 0.7rem;
+            padding: 0.45rem 0.25rem;
+            font-size: 0.95rem;
+            font-weight: 800;
+            line-height: 1;
+            transition: all 0.15s ease;
+        }
+        .math-symbol-btn:hover {
+            background: #fff1f8;
+            border-color: #ff4fb3;
+            transform: translateY(-1px);
+        }
+
     </style>
 </head>
 <body class="text-slate-800 antialiased">
@@ -1417,17 +1435,53 @@
                 </div>
                 <div>
                     <label class="block font-semibold text-gray-700 mb-1">Soalan Quiz</label>
-                    <textarea id="adm-standalone-quiz-soalan" rows="2" class="w-full border p-2 rounded-lg bg-white outline-none" placeholder="Taip soalan quiz di sini..."></textarea>
+                    <textarea id="adm-standalone-quiz-soalan" rows="2" onfocus="setMathKeyboardTarget(this)" class="w-full border p-2 rounded-lg bg-white outline-none text-sm" placeholder="Taip soalan quiz di sini..."></textarea>
                 </div>
                 <div>
                     <label class="block font-semibold text-gray-700 mb-1">Gambar Soalan</label>
                     <input type="file" id="adm-standalone-quiz-image-file" accept="image/jpeg, image/png, image/webp" multiple class="w-full border p-2 rounded-lg text-xs bg-white">
                 </div>
                 <div class="grid grid-cols-2 gap-2">
-                    <input type="text" id="adm-standalone-quiz-a" placeholder="Pilihan A" class="w-full border p-2 rounded-lg bg-white outline-none">
-                    <input type="text" id="adm-standalone-quiz-b" placeholder="Pilihan B" class="w-full border p-2 rounded-lg bg-white outline-none">
-                    <input type="text" id="adm-standalone-quiz-c" placeholder="Pilihan C" class="w-full border p-2 rounded-lg bg-white outline-none">
-                    <input type="text" id="adm-standalone-quiz-d" placeholder="Pilihan D" class="w-full border p-2 rounded-lg bg-white outline-none">
+                    <input type="text" id="adm-standalone-quiz-a" onfocus="setMathKeyboardTarget(this)" placeholder="Pilihan A" class="w-full border p-2.5 rounded-lg bg-white outline-none text-base font-semibold">
+                    <input type="text" id="adm-standalone-quiz-b" onfocus="setMathKeyboardTarget(this)" placeholder="Pilihan B" class="w-full border p-2.5 rounded-lg bg-white outline-none text-base font-semibold">
+                    <input type="text" id="adm-standalone-quiz-c" onfocus="setMathKeyboardTarget(this)" placeholder="Pilihan C" class="w-full border p-2.5 rounded-lg bg-white outline-none text-base font-semibold">
+                    <input type="text" id="adm-standalone-quiz-d" onfocus="setMathKeyboardTarget(this)" placeholder="Pilihan D" class="w-full border p-2.5 rounded-lg bg-white outline-none text-base font-semibold">
+                </div>
+
+                <div class="bg-white border border-pink-100 rounded-xl p-3 space-y-2">
+                    <div class="flex items-center justify-between gap-2">
+                        <p class="text-[11px] font-extrabold text-slate-800">
+                            <i class="fa-solid fa-square-root-variable text-soft-pink"></i> Math Symbol Keyboard
+                        </p>
+                        <p class="text-[10px] text-gray-500">Klik kotak jawapan, kemudian tekan simbol.</p>
+                    </div>
+                    <div class="grid grid-cols-8 gap-1.5">
+                        <button type="button" onclick="insertQuizMathSymbol('√')" class="math-symbol-btn">√</button>
+                        <button type="button" onclick="insertQuizMathSymbol('π')" class="math-symbol-btn">π</button>
+                        <button type="button" onclick="insertQuizMathSymbol('±')" class="math-symbol-btn">±</button>
+                        <button type="button" onclick="insertQuizMathSymbol('×')" class="math-symbol-btn">×</button>
+                        <button type="button" onclick="insertQuizMathSymbol('÷')" class="math-symbol-btn">÷</button>
+                        <button type="button" onclick="insertQuizMathSymbol('≤')" class="math-symbol-btn">≤</button>
+                        <button type="button" onclick="insertQuizMathSymbol('≥')" class="math-symbol-btn">≥</button>
+                        <button type="button" onclick="insertQuizMathSymbol('≠')" class="math-symbol-btn">≠</button>
+                        <button type="button" onclick="insertQuizMathSymbol('≈')" class="math-symbol-btn">≈</button>
+                        <button type="button" onclick="insertQuizMathSymbol('°')" class="math-symbol-btn">°</button>
+                        <button type="button" onclick="insertQuizMathSymbol('²')" class="math-symbol-btn">²</button>
+                        <button type="button" onclick="insertQuizMathSymbol('³')" class="math-symbol-btn">³</button>
+                        <button type="button" onclick="insertQuizMathSymbol('½')" class="math-symbol-btn">½</button>
+                        <button type="button" onclick="insertQuizMathSymbol('¼')" class="math-symbol-btn">¼</button>
+                        <button type="button" onclick="insertQuizMathSymbol('¾')" class="math-symbol-btn">¾</button>
+                        <button type="button" onclick="insertQuizMathSymbol('∠')" class="math-symbol-btn">∠</button>
+                        <button type="button" onclick="insertQuizMathSymbol('Δ')" class="math-symbol-btn">Δ</button>
+                        <button type="button" onclick="insertQuizMathSymbol('∞')" class="math-symbol-btn">∞</button>
+                        <button type="button" onclick="insertQuizMathSymbol('θ')" class="math-symbol-btn">θ</button>
+                        <button type="button" onclick="insertQuizMathSymbol('α')" class="math-symbol-btn">α</button>
+                        <button type="button" onclick="insertQuizMathSymbol('β')" class="math-symbol-btn">β</button>
+                        <button type="button" onclick="insertQuizMathSymbol('x²')" class="math-symbol-btn">x²</button>
+                        <button type="button" onclick="insertQuizMathSymbol('cm²')" class="math-symbol-btn">cm²</button>
+                        <button type="button" onclick="insertQuizMathSymbol('m³')" class="math-symbol-btn">m³</button>
+                    </div>
+                    <p class="text-[10px] text-gray-500 leading-relaxed">Untuk formula panjang atau pecahan bertingkat, masih boleh guna gambar pilihan jawapan A/B/C/D.</p>
                 </div>
 
                 <div class="bg-blue-50 border border-blue-100 rounded-xl p-3 space-y-3">
@@ -1838,6 +1892,30 @@
             if(clean === 'medium') return 'bg-amber-100 text-amber-700';
             return 'bg-emerald-100 text-emerald-700';
         }
+
+        window.currentMathKeyboardTarget = null;
+
+        window.setMathKeyboardTarget = function(el) {
+            window.currentMathKeyboardTarget = el;
+        };
+
+        window.insertQuizMathSymbol = function(symbol) {
+            const target = window.currentMathKeyboardTarget;
+            if(!target || !['INPUT', 'TEXTAREA'].includes(target.tagName)) {
+                alert('Klik dulu kotak soalan atau pilihan jawapan A/B/C/D, kemudian tekan simbol.');
+                return;
+            }
+
+            const start = typeof target.selectionStart === 'number' ? target.selectionStart : target.value.length;
+            const end = typeof target.selectionEnd === 'number' ? target.selectionEnd : target.value.length;
+            const before = target.value.substring(0, start);
+            const after = target.value.substring(end);
+            target.value = before + symbol + after;
+
+            const newCursorPos = start + symbol.length;
+            target.focus();
+            target.setSelectionRange(newCursorPos, newCursorPos);
+        };
 
         function getQuizQuestionSortValue(q = {}, fallbackIndex = 0) {
             if(typeof q.sortOrder === 'number') return q.sortOrder;
@@ -3435,10 +3513,10 @@
                 }
 
                 html += `
-                    <button ${answered ? 'disabled' : ''} onclick="answerStandaloneQuiz('${opt}')" class="w-full text-left p-3 rounded-xl border ${style} transition text-xs">
+                    <button ${answered ? 'disabled' : ''} onclick="answerStandaloneQuiz('${opt}')" class="w-full text-left p-4 rounded-xl border ${style} transition text-base">
                         <div class="flex items-start justify-between gap-3">
                             <div class="flex-1 min-w-0">
-                                <p><strong class="mr-1">${opt}.</strong> ${optText ? escapeHtml(optText) : `Pilihan ${opt}`}</p>
+                                <p class="text-base md:text-lg leading-relaxed"><strong class="mr-1">${opt}.</strong> ${optText ? escapeHtml(optText) : `Pilihan ${opt}`}</p>
                                 ${optionImageHtml}
                             </div>
                             <span class="shrink-0 pt-0.5">${icon}</span>
