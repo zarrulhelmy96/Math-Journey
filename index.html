@@ -1850,6 +1850,7 @@
                 hasAccess: existing.hasAccess === true,
                 role: existing.role || "student",
                 streak: Number(existing.streak || 1),
+                lastStreakDate: existing.lastStreakDate || existing.lastActiveDate || "",
                 answeredCount: Number(existing.answeredCount || 0),
                 correctAnswerCount: Number(existing.correctAnswerCount || existing.totalCorrectAnswers || 0),
                 leaderboardScore: Number(existing.leaderboardScore || existing.quizMarks || existing.quizScore || 0),
@@ -1871,6 +1872,8 @@
                     phone: profileData.phone || "",
                     schoolName: profileData.schoolName || "",
                     schoolForm: profileData.schoolForm || "",
+                    streak: Number(profileData.streak || 1),
+                    lastStreakDate: profileData.lastStreakDate || profileData.lastActiveDate || "",
                     answeredCount: Number(profileData.answeredCount || 0),
                     correctAnswerCount: Number(profileData.correctAnswerCount || 0),
                     leaderboardScore: Number(profileData.leaderboardScore || 0),
@@ -1960,6 +1963,70 @@
         function getQuizLevelMarkText(level) {
             const mark = getQuizLevelMark(level);
             return `${mark} markah / soalan`;
+        }
+
+        function getMalaysiaDateKey(date = new Date()) {
+            const parts = new Intl.DateTimeFormat('en-CA', {
+                timeZone: 'Asia/Kuala_Lumpur',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            }).formatToParts(date).reduce((acc, part) => {
+                acc[part.type] = part.value;
+                return acc;
+            }, {});
+            return `${parts.year}-${parts.month}-${parts.day}`;
+        }
+
+        function getDateKeyDayNumber(dateKey = '') {
+            const parts = dateKey.split('-').map(Number);
+            if(parts.length !== 3 || parts.some(num => Number.isNaN(num))) return null;
+            return Math.floor(Date.UTC(parts[0], parts[1] - 1, parts[2]) / 86400000);
+        }
+
+        function updateStreakUI(streakValue = 1) {
+            const streak = Math.max(1, Number(streakValue || 1));
+            const navStreakEl = document.getElementById('nav-streak');
+            const dashStreakEl = document.getElementById('dash-stat-streak');
+            if(navStreakEl) navStreakEl.innerText = streak;
+            if(dashStreakEl) dashStreakEl.innerText = `${streak} Hari`;
+        }
+
+        async function updateDailyStreakIfNeeded(userData = {}) {
+            if(!currentUser) return userData;
+
+            const todayKey = getMalaysiaDateKey();
+            const lastKey = userData.lastStreakDate || userData.lastActiveDate || "";
+            let streak = Math.max(1, Number(userData.streak || 1));
+
+            if(lastKey === todayKey) {
+                updateStreakUI(streak);
+                return { ...userData, streak, lastStreakDate: todayKey };
+            }
+
+            if(lastKey) {
+                const lastDay = getDateKeyDayNumber(lastKey);
+                const todayDay = getDateKeyDayNumber(todayKey);
+                const diff = (lastDay !== null && todayDay !== null) ? todayDay - lastDay : null;
+
+                if(diff === 1) streak += 1;
+                else if(diff && diff > 1) streak = 1;
+            }
+
+            const updates = {
+                streak,
+                lastStreakDate: todayKey,
+                lastActiveTimestamp: Date.now()
+            };
+
+            try {
+                await update(ref(db, `users/${currentUser.uid}`), updates);
+            } catch (err) {
+                console.warn('Streak update skipped:', err.message);
+            }
+
+            updateStreakUI(streak);
+            return { ...userData, ...updates };
         }
 
         function getQuizLevelBadgeClass(level) {
@@ -2269,11 +2336,12 @@
                     };
                 }
 
+                udata = await updateDailyStreakIfNeeded(udata);
+
                 isPremiumUser = udata.premium === true || udata.hasAccess === true || isAdminAccount;
                 currentUserProfileData = udata;
                 document.getElementById('dash-username').innerText = udata.nickname || udata.fullname || "Pelajar";
-                document.getElementById('nav-streak').innerText = udata.streak || 1;
-                document.getElementById('dash-stat-streak').innerText = `${udata.streak || 1} Hari`;
+                updateStreakUI(udata.streak || 1);
                 document.getElementById('dash-stat-questions').innerText = udata.answeredCount || 0;
 
                 document.getElementById('prof-fullname').value = udata.fullname || "";
@@ -3404,6 +3472,26 @@
             return `${formNum}_${chKey}_${quizLevel}`.replace(/[^a-zA-Z0-9_-]/g, '_');
         }
 
+        function getLocalQuizCountedKey(uid, resultKey) {
+            return `mathJourneyQuizCounted_${uid || 'guest'}_${resultKey || ''}`;
+        }
+
+        function isQuizLocallyCounted(uid, resultKey) {
+            try {
+                return localStorage.getItem(getLocalQuizCountedKey(uid, resultKey)) === 'true';
+            } catch (err) {
+                return false;
+            }
+        }
+
+        function markQuizLocallyCounted(uid, resultKey) {
+            try {
+                localStorage.setItem(getLocalQuizCountedKey(uid, resultKey), 'true');
+            } catch (err) {
+                console.warn('Local quiz marker skipped:', err.message);
+            }
+        }
+
 
         function getSavedQuizAnswerMap(resultData) {
             const map = {};
@@ -3552,7 +3640,9 @@
                 const quizCount = await getQuizCountForLevel(formNum, chKey, level);
                 const resultKey = getQuizResultKey(formNum, chKey, level);
                 const resultSnap = currentUser ? await get(ref(db, `quizResults/${currentUser.uid}/${resultKey}`)) : null;
-                const done = resultSnap && resultSnap.exists();
+                const localDone = currentUser ? isQuizLocallyCounted(currentUser.uid, resultKey) : false;
+                const done = (resultSnap && resultSnap.exists()) || localDone;
+                const savedResult = (resultSnap && resultSnap.exists()) ? (resultSnap.val() || {}) : {};
                 const disabled = quizCount === 0 ? 'disabled' : '';
                 const btnClass = quizCount === 0
                     ? 'bg-gray-50 text-gray-400 border-gray-100 cursor-not-allowed'
@@ -3561,7 +3651,9 @@
                         : 'bg-white text-slate-900 border-gray-100 hover:border-soft-pink';
                 const markText = getQuizLevelMarkText(level);
                 const totalMarkText = `${quizCount * getQuizLevelMark(level)} markah maksimum`;
-                const scoreText = done ? `Skor: ${resultSnap.val().percent || 0}% • ${resultSnap.val().earnedMarks || 0} markah` : `${quizCount} soalan • ${markText} • ${totalMarkText}`;
+                const scoreText = done
+                    ? (savedResult.percent !== undefined ? `Skor: ${savedResult.percent || 0}% • ${savedResult.earnedMarks || 0} markah` : `Sudah dikira • ${totalMarkText}`)
+                    : `${quizCount} soalan • ${markText} • ${totalMarkText}`;
 
                 html += `
                     <button ${disabled} onclick="startStandaloneQuiz('${formNum}', '${chKey}', '${level}')" class="w-full ${btnClass} border p-4 rounded-xl text-left font-bold text-sm flex justify-between items-center shadow-sm transition">
@@ -3595,10 +3687,18 @@
             let previousAnswerMap = {};
 
             if(!adminMode) {
-                const previousSnap = await get(ref(db, `quizResults/${currentUser.uid}/${resultKey}`));
-                if(previousSnap.exists()) {
-                    previousResult = previousSnap.val();
-                    previousAnswerMap = getSavedQuizAnswerMap(previousResult);
+                try {
+                    const previousSnap = await get(ref(db, `quizResults/${currentUser.uid}/${resultKey}`));
+                    if(previousSnap.exists()) {
+                        previousResult = previousSnap.val();
+                        previousAnswerMap = getSavedQuizAnswerMap(previousResult);
+                    }
+                } catch (err) {
+                    console.warn('Previous quiz result read skipped:', err.message);
+                }
+
+                if(!previousResult && isQuizLocallyCounted(currentUser.uid, resultKey)) {
+                    previousResult = { localCountedOnly: true };
                 }
             }
 
@@ -3627,6 +3727,7 @@
                 levelLabel: getQuizLevelLabel(quizLevel),
                 markPerQuestion: getQuizLevelMark(quizLevel),
                 adminMode,
+                previousResult,
                 previousResultExists: !!previousResult
             };
 
@@ -3967,6 +4068,10 @@
                 if(answeredEl) answeredEl.innerText = updates.answeredCount || 0;
             }
 
+            if(Object.prototype.hasOwnProperty.call(updates, 'streak')) {
+                updateStreakUI(updates.streak || 1);
+            }
+
             if(Object.prototype.hasOwnProperty.call(updates, 'completedChaptersCount')) {
                 const completedEl = document.getElementById('prof-completed-count');
                 if(completedEl) completedEl.innerText = `${updates.completedChaptersCount || 0} Bab`;
@@ -4021,6 +4126,10 @@
                 const markPerQuestion = getQuizLevelMark(ctx.level);
                 const earnedMarks = correctCount * markPerQuestion;
                 const totalPossibleMarks = questions.length * markPerQuestion;
+                const quizAlreadyCounted = !!ctx.previousResultExists || isQuizLocallyCounted(currentUser?.uid, ctx.resultKey);
+                const quizCountIncrement = quizAlreadyCounted ? 0 : 1;
+                const correctIncrement = quizAlreadyCounted ? 0 : correctCount;
+                const markIncrement = quizAlreadyCounted ? 0 : earnedMarks;
 
                 const resultData = {
                     formNum: ctx.formNum,
@@ -4035,6 +4144,7 @@
                     markPerQuestion,
                     earnedMarks,
                     totalPossibleMarks,
+                    quizAlreadyCounted,
                     answers,
                     wrongAnswers,
                     completedAt: Date.now(),
@@ -4047,7 +4157,9 @@
 
                 if(!ctx.adminMode && currentUser && ctx.resultKey) {
                     try {
-                        await set(ref(db, `quizResults/${currentUser.uid}/${ctx.resultKey}`), resultData);
+                        if(!quizAlreadyCounted) {
+                            await set(ref(db, `quizResults/${currentUser.uid}/${ctx.resultKey}`), resultData);
+                        }
                     } catch (saveResultErr) {
                         console.warn('Quiz result save skipped:', saveResultErr.message);
                     }
@@ -4056,20 +4168,14 @@
                     try {
                         const userSnap = await get(ref(db, `users/${currentUser.uid}`));
                         const udata = userSnap.exists() ? userSnap.val() : {};
-                        const newlyAnswered = Number(window.standaloneQuizNewlyAnsweredCount || 0);
                         const updates = {
-                            answeredCount: Number(udata.answeredCount || 0) + newlyAnswered
+                            answeredCount: Number(udata.answeredCount || 0) + quizCountIncrement
                         };
 
-                        if(!ctx.previousResultExists) {
-                            updates.correctAnswerCount = Number(udata.correctAnswerCount || udata.totalCorrectAnswers || 0) + correctCount;
-                            updates.leaderboardScore = Number(udata.leaderboardScore || udata.quizMarks || udata.quizScore || 0) + earnedMarks;
-                        } else {
-                            updates.correctAnswerCount = Number(udata.correctAnswerCount || udata.totalCorrectAnswers || 0);
-                            updates.leaderboardScore = Number(udata.leaderboardScore || udata.quizMarks || udata.quizScore || 0);
-                        }
+                        updates.correctAnswerCount = Number(udata.correctAnswerCount || udata.totalCorrectAnswers || 0) + correctIncrement;
+                        updates.leaderboardScore = Number(udata.leaderboardScore || udata.quizMarks || udata.quizScore || 0) + markIncrement;
 
-                        if(!ctx.previousResultExists) {
+                        if(!quizAlreadyCounted) {
                             const previousCompleted = Number(udata.completedChaptersCount || 0);
                             const previousAvg = Number(udata.averageQuizScore || 0);
                             const newCompleted = previousCompleted + 1;
@@ -4090,16 +4196,18 @@
                         // Fallback: kalau rules block update users/{uid}/correctAnswerCount,
                         // leaderboard tetap cuba update supaya ranking tidak kosong.
                         const baseProfile = currentUserProfileData || {};
-                        const newlyAnswered = Number(window.standaloneQuizNewlyAnsweredCount || answers.length || questions.length || 0);
                         leaderboardUpdates = {
-                            answeredCount: Number(baseProfile.answeredCount || 0) + newlyAnswered,
-                            correctAnswerCount: Number(baseProfile.correctAnswerCount || baseProfile.totalCorrectAnswers || 0) + correctCount,
-                            leaderboardScore: Number(baseProfile.leaderboardScore || baseProfile.quizMarks || baseProfile.quizScore || 0) + earnedMarks
+                            answeredCount: Number(baseProfile.answeredCount || 0) + quizCountIncrement,
+                            correctAnswerCount: Number(baseProfile.correctAnswerCount || baseProfile.totalCorrectAnswers || 0) + correctIncrement,
+                            leaderboardScore: Number(baseProfile.leaderboardScore || baseProfile.quizMarks || baseProfile.quizScore || 0) + markIncrement
                         };
                         refreshQuizStatsInUI(leaderboardUpdates);
                     }
 
                     await updateLeaderboardEntryForCurrentUser(leaderboardUpdates);
+                    if(!quizAlreadyCounted) {
+                        markQuizLocallyCounted(currentUser.uid, ctx.resultKey);
+                    }
                 }
             } catch (err) {
                 console.error('finishStandaloneQuiz failed:', err);
@@ -4135,6 +4243,7 @@
                     <div class="text-4xl font-extrabold text-soft-pink my-4">${resultData.percent}%</div>
                     <p class="text-xs text-gray-600">Betul <strong>${resultData.correct}</strong> daripada <strong>${resultData.total}</strong> soalan.</p>
                     <p class="text-xs text-gray-600 mt-1">Markah diperoleh: <strong>${resultData.earnedMarks || 0}</strong> / <strong>${resultData.totalPossibleMarks || 0}</strong> markah.</p>
+                    ${resultData.quizAlreadyCounted ? '<p class="text-[11px] text-amber-700 bg-amber-50 border border-amber-100 rounded-xl p-2 mt-2 font-bold">Markah quiz ini sudah pernah dikira sebelum ini. Semakan semula tidak menambah markah.</p>' : ''}
                     <p class="text-xs mt-2 font-semibold ${resultData.percent >= 70 ? 'text-green-700' : 'text-red-700'}">${statusText}</p>
                 </div>
                 <div>
