@@ -2337,6 +2337,8 @@
                 }
 
                 udata = await updateDailyStreakIfNeeded(udata);
+                const localStats = getLocalUserStats(currentUser.uid);
+                udata = { ...udata, ...(localStats || {}) };
 
                 isPremiumUser = udata.premium === true || udata.hasAccess === true || isAdminAccount;
                 currentUserProfileData = udata;
@@ -3492,6 +3494,82 @@
             }
         }
 
+        function getLocalQuizResultKey(uid, resultKey) {
+            return `mathJourneyQuizResult_${uid || 'guest'}_${resultKey || ''}`;
+        }
+
+        function saveLocalQuizResult(uid, resultKey, resultData = {}) {
+            try {
+                localStorage.setItem(getLocalQuizResultKey(uid, resultKey), JSON.stringify(resultData || {}));
+                markQuizLocallyCounted(uid, resultKey);
+            } catch (err) {
+                console.warn('Local quiz result save skipped:', err.message);
+            }
+        }
+
+        function loadLocalQuizResult(uid, resultKey) {
+            try {
+                const raw = localStorage.getItem(getLocalQuizResultKey(uid, resultKey));
+                if(!raw) return null;
+                const parsed = JSON.parse(raw);
+                return parsed && typeof parsed === 'object' ? parsed : null;
+            } catch (err) {
+                console.warn('Local quiz result read skipped:', err.message);
+                return null;
+            }
+        }
+
+        function getLocalUserStatsKey(uid) {
+            return `mathJourneyUserStats_${uid || 'guest'}`;
+        }
+
+        function getLocalUserStats(uid) {
+            try {
+                const raw = localStorage.getItem(getLocalUserStatsKey(uid));
+                if(!raw) return {};
+                const parsed = JSON.parse(raw);
+                return parsed && typeof parsed === 'object' ? parsed : {};
+            } catch (err) {
+                return {};
+            }
+        }
+
+        function saveLocalUserStats(uid, updates = {}) {
+            try {
+                const existing = getLocalUserStats(uid);
+                const merged = { ...(existing || {}), ...(updates || {}), updatedAt: Date.now() };
+                localStorage.setItem(getLocalUserStatsKey(uid), JSON.stringify(merged));
+                return merged;
+            } catch (err) {
+                console.warn('Local user stats save skipped:', err.message);
+                return updates || {};
+            }
+        }
+
+        function getLocalLeaderboardRowKey(uid) {
+            return `mathJourneyLeaderboardRow_${uid || 'guest'}`;
+        }
+
+        function saveLocalLeaderboardRow(row = {}) {
+            if(!row?.uid) return;
+            try {
+                localStorage.setItem(getLocalLeaderboardRowKey(row.uid), JSON.stringify(row));
+            } catch (err) {
+                console.warn('Local leaderboard save skipped:', err.message);
+            }
+        }
+
+        function loadLocalLeaderboardRow(uid) {
+            try {
+                const raw = localStorage.getItem(getLocalLeaderboardRowKey(uid));
+                if(!raw) return null;
+                const parsed = JSON.parse(raw);
+                return parsed && typeof parsed === 'object' ? parsed : null;
+            } catch (err) {
+                return null;
+            }
+        }
+
 
         function getSavedQuizAnswerMap(resultData) {
             const map = {};
@@ -3640,9 +3718,10 @@
                 const quizCount = await getQuizCountForLevel(formNum, chKey, level);
                 const resultKey = getQuizResultKey(formNum, chKey, level);
                 const resultSnap = currentUser ? await get(ref(db, `quizResults/${currentUser.uid}/${resultKey}`)) : null;
-                const localDone = currentUser ? isQuizLocallyCounted(currentUser.uid, resultKey) : false;
+                const localSavedResult = currentUser ? loadLocalQuizResult(currentUser.uid, resultKey) : null;
+                const localDone = currentUser ? (isQuizLocallyCounted(currentUser.uid, resultKey) || !!localSavedResult) : false;
                 const done = (resultSnap && resultSnap.exists()) || localDone;
-                const savedResult = (resultSnap && resultSnap.exists()) ? (resultSnap.val() || {}) : {};
+                const savedResult = (resultSnap && resultSnap.exists()) ? (resultSnap.val() || {}) : (localSavedResult || {});
                 const disabled = quizCount === 0 ? 'disabled' : '';
                 const btnClass = quizCount === 0
                     ? 'bg-gray-50 text-gray-400 border-gray-100 cursor-not-allowed'
@@ -3697,8 +3776,14 @@
                     console.warn('Previous quiz result read skipped:', err.message);
                 }
 
-                if(!previousResult && isQuizLocallyCounted(currentUser.uid, resultKey)) {
-                    previousResult = { localCountedOnly: true };
+                if(!previousResult) {
+                    const localResult = loadLocalQuizResult(currentUser.uid, resultKey);
+                    if(localResult && Array.isArray(localResult.answers)) {
+                        previousResult = localResult;
+                        previousAnswerMap = getSavedQuizAnswerMap(localResult);
+                    } else if(isQuizLocallyCounted(currentUser.uid, resultKey)) {
+                        previousResult = { localCountedOnly: true };
+                    }
                 }
             }
 
@@ -3974,7 +4059,7 @@
                     0
                 );
 
-                await set(ref(db, `leaderboard/${currentUser.uid}`), {
+                const leaderboardRow = {
                     uid: currentUser.uid,
                     displayName: getLeaderboardDisplayName(merged),
                     schoolName: merged.schoolName || merged.school || "",
@@ -3983,12 +4068,17 @@
                     correctAnswerCount: correctAnswerCount,
                     answeredCount: answeredCount,
                     updatedAt: Date.now()
-                });
+                };
+
+                saveLocalLeaderboardRow(leaderboardRow);
+
+                await set(ref(db, `leaderboard/${currentUser.uid}`), leaderboardRow);
 
                 loadLeaderboard();
                 return true;
             } catch (err) {
                 console.warn('Leaderboard update skipped:', err.message);
+                loadLeaderboard();
                 return false;
             }
         }
@@ -4002,8 +4092,22 @@
             try {
                 const snap = await get(ref(db, 'leaderboard'));
                 const raw = snap.exists() ? snap.val() : {};
-                const rows = Object.entries(raw || {})
-                    .map(([uid, data]) => ({ uid, ...(data || {}) }))
+                let rows = Object.entries(raw || {})
+                    .map(([uid, data]) => ({ uid, ...(data || {}) }));
+
+                const localRow = currentUser ? loadLocalLeaderboardRow(currentUser.uid) : null;
+                if(localRow && Number(localRow.leaderboardScore || localRow.quizMarks || localRow.quizScore || 0) > 0) {
+                    const existingIndex = rows.findIndex(row => row.uid === localRow.uid);
+                    if(existingIndex >= 0) {
+                        const firebaseScore = Number(rows[existingIndex].leaderboardScore || rows[existingIndex].quizMarks || rows[existingIndex].quizScore || 0);
+                        const localScore = Number(localRow.leaderboardScore || localRow.quizMarks || localRow.quizScore || 0);
+                        if(localScore >= firebaseScore) rows[existingIndex] = { ...rows[existingIndex], ...localRow };
+                    } else {
+                        rows.push(localRow);
+                    }
+                }
+
+                rows = rows
                     .filter(row => Number(row.leaderboardScore || row.quizMarks || row.quizScore || 0) > 0)
                     .sort((a, b) => {
                         const scoreDiff = Number(b.leaderboardScore || b.quizMarks || b.quizScore || 0) - Number(a.leaderboardScore || a.quizMarks || a.quizScore || 0);
@@ -4049,6 +4153,30 @@
                     `;
                 }).join('');
             } catch (err) {
+                const localRow = currentUser ? loadLocalLeaderboardRow(currentUser.uid) : null;
+                const localScore = Number(localRow?.leaderboardScore || localRow?.quizMarks || localRow?.quizScore || 0);
+
+                if(localRow && localScore > 0) {
+                    box.innerHTML = `
+                        <div class="bg-pink-50 border-pink-200 border rounded-2xl p-3 flex items-center gap-3 shadow-sm">
+                            <div class="w-10 h-10 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center font-extrabold text-sm shrink-0">#1</div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-1">
+                                    <p class="font-extrabold text-sm text-slate-900 truncate">${localRow.displayName || 'Pelajar'}</p>
+                                    <span class="text-[9px] font-bold bg-soft-pink text-soft-pink px-2 py-0.5 rounded-full">Anda</span>
+                                </div>
+                                <p class="text-[11px] text-gray-500 truncate">${localRow.schoolName || 'Sekolah belum diisi'} • ${localRow.schoolForm || 'Tingkatan belum diisi'}</p>
+                                <p class="text-[10px] text-amber-600 mt-1">Paparan local kerana Firebase leaderboard tidak dapat dibaca.</p>
+                            </div>
+                            <div class="text-right shrink-0">
+                                <p class="text-lg font-extrabold text-neon-green">${localScore}</p>
+                                <p class="text-[10px] text-gray-400">markah</p>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
+
                 box.innerHTML = `
                     <div class="text-center text-xs text-red-500 py-5 bg-red-50 rounded-xl border border-red-100">
                         Ralat load leaderboard: ${err.message}
@@ -4156,6 +4284,9 @@
                 showStoredQuizResult(resultData);
 
                 if(!ctx.adminMode && currentUser && ctx.resultKey) {
+                    // Simpan local dahulu supaya button Semak Jawapan tidak reset walaupun Firebase rules block quizResults.
+                    saveLocalQuizResult(currentUser.uid, ctx.resultKey, resultData);
+
                     try {
                         if(!quizAlreadyCounted) {
                             await set(ref(db, `quizResults/${currentUser.uid}/${ctx.resultKey}`), resultData);
@@ -4167,7 +4298,9 @@
                     let leaderboardUpdates = {};
                     try {
                         const userSnap = await get(ref(db, `users/${currentUser.uid}`));
-                        const udata = userSnap.exists() ? userSnap.val() : {};
+                        const dbData = userSnap.exists() ? userSnap.val() : {};
+                        const localStats = getLocalUserStats(currentUser.uid);
+                        const udata = { ...(dbData || {}), ...(localStats || {}) };
                         const updates = {
                             answeredCount: Number(udata.answeredCount || 0) + quizCountIncrement
                         };
@@ -4187,20 +4320,39 @@
 
                         if(percent < 70) updates.weakestTopic = ctx.chapterName;
 
-                        leaderboardUpdates = updates;
-                        await update(ref(db, `users/${currentUser.uid}`), updates);
-                        refreshQuizStatsInUI(updates);
+                        leaderboardUpdates = saveLocalUserStats(currentUser.uid, updates);
+                        refreshQuizStatsInUI(leaderboardUpdates);
+
+                        // Update remote secara berasingan supaya satu field rules yang block tidak gagalkan semua statistik.
+                        const coreUpdates = {
+                            answeredCount: leaderboardUpdates.answeredCount,
+                            correctAnswerCount: leaderboardUpdates.correctAnswerCount,
+                            leaderboardScore: leaderboardUpdates.leaderboardScore
+                        };
+                        await update(ref(db, `users/${currentUser.uid}`), coreUpdates).catch(err => {
+                            console.warn('Core quiz stats remote update skipped:', err.message);
+                        });
+
+                        const optionalUpdates = {};
+                        ['completedChaptersCount','averageQuizScore','weakestTopic'].forEach(key => {
+                            if(Object.prototype.hasOwnProperty.call(leaderboardUpdates, key)) optionalUpdates[key] = leaderboardUpdates[key];
+                        });
+                        if(Object.keys(optionalUpdates).length > 0) {
+                            await update(ref(db, `users/${currentUser.uid}`), optionalUpdates).catch(err => {
+                                console.warn('Optional quiz stats remote update skipped:', err.message);
+                            });
+                        }
                     } catch (statsErr) {
                         console.warn('Quiz stats update skipped:', statsErr.message);
 
                         // Fallback: kalau rules block update users/{uid}/correctAnswerCount,
                         // leaderboard tetap cuba update supaya ranking tidak kosong.
-                        const baseProfile = currentUserProfileData || {};
-                        leaderboardUpdates = {
+                        const baseProfile = { ...(currentUserProfileData || {}), ...(getLocalUserStats(currentUser.uid) || {}) };
+                        leaderboardUpdates = saveLocalUserStats(currentUser.uid, {
                             answeredCount: Number(baseProfile.answeredCount || 0) + quizCountIncrement,
                             correctAnswerCount: Number(baseProfile.correctAnswerCount || baseProfile.totalCorrectAnswers || 0) + correctIncrement,
                             leaderboardScore: Number(baseProfile.leaderboardScore || baseProfile.quizMarks || baseProfile.quizScore || 0) + markIncrement
-                        };
+                        });
                         refreshQuizStatsInUI(leaderboardUpdates);
                     }
 
