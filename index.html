@@ -4021,6 +4021,16 @@
             return (userData.nickname || userData.fullname || userData.email || 'Pelajar').toString().trim();
         }
 
+        function hasLeaderboardProfileInfo(userData = {}) {
+            const schoolName = (userData.schoolName || userData.school || '').toString().trim();
+            const schoolForm = (userData.schoolForm || userData.formLevel || userData.form || '').toString().trim();
+            return !!(schoolName && schoolForm);
+        }
+
+        function showLeaderboardProfileReminder() {
+            alert('Untuk nama masuk leaderboard, sila isi Nama Sekolah dan Tingkatan di bahagian Profil dahulu.');
+        }
+
         async function updateLeaderboardEntryForCurrentUser(extraData = {}) {
             if(!currentUser) return false;
 
@@ -4038,6 +4048,21 @@
                     ...(currentUserProfileData || {}),
                     ...(extraData || {})
                 };
+
+                if(!hasLeaderboardProfileInfo(merged)) {
+                    try {
+                        await remove(ref(db, `leaderboard/${currentUser.uid}`));
+                    } catch (removeErr) {
+                        console.warn('Leaderboard remove skipped:', removeErr.message);
+                    }
+                    try {
+                        localStorage.removeItem(getLocalLeaderboardRowKey(currentUser.uid));
+                    } catch (localRemoveErr) {
+                        console.warn('Local leaderboard remove skipped:', localRemoveErr.message);
+                    }
+                    loadLeaderboard();
+                    return false;
+                }
 
                 const correctAnswerCount = Number(
                     merged.correctAnswerCount ||
@@ -4109,6 +4134,7 @@
 
                 rows = rows
                     .filter(row => Number(row.leaderboardScore || row.quizMarks || row.quizScore || 0) > 0)
+                    .filter(row => hasLeaderboardProfileInfo(row))
                     .sort((a, b) => {
                         const scoreDiff = Number(b.leaderboardScore || b.quizMarks || b.quizScore || 0) - Number(a.leaderboardScore || a.quizMarks || a.quizScore || 0);
                         if(scoreDiff !== 0) return scoreDiff;
@@ -4118,7 +4144,7 @@
                 if(rows.length === 0) {
                     box.innerHTML = `
                         <div class="text-center text-xs text-gray-400 py-5 bg-slate-50 rounded-xl border border-gray-100">
-                            Belum ada markah lagi. Jawab quiz dengan betul dan tekan Lihat Result untuk masuk leaderboard.
+                            Belum ada nama dalam leaderboard lagi. Jawab quiz dan isi Nama Sekolah serta Tingkatan di Profil untuk masuk leaderboard.
                         </div>
                     `;
                     return;
@@ -4156,7 +4182,7 @@
                 const localRow = currentUser ? loadLocalLeaderboardRow(currentUser.uid) : null;
                 const localScore = Number(localRow?.leaderboardScore || localRow?.quizMarks || localRow?.quizScore || 0);
 
-                if(localRow && localScore > 0) {
+                if(localRow && localScore > 0 && hasLeaderboardProfileInfo(localRow)) {
                     box.innerHTML = `
                         <div class="bg-pink-50 border-pink-200 border rounded-2xl p-3 flex items-center gap-3 shadow-sm">
                             <div class="w-10 h-10 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center font-extrabold text-sm shrink-0">#1</div>
@@ -4387,6 +4413,7 @@
                 `).join('');
 
             const statusText = resultData.percent >= 70 ? 'Bagus! Anda menguasai bab ini.' : 'Anda masih lemah dalam bab ini. Ulang kaji nota dan latihan.';
+            const canEnterLeaderboard = hasLeaderboardProfileInfo(currentUserProfileData || {});
             resultEl.innerHTML = `
                 <div class="bg-white border rounded-2xl p-5 shadow-sm text-center">
                     <span class="text-5xl">${resultData.percent >= 70 ? '🏆' : '💪'}</span>
@@ -4396,6 +4423,7 @@
                     <p class="text-xs text-gray-600">Betul <strong>${resultData.correct}</strong> daripada <strong>${resultData.total}</strong> soalan.</p>
                     <p class="text-xs text-gray-600 mt-1">Markah diperoleh: <strong>${resultData.earnedMarks || 0}</strong> / <strong>${resultData.totalPossibleMarks || 0}</strong> markah.</p>
                     ${resultData.quizAlreadyCounted ? '<p class="text-[11px] text-amber-700 bg-amber-50 border border-amber-100 rounded-xl p-2 mt-2 font-bold">Markah quiz ini sudah pernah dikira sebelum ini. Semakan semula tidak menambah markah.</p>' : ''}
+                    ${!canEnterLeaderboard ? '<p class="text-[11px] text-blue-700 bg-blue-50 border border-blue-100 rounded-xl p-2 mt-2 font-bold">Nama anda belum masuk leaderboard. Sila isi Nama Sekolah dan Tingkatan di bahagian Profil dahulu.</p>' : ''}
                     <p class="text-xs mt-2 font-semibold ${resultData.percent >= 70 ? 'text-green-700' : 'text-red-700'}">${statusText}</p>
                 </div>
                 <div>
