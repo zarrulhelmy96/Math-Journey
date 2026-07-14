@@ -3421,6 +3421,10 @@
             }
         }
 
+        window.backToSubtopicQuizList = function() {
+            renderSubtopicQuizList();
+        };
+
         async function findSubtopicQuizQuestion(level, questionId) {
             const snap = await get(ref(db, `quizzes/${currentLevel}/${currentChapterKey}`));
             const chapterQuizData = snap.exists() ? (snap.val() || {}) : {};
@@ -3471,7 +3475,7 @@
             const mark = getQuizQuestionMark(q, level);
             const answered = !!savedAnswer;
             let html = `
-                <button onclick="renderSubtopicQuizList()" class="text-gray-500 text-sm mb-3"><i class="fa-solid fa-arrow-left"></i> Kembali ke senarai soalan</button>
+                <button onclick="window.backToSubtopicQuizList()" class="text-gray-500 text-sm mb-3"><i class="fa-solid fa-arrow-left"></i> Kembali ke senarai soalan</button>
                 <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm text-xs space-y-4">
                     <div>
                         <span class="${getQuizLevelBadgeClass(level)} font-bold px-2.5 py-1 rounded-lg text-[10px] uppercase tracking-wider">${getQuizLevelLabel(level)}</span>
@@ -3538,8 +3542,8 @@
                 html += `
                     <div class="p-3 rounded-xl border ${correct ? 'bg-green-50 text-green-700 border-green-100' : 'bg-red-50 text-red-700 border-red-100'}">
                         <p class="font-bold">${correct ? `Betul! Anda dapat ${savedAnswer.earnedMarks || mark} markah.` : `Salah. Jawapan betul ialah ${q.jawapan}.`}</p>
-                        ${(window.currentSubtopicQuizAnswerImages || []).length > 0 ? `<button onclick="showCurrentSubtopicQuizAnswerImages()" class="mt-2 bg-slate-900 text-white text-[11px] font-bold px-3 py-2 rounded-lg">Lihat Gambar Jawapan</button>` : '<p class="text-[11px] mt-1">Tiada gambar jawapan dimuat naik.</p>'}
-                        <button onclick="renderSubtopicQuizList()" class="mt-2 ml-2 bg-white border border-gray-200 text-slate-700 text-[11px] font-bold px-3 py-2 rounded-lg">← Kembali ke Pilihan Quiz</button>
+                        ${(window.currentSubtopicQuizAnswerImages || []).length > 0 ? `<button onclick="window.showCurrentSubtopicQuizAnswerImages()" class="mt-2 bg-slate-900 text-white text-[11px] font-bold px-3 py-2 rounded-lg">Lihat Gambar Jawapan</button>` : '<p class="text-[11px] mt-1">Tiada gambar jawapan dimuat naik.</p>'}
+                        <button onclick="window.backToSubtopicQuizList()" class="mt-2 ml-2 bg-white border border-gray-200 text-slate-700 text-[11px] font-bold px-3 py-2 rounded-lg">← Kembali ke Pilihan Quiz</button>
                     </div>
                 `;
             }
@@ -3571,7 +3575,7 @@
         };
 
         window.showCurrentSubtopicQuizAnswerImages = function() {
-            showSubtopicQuizAnswerImages(window.currentSubtopicQuizAnswerImages || []);
+            window.showSubtopicQuizAnswerImages(window.currentSubtopicQuizAnswerImages || []);
         };
 
         window.showSubtopicQuizAnswerImages = function(urls = []) {
@@ -3581,7 +3585,8 @@
             box.innerHTML = cleanUrls.length
                 ? cleanUrls.map(url => `<img src="${url}" class="w-full rounded-xl border border-gray-100 shadow-sm" alt="Gambar jawapan quiz">`).join('')
                 : '<p class="text-xs text-gray-500">Tiada gambar jawapan untuk soalan ini.</p>';
-            document.getElementById('quiz-answer-modal')?.classList.remove('hide');
+            const modal = document.getElementById('quiz-answer-modal');
+            if(modal) modal.classList.remove('hide');
         };
 
         window.submitSubtopicQuizAnswer = async function(q, level, resultKey, chosen) {
