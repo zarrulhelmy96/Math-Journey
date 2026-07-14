@@ -1553,7 +1553,31 @@
 
             <div class="bg-blue-50 border border-blue-300 p-4 rounded-xl space-y-3 mb-6 text-xs shadow-sm">
                 <h3 class="font-bold text-sm text-blue-900 border-b border-blue-200 pb-2"><i class="fa-solid fa-circle-question"></i> 5. Quiz Manager</h3>
-                <p class="text-[11px] text-blue-800">Upload soalan quiz mengikut Tingkatan, Bab, Subtopik dan markah. Pelajar boleh pilih soalan satu per satu dalam tab Quiz. Level Quiz sudah dibuang.</p>
+                <p class="text-[11px] text-blue-800">Quiz Manager kini guna sistem wizard dalam panel yang sama. Pilih Tingkatan, Bab dan Subtopik sekali sahaja, kemudian isi soalan, guna simbol matematik, upload gambar dan simpan satu per satu dengan lebih laju.</p>
+                <div class="bg-white border border-blue-100 rounded-xl p-3 flex items-center gap-2">
+                    <div class="w-9 h-9 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    </div>
+                    <div>
+                        <p class="text-[11px] font-extrabold text-blue-800 uppercase tracking-wider">Wizard Mode Aktif Dalam Quiz Manager</p>
+                        <p class="text-[10px] text-gray-500">Simbol matematik, gambar soalan, gambar pilihan dan gambar jawapan masih kekal dalam panel ini.</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2">
+                    <div class="bg-white border border-blue-100 rounded-xl p-2 text-center">
+                        <p class="text-[10px] font-extrabold text-blue-700">STEP 1</p>
+                        <p class="text-[10px] text-gray-500">Pilih silibus</p>
+                    </div>
+                    <div class="bg-white border border-blue-100 rounded-xl p-2 text-center">
+                        <p class="text-[10px] font-extrabold text-blue-700">STEP 2</p>
+                        <p class="text-[10px] text-gray-500">Isi soalan</p>
+                    </div>
+                    <div class="bg-white border border-blue-100 rounded-xl p-2 text-center">
+                        <p class="text-[10px] font-extrabold text-blue-700">STEP 3</p>
+                        <p class="text-[10px] text-gray-500">Simpan & ulang</p>
+                    </div>
+                </div>
                 <div class="grid grid-cols-1 gap-2">
                     <div>
                         <label class="block font-semibold text-gray-700 mb-1">Tingkatan</label>
@@ -1723,16 +1747,29 @@
                     <input type="file" id="adm-standalone-quiz-answer-image-file" accept="image/jpeg, image/png, image/webp" multiple class="w-full border p-2 rounded-lg text-xs bg-white">
                     <p class="text-[10px] text-gray-500 mt-1">Gambar ini akan muncul sebagai pop up selepas user jawab soalan.</p>
                 </div>
-                <button onclick="addStandaloneQuizQuestion()" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 rounded-xl text-sm flex items-center justify-center space-x-1 shadow-md">
-                    <i class="fa-solid fa-cloud-arrow-up"></i> <span>Upload Soalan Quiz</span>
-                </button>
-                <div class="grid grid-cols-2 gap-2">
-                    <button onclick="loadAdminStandaloneQuizList()" class="bg-white border border-blue-200 text-blue-700 font-bold py-2 rounded-xl text-xs hover:bg-blue-50 transition">
-                        <i class="fa-solid fa-rotate"></i> Refresh Senarai
+                <div class="bg-white border border-blue-100 rounded-xl p-3 space-y-2">
+                    <button onclick="addStandaloneQuizQuestion()" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 rounded-xl text-sm flex items-center justify-center space-x-1 shadow-md">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> <span>Simpan & Tambah Soalan Seterusnya</span>
                     </button>
-                    <button onclick="deleteAllStandaloneQuizForSelectedChapter()" class="bg-red-600 text-white font-bold py-2 rounded-xl text-xs hover:bg-red-700 transition">
-                        <i class="fa-solid fa-trash"></i> Padam Semua Quiz Subtopik Ini
-                    </button>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="duplicateLastQuizDraft()" class="bg-amber-50 border border-amber-200 text-amber-700 font-bold py-2 rounded-xl text-xs hover:bg-amber-100 transition">
+                            <i class="fa-solid fa-copy"></i> Duplicate Soalan Terakhir
+                        </button>
+                        <button onclick="resetQuizWizardForm()" class="bg-gray-50 border border-gray-200 text-gray-700 font-bold py-2 rounded-xl text-xs hover:bg-gray-100 transition">
+                            <i class="fa-solid fa-eraser"></i> Reset Borang
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="loadAdminStandaloneQuizList()" class="bg-white border border-blue-200 text-blue-700 font-bold py-2 rounded-xl text-xs hover:bg-blue-50 transition">
+                            <i class="fa-solid fa-rotate"></i> Refresh Senarai
+                        </button>
+                        <button onclick="deleteAllStandaloneQuizForSelectedChapter()" class="bg-red-600 text-white font-bold py-2 rounded-xl text-xs hover:bg-red-700 transition">
+                            <i class="fa-solid fa-trash"></i> Padam Semua Quiz Subtopik Ini
+                        </button>
+                    </div>
+                    <p class="text-[10px] text-gray-500 leading-relaxed">
+                        Nota: Duplicate hanya salin teks soalan, pilihan, jawapan dan markah. Gambar perlu upload semula sebab browser tidak benarkan file gambar auto-disalin.
+                    </p>
                 </div>
                 <div id="adm-standalone-quiz-image-order-panel" class="hide bg-white border border-blue-200 rounded-xl p-3 space-y-2"></div>
                 <div class="bg-slate-50 border border-blue-100 rounded-xl p-2">
@@ -1744,45 +1781,6 @@
                     </div>
                     <div id="adm-standalone-quiz-list" class="space-y-2 max-h-[420px] overflow-y-auto pr-1"></div>
                 </div>
-            </div>
-
-            <div class="bg-violet-50 border border-violet-300 p-4 rounded-xl space-y-3 mb-6 text-xs shadow-sm">
-                <h3 class="font-bold text-sm text-violet-900 border-b border-violet-200 pb-2"><i class="fa-solid fa-file-code"></i> 6. Bulk Upload Quiz JSON</h3>
-                <p class="text-[11px] text-violet-800 leading-relaxed">
-                    Paste JSON quiz di sini untuk upload banyak soalan sekaligus. JSON ini <strong>bukan</strong> untuk Firebase Rules dan <strong>bukan</strong> untuk Import JSON dekat Firebase Data.
-                </p>
-                <div class="bg-white border border-violet-100 rounded-xl p-3 space-y-2">
-                    <div class="flex justify-between items-center gap-2">
-                        <p class="text-[10px] font-bold text-violet-700 uppercase tracking-wider">Format ringkas</p>
-                        <button onclick="fillBulkQuizJsonExample()" class="bg-violet-100 hover:bg-violet-200 text-violet-700 font-bold px-3 py-1.5 rounded-lg text-[10px]">Isi Contoh JSON</button>
-                    </div>
-                    <pre class="text-[10px] whitespace-pre-wrap text-gray-500 leading-relaxed">{
-  "tingkatan": "1",
-  "bab": "Faktor dan Gandaan",
-  "subtopik": "Faktor Perdana",
-  "quiz": [
-    {
-      "tajuk": "Quiz 1",
-      "markah": 1,
-      "soalan": "Taip soalan di sini",
-      "pilihan": { "A": "", "B": "", "C": "", "D": "" },
-      "jawapan": "A",
-      "gambar_soalan": [],
-      "gambar_jawapan": []
-    }
-  ]
-}</pre>
-                </div>
-                <textarea id="adm-bulk-quiz-json" rows="14" class="w-full border border-violet-200 p-3 rounded-xl bg-white outline-none font-mono text-[11px]" placeholder="Paste JSON quiz di sini..."></textarea>
-                <div class="grid grid-cols-2 gap-2">
-                    <button onclick="validateBulkQuizJson()" class="bg-white border border-violet-200 text-violet-700 font-bold py-2.5 rounded-xl text-xs hover:bg-violet-50 transition">
-                        <i class="fa-solid fa-check"></i> Semak JSON
-                    </button>
-                    <button onclick="uploadBulkQuizJsonFromAdmin()" class="bg-violet-700 hover:bg-violet-800 text-white font-bold py-2.5 rounded-xl text-xs transition">
-                        <i class="fa-solid fa-cloud-arrow-up"></i> Upload Bulk Quiz
-                    </button>
-                </div>
-                <div id="adm-bulk-quiz-status" class="hide bg-white border border-violet-100 rounded-xl p-3 text-[11px] leading-relaxed"></div>
             </div>
 
         </section>
@@ -5328,214 +5326,58 @@
             updateAdminQuizChapterOptions();
         };
 
-        function normalizeBulkText(value = '') {
-            return (value || '').toString().trim().toLowerCase().replace(/\s+/g, ' ');
-        }
-
-        function normalizeBulkUrlArray(raw = []) {
-            if(Array.isArray(raw)) return raw.map(v => (v || '').toString().trim()).filter(Boolean);
-            if(typeof raw === 'string' && raw.trim() !== '') return [raw.trim()];
-            if(raw && typeof raw === 'object') return Object.values(raw).flat().map(v => (v || '').toString().trim()).filter(Boolean);
-            return [];
-        }
-
-        function findBulkChapterKey(formNum, chapterValue) {
-            const clean = (chapterValue || '').toString().trim();
-            const chapters = appSilibusData?.[formNum] || {};
-            if(clean && chapters[clean]) return clean;
-
-            const normalized = normalizeBulkText(clean);
-            const found = Object.entries(chapters).find(([key, data]) => {
-                return normalizeBulkText(key) === normalized || normalizeBulkText(data?.nama_bab || '') === normalized;
-            });
-            return found ? found[0] : '';
-        }
-
-        function findBulkSubtopicKey(formNum, chKey, subtopicValue) {
-            const clean = (subtopicValue || '').toString().trim();
-            const subtopics = appSilibusData?.[formNum]?.[chKey]?.subtopik || {};
-            if(clean && subtopics[clean]) return clean;
-
-            const normalized = normalizeBulkText(clean);
-            const found = Object.entries(subtopics).find(([key, data]) => {
-                return normalizeBulkText(key) === normalized || normalizeBulkText(data?.nama_subtopik || '') === normalized;
-            });
-            return found ? found[0] : '';
-        }
-
-        function getBulkQuizItems(parsed) {
-            if(Array.isArray(parsed)) return { defaults: {}, items: parsed };
-            if(parsed && typeof parsed === 'object') {
-                const items = Array.isArray(parsed.quiz) ? parsed.quiz : [parsed];
-                return { defaults: parsed, items };
-            }
-            return { defaults: {}, items: [] };
-        }
-
-        function buildBulkQuizPayload(defaults, item, formNum, chKey, subKey, sortOrder) {
-            const pilihan = item.pilihan || item.options || {};
-            const a = (pilihan.A ?? pilihan.a ?? item.A ?? item.a ?? '').toString().trim();
-            const b = (pilihan.B ?? pilihan.b ?? item.B ?? item.b ?? '').toString().trim();
-            const c = (pilihan.C ?? pilihan.c ?? item.C ?? item.c ?? '').toString().trim();
-            const d = (pilihan.D ?? pilihan.d ?? item.D ?? item.d ?? '').toString().trim();
-            const jawapan = (item.jawapan ?? item.answer ?? item.correctAnswer ?? '').toString().trim().toUpperCase();
-            const marks = Math.max(1, Number(item.markah ?? item.marks ?? defaults.markah ?? defaults.marks ?? 1) || 1);
-            const chapterName = appSilibusData?.[formNum]?.[chKey]?.nama_bab || chKey;
-            const subtopicName = appSilibusData?.[formNum]?.[chKey]?.subtopik?.[subKey]?.nama_subtopik || subKey;
-
+        function getCurrentQuizFormDraft() {
             return {
-                tajuk: (item.tajuk || item.title || '').toString().trim(),
-                soalan: (item.soalan || item.question || item.tajuk || item.title || '').toString().trim(),
-                imageUrls: normalizeBulkUrlArray(item.gambar_soalan || item.gambarSoalan || item.imageUrls || item.questionImageUrls),
-                a, b, c, d,
-                jawapan,
-                answerImageUrls: normalizeBulkUrlArray(item.gambar_jawapan || item.gambarJawapan || item.answerImageUrls || item.solutionImageUrls),
-                optionImageUrls: item.optionImageUrls || item.optionImages || {},
-                marks,
-                formNum,
-                chapterKey: chKey,
-                chapterName,
-                subKey,
-                subtopicKey: subKey,
-                subtopicName,
-                sortOrder,
-                createdAt: Date.now(),
-                updatedAt: Date.now(),
-                source: 'bulk_json'
+                soalan: document.getElementById('adm-standalone-quiz-soalan')?.value || '',
+                a: document.getElementById('adm-standalone-quiz-a')?.value || '',
+                b: document.getElementById('adm-standalone-quiz-b')?.value || '',
+                c: document.getElementById('adm-standalone-quiz-c')?.value || '',
+                d: document.getElementById('adm-standalone-quiz-d')?.value || '',
+                jawapan: document.getElementById('adm-standalone-quiz-jawapan')?.value || '',
+                marks: document.getElementById('adm-standalone-quiz-marks')?.value || '1'
             };
         }
 
-        function parseAndValidateBulkQuizJson(showSuccess = false) {
-            const status = document.getElementById('adm-bulk-quiz-status');
-            const input = document.getElementById('adm-bulk-quiz-json');
-            if(status) {
-                status.classList.remove('hide');
-                status.className = 'bg-white border border-violet-100 rounded-xl p-3 text-[11px] leading-relaxed';
-            }
-            if(!input) throw new Error('Kotak Bulk JSON tidak dijumpai.');
-            const raw = input.value.trim();
-            if(!raw) throw new Error('Sila paste JSON quiz dahulu.');
-
-            let parsed;
-            try {
-                parsed = JSON.parse(raw);
-            } catch(err) {
-                throw new Error('Format JSON tidak sah. Semak comma, tanda petik " dan kurungan. Detail: ' + err.message);
-            }
-
-            const { defaults, items } = getBulkQuizItems(parsed);
-            if(!items.length) throw new Error('JSON tidak mempunyai senarai quiz.');
-
-            const prepared = [];
-            items.forEach((item, index) => {
-                const formNum = (item.tingkatan || defaults.tingkatan || item.formNum || defaults.formNum || '').toString().trim();
-                const chapterValue = item.bab || defaults.bab || item.chapter || defaults.chapter || item.chapterKey || defaults.chapterKey || '';
-                const subtopicValue = item.subtopik || defaults.subtopik || item.subtopic || defaults.subtopic || item.subKey || defaults.subKey || '';
-
-                if(!formNum) throw new Error(`Item ${index + 1}: Tingkatan tidak diisi.`);
-                const chKey = findBulkChapterKey(formNum, chapterValue);
-                if(!chKey) throw new Error(`Item ${index + 1}: Bab "${chapterValue}" tidak dijumpai dalam Tingkatan ${formNum}. Pastikan nama bab sama seperti silibus admin.`);
-                const subKey = findBulkSubtopicKey(formNum, chKey, subtopicValue);
-                if(!subKey) throw new Error(`Item ${index + 1}: Subtopik "${subtopicValue}" tidak dijumpai dalam bab tersebut.`);
-
-                const previewPayload = buildBulkQuizPayload(defaults, item, formNum, chKey, subKey, 1);
-                if(!previewPayload.soalan) throw new Error(`Item ${index + 1}: Soalan tidak diisi.`);
-                if(!previewPayload.a) throw new Error(`Item ${index + 1}: Pilihan A tidak diisi.`);
-                if(!previewPayload.b) throw new Error(`Item ${index + 1}: Pilihan B tidak diisi.`);
-                if(!previewPayload.c) throw new Error(`Item ${index + 1}: Pilihan C tidak diisi.`);
-                if(!previewPayload.d) throw new Error(`Item ${index + 1}: Pilihan D tidak diisi.`);
-                if(!['A','B','C','D'].includes(previewPayload.jawapan)) throw new Error(`Item ${index + 1}: Jawapan betul mesti A, B, C atau D.`);
-
-                prepared.push({ defaults, item, formNum, chKey, subKey });
-            });
-
-            if(showSuccess && status) {
-                status.className = 'bg-green-50 border border-green-200 text-green-700 rounded-xl p-3 text-[11px] leading-relaxed';
-                status.innerHTML = `<strong>JSON valid.</strong><br>${prepared.length} soalan sedia untuk diupload. Pastikan gambar dalam JSON ialah URL gambar yang sah, bukan nama file sahaja.`;
-            }
-
-            return prepared;
+        function setQuizWizardValue(id, value) {
+            const el = document.getElementById(id);
+            if(el) el.value = value || '';
         }
 
-        window.validateBulkQuizJson = function() {
-            const status = document.getElementById('adm-bulk-quiz-status');
-            try {
-                parseAndValidateBulkQuizJson(true);
-            } catch(err) {
-                if(status) {
-                    status.classList.remove('hide');
-                    status.className = 'bg-red-50 border border-red-200 text-red-700 rounded-xl p-3 text-[11px] leading-relaxed';
-                    status.innerHTML = `<strong>JSON tidak valid.</strong><br>${escapeHtml(err.message)}`;
-                } else {
-                    alert(err.message);
-                }
-            }
+        window.fillQuizWizardFromDraft = function(draft = {}) {
+            setQuizWizardValue('adm-standalone-quiz-soalan', draft.soalan);
+            setQuizWizardValue('adm-standalone-quiz-a', draft.a);
+            setQuizWizardValue('adm-standalone-quiz-b', draft.b);
+            setQuizWizardValue('adm-standalone-quiz-c', draft.c);
+            setQuizWizardValue('adm-standalone-quiz-d', draft.d);
+            setQuizWizardValue('adm-standalone-quiz-jawapan', draft.jawapan);
+            setQuizWizardValue('adm-standalone-quiz-marks', draft.marks || '1');
+            updateQuizEquationPreview();
+            document.getElementById('adm-standalone-quiz-soalan')?.focus();
         };
 
-        window.fillBulkQuizJsonExample = function() {
-            const input = document.getElementById('adm-bulk-quiz-json');
-            if(!input) return;
-            input.value = JSON.stringify({
-                tingkatan: "1",
-                bab: "Faktor dan Gandaan",
-                subtopik: "Faktor Perdana",
-                quiz: [
-                    {
-                        tajuk: "Quiz Faktor Perdana 1",
-                        markah: 1,
-                        soalan: "Antara berikut, yang manakah faktor perdana bagi 18?",
-                        pilihan: {
-                            A: "2 dan 3",
-                            B: "3 dan 6",
-                            C: "1 dan 18",
-                            D: "6 dan 9"
-                        },
-                        jawapan: "A",
-                        gambar_soalan: [],
-                        gambar_jawapan: []
-                    }
-                ]
-            }, null, 2);
-            validateBulkQuizJson();
+        window.resetQuizWizardForm = function() {
+            ['adm-standalone-quiz-soalan','adm-standalone-quiz-image-file','adm-standalone-quiz-a','adm-standalone-quiz-b','adm-standalone-quiz-c','adm-standalone-quiz-d','adm-standalone-quiz-option-a-image-file','adm-standalone-quiz-option-b-image-file','adm-standalone-quiz-option-c-image-file','adm-standalone-quiz-option-d-image-file','adm-standalone-quiz-jawapan','adm-standalone-quiz-answer-image-file'].forEach(id => {
+                const el = document.getElementById(id);
+                if(el) el.value = '';
+            });
+            const marksEl = document.getElementById('adm-standalone-quiz-marks');
+            if(marksEl) marksEl.value = '1';
+            updateQuizEquationPreview();
+            document.getElementById('adm-standalone-quiz-soalan')?.focus();
         };
 
-        window.uploadBulkQuizJsonFromAdmin = async function() {
-            if(!isCurrentUserAdmin()) return alert('Admin sahaja.');
-            const status = document.getElementById('adm-bulk-quiz-status');
-            try {
-                const prepared = parseAndValidateBulkQuizJson(false);
-                if(!confirm(`Upload ${prepared.length} soalan quiz daripada JSON ini?`)) return;
-
-                if(status) {
-                    status.classList.remove('hide');
-                    status.className = 'bg-violet-50 border border-violet-200 text-violet-700 rounded-xl p-3 text-[11px] leading-relaxed';
-                    status.innerHTML = 'Sedang upload bulk quiz...';
-                }
-
-                let uploaded = 0;
-                for(const row of prepared) {
-                    const quizLevel = 'easy';
-                    const sortOrder = await getNextStandaloneQuizSortOrder(row.formNum, row.chKey, quizLevel);
-                    const payload = buildBulkQuizPayload(row.defaults, row.item, row.formNum, row.chKey, row.subKey, sortOrder);
-                    const newRef = push(ref(db, `quizzes/${row.formNum}/${row.chKey}/${quizLevel}`));
-                    await set(newRef, payload);
-                    uploaded += 1;
-                }
-
-                if(status) {
-                    status.className = 'bg-green-50 border border-green-200 text-green-700 rounded-xl p-3 text-[11px] leading-relaxed';
-                    status.innerHTML = `<strong>Berjaya.</strong><br>${uploaded} soalan quiz telah diupload.`;
-                }
-                await loadAdminStandaloneQuizList();
-            } catch(err) {
-                if(status) {
-                    status.classList.remove('hide');
-                    status.className = 'bg-red-50 border border-red-200 text-red-700 rounded-xl p-3 text-[11px] leading-relaxed';
-                    status.innerHTML = `<strong>Ralat upload bulk quiz.</strong><br>${escapeHtml(err.message)}`;
-                } else {
-                    alert('Ralat upload bulk quiz: ' + err.message);
+        window.duplicateLastQuizDraft = function() {
+            let draft = window.lastSavedQuizDraft || null;
+            if(!draft) {
+                try {
+                    draft = JSON.parse(localStorage.getItem('mathJourneyLastQuizDraft') || 'null');
+                } catch(err) {
+                    draft = null;
                 }
             }
+            if(!draft) return alert('Belum ada soalan terakhir untuk duplicate. Simpan satu soalan dahulu.');
+            fillQuizWizardFromDraft(draft);
+            alert('Soalan terakhir berjaya diduplicate. Gambar perlu upload semula.');
         };
 
         window.addStandaloneQuizQuestion = async function() {
@@ -5551,6 +5393,7 @@
             const c = document.getElementById('adm-standalone-quiz-c').value.trim();
             const d = document.getElementById('adm-standalone-quiz-d').value.trim();
             const jawapan = document.getElementById('adm-standalone-quiz-jawapan').value.trim().toUpperCase();
+            const draftBeforeUpload = getCurrentQuizFormDraft();
 
             const hasOptionAImage = (document.getElementById('adm-standalone-quiz-option-a-image-file')?.files?.length || 0) > 0;
             const hasOptionBImage = (document.getElementById('adm-standalone-quiz-option-b-image-file')?.files?.length || 0) > 0;
@@ -5591,12 +5434,13 @@
                     createdAt: Date.now(),
                     createdBy: currentUser?.uid || ''
                 });
-                alert(`Soalan quiz level ${getQuizLevelLabel(quizLevel)} berjaya diupload.`);
-                ['adm-standalone-quiz-soalan','adm-standalone-quiz-image-file','adm-standalone-quiz-a','adm-standalone-quiz-b','adm-standalone-quiz-c','adm-standalone-quiz-d','adm-standalone-quiz-option-a-image-file','adm-standalone-quiz-option-b-image-file','adm-standalone-quiz-option-c-image-file','adm-standalone-quiz-option-d-image-file','adm-standalone-quiz-jawapan','adm-standalone-quiz-marks','adm-standalone-quiz-answer-image-file'].forEach(id => {
-                    const el = document.getElementById(id);
-                    if(el) el.value = '';
-                });
-                updateQuizEquationPreview();
+                window.lastSavedQuizDraft = draftBeforeUpload;
+                try {
+                    localStorage.setItem('mathJourneyLastQuizDraft', JSON.stringify(draftBeforeUpload));
+                } catch(err) {}
+
+                alert('Soalan quiz berjaya disimpan. Borang dikosongkan untuk soalan seterusnya.');
+                resetQuizWizardForm();
                 loadAdminStandaloneQuizList();
             } catch(err) {
                 alert('Ralat upload quiz: ' + err.message);
