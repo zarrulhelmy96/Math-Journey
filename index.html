@@ -1447,8 +1447,41 @@
             </div>
 
 
+            <div class="bg-green-50 border border-green-300 p-4 rounded-xl space-y-3 mb-6 text-xs shadow-sm">
+                <h3 class="font-bold text-sm text-green-900 border-b border-green-200 pb-2"><i class="fa-solid fa-book-open"></i> 2. Upload Nota Bergambar</h3>
+                <p class="text-[11px] text-green-800 leading-relaxed">Pilih Tingkatan, Bab dan Subtopik di bahagian struktur atas. Kemudian upload gambar nota. Nota ini akan muncul dalam tab <strong>Nota</strong> apabila user tekan subtopik.</p>
+
+                <div class="space-y-3">
+                    <div>
+                        <label class="block font-semibold text-gray-700 mb-1">Tajuk / Maksud Nota</label>
+                        <textarea id="adm-nota-maksud" rows="2" class="w-full border p-2 rounded-lg bg-white focus:outline-none" placeholder="Contoh: Faktor ialah nombor yang boleh membahagi nombor lain tanpa baki."></textarea>
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-gray-700 mb-1">Formula / Ringkasan <span class="text-gray-400 font-normal">(optional)</span></label>
+                        <textarea id="adm-nota-formula" rows="2" class="w-full border p-2 rounded-lg bg-white focus:outline-none" placeholder="Contoh: Faktor bagi 12 = 1, 2, 3, 4, 6, 12"></textarea>
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-gray-700 mb-1">Kesilapan Biasa <span class="text-gray-400 font-normal">(optional)</span></label>
+                        <textarea id="adm-nota-kesilapan" rows="2" class="w-full border p-2 rounded-lg bg-white focus:outline-none" placeholder="Contoh: Jangan tertukar faktor dengan gandaan."></textarea>
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-gray-700 mb-1">Tips Nota <span class="text-gray-400 font-normal">(optional)</span></label>
+                        <textarea id="adm-nota-tips" rows="2" class="w-full border p-2 rounded-lg bg-white focus:outline-none" placeholder="Contoh: Senaraikan nombor kecil dahulu supaya tidak tertinggal faktor."></textarea>
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-gray-700 mb-1">Gambar Nota</label>
+                        <input type="file" id="adm-nota-image-file" accept="image/jpeg, image/png, image/webp" multiple class="w-full border p-2 rounded-lg text-xs bg-white">
+                        <p class="text-[10px] text-gray-500 mt-1">Boleh upload satu atau banyak gambar nota sekaligus.</p>
+                    </div>
+                </div>
+
+                <button onclick="uploadNotaFromAdmin()" class="w-full bg-green-700 hover:bg-green-800 text-white font-bold py-3 rounded-xl text-sm flex items-center justify-center space-x-1 shadow-md">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> <span>Upload Nota</span>
+                </button>
+            </div>
+
             <div class="bg-white border border-gray-200 p-4 rounded-xl space-y-3 mb-6 text-xs shadow-sm">
-                <h3 class="font-bold text-sm text-slate-800 border-b pb-2"><i class="fa-solid fa-images"></i> 2. Upload Contoh Soalan Bergambar</h3>
+                <h3 class="font-bold text-sm text-slate-800 border-b pb-2"><i class="fa-solid fa-images"></i> 3. Upload Contoh Soalan Bergambar</h3>
                 <p class="text-[11px] text-gray-500 leading-relaxed">Pilih Tingkatan, Bab dan Subtopik di bahagian struktur atas. Kemudian upload gambar contoh soalan / jalan kerja. Setiap gambar akan dipaparkan kepada pelajar sebagai step berasingan dengan butang Back dan Next.</p>
 
                 <div class="bg-indigo-50 p-3 rounded border border-indigo-200 space-y-2">
@@ -1496,7 +1529,7 @@
                 </button>
             </div>
             <div class="bg-orange-50 border border-orange-300 p-4 rounded-xl space-y-3 mb-6 text-xs shadow-sm">
-                <h3 class="font-bold text-sm text-orange-900 border-b border-orange-200 pb-2"><i class="fa-solid fa-store"></i> Math Journey Shop Manager</h3>
+                <h3 class="font-bold text-sm text-orange-900 border-b border-orange-200 pb-2"><i class="fa-solid fa-store"></i> 4. Math Journey Shop Manager</h3>
                 <p class="text-[11px] text-orange-800">Upload gambar produk dan description. Button Beli akan bawa user terus ke WhatsApp admin.</p>
                 <div>
                     <label class="block font-semibold text-gray-700 mb-1">Nama Produk</label>
@@ -1519,7 +1552,7 @@
             </div>
 
             <div class="bg-blue-50 border border-blue-300 p-4 rounded-xl space-y-3 mb-6 text-xs shadow-sm">
-                <h3 class="font-bold text-sm text-blue-900 border-b border-blue-200 pb-2"><i class="fa-solid fa-circle-question"></i> 3. Quiz Manager</h3>
+                <h3 class="font-bold text-sm text-blue-900 border-b border-blue-200 pb-2"><i class="fa-solid fa-circle-question"></i> 5. Quiz Manager</h3>
                 <p class="text-[11px] text-blue-800">Upload soalan quiz mengikut Tingkatan, Bab, Subtopik dan markah. Pelajar boleh pilih soalan satu per satu dalam tab Quiz.</p>
                 <div class="grid grid-cols-1 gap-2">
                     <div>
@@ -3152,6 +3185,7 @@
             if(!list || !selectEl) return;
 
             const entries = getStudentSubtopicEntries();
+            window.studentSubtopicEntries = entries;
             selectEl.innerHTML = '';
             list.innerHTML = '';
 
@@ -3172,7 +3206,7 @@
                 const contohCount = items.filter(i => i.type === 'contoh').length;
 
                 list.innerHTML += `
-                    <button onclick="openStudentSubtopic(${JSON.stringify(entry.key)})" class="w-full bg-white border border-gray-100 p-4 rounded-2xl text-left shadow-sm hover:border-soft-pink transition flex justify-between items-center">
+                    <button onclick="openStudentSubtopicByIndex(${index})" class="w-full bg-white border border-gray-100 p-4 rounded-2xl text-left shadow-sm hover:border-soft-pink transition flex justify-between items-center">
                         <div class="pr-3">
                             <span class="bg-green-50 text-green-700 text-[10px] font-bold px-2 py-1 rounded-full">SUBTOPIK ${index + 1}</span>
                             <h4 class="font-bold text-sm text-slate-900 mt-2 leading-relaxed">${escapeHtml(entry.name)}</h4>
@@ -3183,6 +3217,12 @@
                 `;
             });
         }
+
+        window.openStudentSubtopicByIndex = function(index) {
+            const entry = (window.studentSubtopicEntries || [])[index];
+            if(!entry) return alert('Subtopik tidak dijumpai. Sila refresh page dan cuba semula.');
+            openStudentSubtopic(entry.key);
+        };
 
         window.openStudentSubtopic = function(subKey) {
             selectedStudentSubtopicKey = subKey;
@@ -4093,19 +4133,27 @@
                     return;
                 }
 
-                list.innerHTML = entries.map(product => `
+                window.adminShopProductEntries = entries;
+
+                list.innerHTML = entries.map((product, index) => `
                     <div class="bg-orange-50 border border-orange-100 rounded-xl p-2 flex gap-2 items-start">
                         ${product.imageUrl ? `<img src="${product.imageUrl}" class="w-16 h-16 object-cover rounded-lg bg-white border">` : ''}
                         <div class="flex-1 min-w-0">
                             <p class="font-bold text-slate-900 text-xs truncate">${escapeHtml(product.title || 'Produk')}</p>
                             <p class="text-[10px] text-gray-500 line-clamp-2">${escapeHtml(product.description || '')}</p>
                         </div>
-                        <button onclick="deleteShopProduct(${JSON.stringify(product.id)})" class="bg-red-50 text-red-600 font-bold px-2 py-1 rounded-lg text-[10px]">Padam</button>
+                        <button onclick="deleteShopProductByIndex(${index})" class="bg-red-50 text-red-600 font-bold px-2 py-1 rounded-lg text-[10px]">Padam</button>
                     </div>
                 `).join('');
             } catch (err) {
                 list.innerHTML = `<p class="text-[10px] text-red-500 text-center py-2">Ralat: ${err.message}</p>`;
             }
+        };
+
+        window.deleteShopProductByIndex = function(index) {
+            const product = (window.adminShopProductEntries || [])[index];
+            if(!product) return alert('Produk tidak dijumpai. Sila refresh senarai produk.');
+            deleteShopProduct(product.id);
         };
 
         window.deleteShopProduct = async function(productId) {
@@ -6208,6 +6256,14 @@
             return Math.floor(maxOrder) + 1;
         }
 
+        window.uploadNotaFromAdmin = async function() {
+            const hiddenType = document.getElementById('adm-content-type');
+            if(hiddenType) hiddenType.value = 'nota';
+            currentEditingContentKey = null;
+            await addContentToFirebase();
+            if(hiddenType) hiddenType.value = 'contoh';
+        };
+
         window.addContentToFirebase = async function() {
             const formNum = document.getElementById('adm-form').value;
             const chKey = document.getElementById('adm-chapter-select').value;
@@ -6228,6 +6284,13 @@
                 else if(type === 'latihan') newImageUrls = await uploadMultipleFilesHelper('adm-latihan-image-file', 'latihan_images');
                 else if(type === 'kuiz') newImageUrls = await uploadMultipleFilesHelper('adm-kuiz-image-file', 'kuiz_images');
 
+                if(type === 'nota' && !currentEditingContentKey) {
+                    const hasNotaText = ['adm-nota-maksud','adm-nota-formula','adm-nota-kesilapan','adm-nota-tips'].some(id => (document.getElementById(id)?.value || '').trim() !== '');
+                    if(!hasNotaText && newImageUrls.length === 0) {
+                        return alert("Sila isi nota atau upload sekurang-kurangnya satu gambar nota.");
+                    }
+                }
+
                 if(type === 'contoh' && !currentEditingContentKey && newImageUrls.length === 0) {
                     return alert("Sila upload sekurang-kurangnya satu gambar contoh soalan / jalan kerja.");
                 }
@@ -6241,13 +6304,13 @@
                         payload.sortOrder = currentIndex >= 0 ? currentIndex + 1 : getNextSortOrder(kandunganList);
                     }
                     await set(ref(db, `silibus/${formNum}/${chKey}/subtopik/${subKey}/kandungan_list/${currentEditingContentKey}`), payload);
-                    alert("Perubahan contoh soalan berjaya disimpan!");
+                    alert(type === 'nota' ? "Perubahan nota berjaya disimpan!" : "Perubahan contoh soalan berjaya disimpan!");
                 } else {
                     payload.sortOrder = getNextSortOrder(kandunganList);
                     const listRef = ref(db, `silibus/${formNum}/${chKey}/subtopik/${subKey}/kandungan_list`);
                     const newItemRef = push(listRef);
                     await set(newItemRef, payload);
-                    alert("Contoh soalan berjaya ditambah ke Firebase Database!");
+                    alert(type === 'nota' ? "Nota berjaya ditambah ke Firebase Database!" : "Contoh soalan berjaya ditambah ke Firebase Database!");
                 }
 
                 clearContentForm(type);
