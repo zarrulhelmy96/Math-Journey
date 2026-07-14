@@ -1553,7 +1553,7 @@
 
             <div class="bg-blue-50 border border-blue-300 p-4 rounded-xl space-y-3 mb-6 text-xs shadow-sm">
                 <h3 class="font-bold text-sm text-blue-900 border-b border-blue-200 pb-2"><i class="fa-solid fa-circle-question"></i> 5. Quiz Manager</h3>
-                <p class="text-[11px] text-blue-800">Upload soalan quiz mengikut Tingkatan, Bab, Subtopik dan markah. Pelajar boleh pilih soalan satu per satu dalam tab Quiz.</p>
+                <p class="text-[11px] text-blue-800">Upload soalan quiz mengikut Tingkatan, Bab, Subtopik dan markah. Pelajar boleh pilih soalan satu per satu dalam tab Quiz. Level Quiz sudah dibuang.</p>
                 <div class="grid grid-cols-1 gap-2">
                     <div>
                         <label class="block font-semibold text-gray-700 mb-1">Tingkatan</label>
@@ -1575,14 +1575,6 @@
                         <label class="block font-semibold text-gray-700 mb-1">Subtopik</label>
                         <select id="adm-quiz-subtopic" onchange="loadAdminStandaloneQuizList()" class="w-full border p-2.5 rounded-lg bg-white outline-none">
                             <option value="">-- Pilih Subtopik --</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block font-semibold text-gray-700 mb-1">Level Quiz</label>
-                        <select id="adm-quiz-level" onchange="loadAdminStandaloneQuizList()" class="w-full border p-2.5 rounded-lg bg-white outline-none font-bold">
-                            <option value="easy">Easy</option>
-                            <option value="medium">Medium</option>
-                            <option value="hard">Hard</option>
                         </select>
                     </div>
                 </div>
@@ -1739,7 +1731,7 @@
                         <i class="fa-solid fa-rotate"></i> Refresh Senarai
                     </button>
                     <button onclick="deleteAllStandaloneQuizForSelectedChapter()" class="bg-red-600 text-white font-bold py-2 rounded-xl text-xs hover:bg-red-700 transition">
-                        <i class="fa-solid fa-trash"></i> Padam Semua Quiz Bab Ini
+                        <i class="fa-solid fa-trash"></i> Padam Semua Quiz Subtopik Ini
                     </button>
                 </div>
                 <div id="adm-standalone-quiz-image-order-panel" class="hide bg-white border border-blue-200 rounded-xl p-3 space-y-2"></div>
@@ -5187,7 +5179,9 @@
         };
 
         function getAdminQuizLevel() {
-            return normalizeQuizLevel(document.getElementById('adm-quiz-level')?.value || 'easy');
+            // Level Quiz sudah dibuang daripada panel admin.
+            // Semua soalan baru disimpan bawah "easy" supaya struktur lama Firebase masih stabil.
+            return 'easy';
         }
 
         function getOrderedQuizEntries(data = {}) {
@@ -5223,6 +5217,9 @@
             const subSelect = document.getElementById('adm-quiz-subtopic');
             if(!subSelect) return;
 
+            const structureSubKey = document.getElementById('adm-subtopic-select')?.value || '';
+            const previousSubKey = subSelect.value || structureSubKey;
+
             subSelect.innerHTML = '<option value="">-- Pilih Subtopik --</option>';
             const subtopics = appSilibusData?.[formNum]?.[chKey]?.subtopik || {};
             Object.keys(subtopics).sort().forEach(subKey => {
@@ -5231,6 +5228,10 @@
                 opt.innerText = subtopics[subKey].nama_subtopik || subKey;
                 subSelect.appendChild(opt);
             });
+
+            if(previousSubKey && subtopics[previousSubKey]) {
+                subSelect.value = previousSubKey;
+            }
         };
 
         window.updateAdminQuizChapterOptions = function() {
@@ -5238,6 +5239,9 @@
             const chSelect = document.getElementById('adm-quiz-chapter');
             if(!formSelect || !chSelect) return;
             const formNum = formSelect.value;
+            const structureChKey = document.getElementById('adm-chapter-select')?.value || '';
+            const previousChKey = chSelect.value || structureChKey;
+
             chSelect.innerHTML = '<option value="">-- Pilih Bab --</option>';
             const chapters = appSilibusData[formNum] || {};
             Object.keys(chapters).sort().forEach(chKey => {
@@ -5246,8 +5250,20 @@
                 opt.innerText = chapters[chKey].nama_bab || chKey;
                 chSelect.appendChild(opt);
             });
+
+            if(previousChKey && chapters[previousChKey]) {
+                chSelect.value = previousChKey;
+            }
+
             updateAdminQuizSubtopicOptions();
             loadAdminStandaloneQuizList();
+        };
+
+        window.syncQuizManagerWithStructureSelection = function() {
+            const structureForm = document.getElementById('adm-form')?.value || '';
+            const quizForm = document.getElementById('adm-quiz-form');
+            if(quizForm && structureForm) quizForm.value = structureForm;
+            updateAdminQuizChapterOptions();
         };
 
         window.addStandaloneQuizQuestion = async function() {
@@ -5328,19 +5344,26 @@
             if(!list || !formEl || !chEl) return;
             const formNum = formEl.value;
             const chKey = chEl.value;
-            const quizLevel = getAdminQuizLevel();
             const selectedSubKey = document.getElementById('adm-quiz-subtopic')?.value || '';
             if(!chKey) {
                 list.innerHTML = '<p class="text-[10px] text-blue-700 text-center py-2">Pilih bab untuk lihat senarai soalan quiz.</p>';
                 return;
             }
 
-            list.innerHTML = `<p class="text-[10px] text-blue-700 text-center py-2">Memuatkan senarai quiz level ${getQuizLevelLabel(quizLevel)}...</p>`;
+            list.innerHTML = `<p class="text-[10px] text-blue-700 text-center py-2">Memuatkan senarai quiz...</p>`;
 
             try {
                 const snap = await get(ref(db, `quizzes/${formNum}/${chKey}`));
                 const chapterQuizData = snap.exists() ? (snap.val() || {}) : {};
-                const entries = getQuizEntriesWithSourceForLevelFromChapterData(chapterQuizData, quizLevel)
+                let entries = [];
+
+                ['easy','medium','hard'].forEach(level => {
+                    getQuizEntriesWithSourceForLevelFromChapterData(chapterQuizData, level).forEach(entry => {
+                        entries.push({ ...entry, level });
+                    });
+                });
+
+                entries = entries
                     .filter(entry => !selectedSubKey || (entry.q?.subKey || entry.q?.subtopicKey || '') === selectedSubKey)
                     .map((entry, index) => ({ ...entry, index }))
                     .sort((a, b) => {
@@ -5351,11 +5374,11 @@
                     });
 
                 if(entries.length === 0) {
-                    list.innerHTML = `<p class="text-[10px] text-blue-700 text-center py-2">Tiada soalan quiz level ${getQuizLevelLabel(quizLevel)} untuk bab ini.</p>`;
+                    list.innerHTML = `<p class="text-[10px] text-blue-700 text-center py-2">${selectedSubKey ? 'Tiada soalan quiz untuk subtopik ini.' : 'Tiada soalan quiz untuk bab ini.'}</p>`;
                     return;
                 }
 
-                list.innerHTML = entries.map(({ id, q, sourceMode, sourceLabel }, index) => {
+                list.innerHTML = entries.map(({ id, q, sourceMode, sourceLabel, level }, index) => {
                     const safeQuestion = escapeHtml(q.soalan || 'Soalan tanpa tajuk');
                     const shortQuestion = safeQuestion.length > 75 ? safeQuestion.substring(0, 75) + '...' : safeQuestion;
                     const questionImageCount = Array.isArray(q.imageUrls) ? q.imageUrls.length : 0;
@@ -5366,26 +5389,26 @@
                         return sum + (Array.isArray(imgs) ? imgs.length : 0);
                     }, 0);
                     const sourceBadge = sourceMode === 'legacy'
-                        ? '<span class="bg-amber-100 text-amber-700 font-bold px-1.5 py-0.5 rounded">Legacy Easy</span>'
-                        : `<span class="font-bold">${getQuizLevelLabel(quizLevel)}</span>`;
-                    const qMarks = getQuizQuestionMark(q, quizLevel);
+                        ? '<span class="bg-amber-100 text-amber-700 font-bold px-1.5 py-0.5 rounded">Legacy</span>'
+                        : `<span class="font-bold">${getQuizLevelLabel(level)}</span>`;
+                    const qMarks = getQuizQuestionMark(q, level);
                     const qSubtopic = q.subtopicName || q.subKey || q.subtopicKey || 'Belum set subtopik';
                     return `
                         <div class="bg-white border border-blue-100 rounded-xl p-3 space-y-2 shadow-sm">
                             <div class="flex justify-between gap-3 items-start">
                                 <div class="flex-1">
                                     <p class="font-bold text-slate-800 leading-relaxed">${index + 1}. ${shortQuestion}</p>
-                                    <p class="text-[10px] text-gray-500 mt-1">Level: ${sourceBadge} | Subtopik: <span class="font-bold">${escapeHtml(qSubtopic)}</span> | Markah: <span class="font-bold text-amber-700">${qMarks}</span> | Jawapan betul: <span class="font-bold text-emerald-700">${escapeHtml(q.jawapan || '-')}</span> | Gambar soalan: ${questionImageCount} | Gambar pilihan: ${optionImageCount} | Gambar solusi: ${answerImageCount}</p>
+                                    <p class="text-[10px] text-gray-500 mt-1">Subtopik: <span class="font-bold">${escapeHtml(qSubtopic)}</span> | Markah: <span class="font-bold text-amber-700">${qMarks}</span> | Jawapan betul: <span class="font-bold text-emerald-700">${escapeHtml(q.jawapan || '-')}</span> | Path lama: ${sourceBadge} | Gambar soalan: ${questionImageCount} | Gambar pilihan: ${optionImageCount} | Gambar solusi: ${answerImageCount}</p>
                                 </div>
-                                <button onclick='deleteStandaloneQuizQuestion(${JSON.stringify(formNum)}, ${JSON.stringify(chKey)}, ${JSON.stringify(quizLevel)}, ${JSON.stringify(id)}, ${JSON.stringify(sourceMode)})' class="bg-red-50 text-red-600 font-bold px-3 py-1.5 rounded-lg text-[10px] hover:bg-red-100 transition">
+                                <button onclick='deleteStandaloneQuizQuestion(${JSON.stringify(formNum)}, ${JSON.stringify(chKey)}, ${JSON.stringify(level)}, ${JSON.stringify(id)}, ${JSON.stringify(sourceMode)})' class="bg-red-50 text-red-600 font-bold px-3 py-1.5 rounded-lg text-[10px] hover:bg-red-100 transition">
                                     <i class="fa-solid fa-trash"></i> Padam
                                 </button>
                             </div>
                             <div class="grid grid-cols-2 gap-2">
-                                <button onclick='renderStandaloneQuizImageOrderPanel(${JSON.stringify(formNum)}, ${JSON.stringify(chKey)}, ${JSON.stringify(quizLevel)}, ${JSON.stringify(id)}, "question", ${JSON.stringify(sourceMode)})' class="bg-blue-50 text-blue-700 border border-blue-100 font-bold py-2 rounded-lg text-[10px] hover:bg-blue-100 transition">
+                                <button onclick='renderStandaloneQuizImageOrderPanel(${JSON.stringify(formNum)}, ${JSON.stringify(chKey)}, ${JSON.stringify(level)}, ${JSON.stringify(id)}, "question", ${JSON.stringify(sourceMode)})' class="bg-blue-50 text-blue-700 border border-blue-100 font-bold py-2 rounded-lg text-[10px] hover:bg-blue-100 transition">
                                     <i class="fa-solid fa-images"></i> Susun Gambar Soalan
                                 </button>
-                                <button onclick='renderStandaloneQuizImageOrderPanel(${JSON.stringify(formNum)}, ${JSON.stringify(chKey)}, ${JSON.stringify(quizLevel)}, ${JSON.stringify(id)}, "answer", ${JSON.stringify(sourceMode)})' class="bg-indigo-50 text-indigo-700 border border-indigo-100 font-bold py-2 rounded-lg text-[10px] hover:bg-indigo-100 transition">
+                                <button onclick='renderStandaloneQuizImageOrderPanel(${JSON.stringify(formNum)}, ${JSON.stringify(chKey)}, ${JSON.stringify(level)}, ${JSON.stringify(id)}, "answer", ${JSON.stringify(sourceMode)})' class="bg-indigo-50 text-indigo-700 border border-indigo-100 font-bold py-2 rounded-lg text-[10px] hover:bg-indigo-100 transition">
                                     <i class="fa-solid fa-image"></i> Susun Gambar Jawapan
                                 </button>
                             </div>
@@ -5501,32 +5524,42 @@
         window.deleteAllStandaloneQuizForSelectedChapter = async function() {
             const formNum = document.getElementById('adm-quiz-form')?.value;
             const chKey = document.getElementById('adm-quiz-chapter')?.value;
-            const quizLevel = getAdminQuizLevel();
+            const selectedSubKey = document.getElementById('adm-quiz-subtopic')?.value || '';
             if(!formNum || !chKey) return alert('Sila pilih Tingkatan dan Bab dahulu.');
+            if(!selectedSubKey) return alert('Sila pilih Subtopik dahulu.');
             const chapterName = getChapterDisplayName(formNum, chKey);
-            const extraLegacyText = quizLevel === 'easy' ? ' Termasuk soalan Easy lama / legacy yang tersimpan di path lama.' : '';
-            if(!confirm(`Padam SEMUA soalan quiz level ${getQuizLevelLabel(quizLevel)} untuk ${chapterName}?${extraLegacyText} Tindakan ini tidak boleh undo.`)) return;
+            const subtopicName = document.getElementById('adm-quiz-subtopic')?.selectedOptions?.[0]?.textContent || selectedSubKey;
+            if(!confirm(`Padam SEMUA soalan quiz untuk subtopik "${subtopicName}" dalam ${chapterName}? Tindakan ini tidak boleh undo.`)) return;
             try {
-                await remove(ref(db, `quizzes/${formNum}/${chKey}/${quizLevel}`));
+                const chapterSnap = await get(ref(db, `quizzes/${formNum}/${chKey}`));
+                if(!chapterSnap.exists()) return alert('Tiada quiz untuk bab ini.');
 
-                // Untuk Easy, turut padam soalan lama yang pernah disimpan terus bawah quizzes/{tingkatan}/{bab}/{id}.
-                if(quizLevel === 'easy') {
-                    const chapterSnap = await get(ref(db, `quizzes/${formNum}/${chKey}`));
-                    if(chapterSnap.exists()) {
-                        const chapterData = chapterSnap.val() || {};
-                        const legacyUpdates = {};
-                        Object.entries(chapterData).forEach(([id, q]) => {
-                            if(!['easy','medium','hard'].includes(id) && isQuizQuestionObject(q)) {
-                                legacyUpdates[id] = null;
-                            }
-                        });
-                        if(Object.keys(legacyUpdates).length > 0) {
-                            await update(ref(db, `quizzes/${formNum}/${chKey}`), legacyUpdates);
+                const chapterData = chapterSnap.val() || {};
+                const updates = {};
+
+                ['easy','medium','hard'].forEach(level => {
+                    const levelData = chapterData[level] || {};
+                    Object.entries(levelData || {}).forEach(([id, q]) => {
+                        const qSubKey = q?.subKey || q?.subtopicKey || '';
+                        if(qSubKey === selectedSubKey) {
+                            updates[`quizzes/${formNum}/${chKey}/${level}/${id}`] = null;
+                        }
+                    });
+                });
+
+                Object.entries(chapterData).forEach(([id, q]) => {
+                    if(!['easy','medium','hard'].includes(id) && isQuizQuestionObject(q)) {
+                        const qSubKey = q?.subKey || q?.subtopicKey || '';
+                        if(qSubKey === selectedSubKey) {
+                            updates[`quizzes/${formNum}/${chKey}/${id}`] = null;
                         }
                     }
-                }
+                });
 
-                alert(`Semua soalan quiz level ${getQuizLevelLabel(quizLevel)} untuk bab ini berjaya dipadam.`);
+                if(Object.keys(updates).length === 0) return alert('Tiada soalan quiz untuk subtopik ini.');
+
+                await update(ref(db), updates);
+                alert(`Semua soalan quiz untuk subtopik ${subtopicName} berjaya dipadam.`);
                 await loadAdminStandaloneQuizList();
                 if(!document.getElementById('view-quiz')?.classList.contains('hide')) {
                     await loadQuizChaptersForUser();
@@ -5994,14 +6027,15 @@
                 selectCh.appendChild(opt);
             });
             updateAdminSubtopicOptions();
-            updateAdminQuizChapterOptions();
+            window.syncQuizManagerWithStructureSelection();
         };
         
         document.getElementById('adm-form').onchange = window.updateAdminChapterDropdown;
         const admQuizChapterSelect = document.getElementById('adm-quiz-chapter');
-        if(admQuizChapterSelect) admQuizChapterSelect.onchange = window.loadAdminStandaloneQuizList;
-        const admQuizLevelSelect = document.getElementById('adm-quiz-level');
-        if(admQuizLevelSelect) admQuizLevelSelect.onchange = window.loadAdminStandaloneQuizList;
+        if(admQuizChapterSelect) admQuizChapterSelect.onchange = function() {
+            updateAdminQuizSubtopicOptions();
+            loadAdminStandaloneQuizList();
+        };
 
         window.updateAdminSubtopicOptions = function() {
             const formNum = document.getElementById('adm-form').value;
@@ -6146,6 +6180,9 @@
             get(ref(db, 'silibus')).then((snapshot) => {
                 appSilibusData = snapshot.exists() ? snapshot.val() : {};
                 updateAdminChapterDropdown();
+                if(typeof window.syncQuizManagerWithStructureSelection === 'function') {
+                    window.syncQuizManagerWithStructureSelection();
+                }
             });
         }
 
@@ -7050,6 +7087,9 @@
         window.updateAdminSubtopicOptions = function() {
             originalUpdateAdminSubtopicOptions();
             loadSubtopicContentList();
+            if(typeof window.syncQuizManagerWithStructureSelection === 'function') {
+                window.syncQuizManagerWithStructureSelection();
+            }
         };
     </script>
 </body>
