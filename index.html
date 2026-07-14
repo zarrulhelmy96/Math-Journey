@@ -3570,15 +3570,37 @@
             window.showSubtopicQuizAnswerImages(window.currentSubtopicQuizAnswerImages || []);
         };
 
+        function ensureGlobalQuizAnswerModal() {
+            let modal = document.getElementById('global-quiz-answer-modal');
+            if(modal) return modal;
+
+            modal = document.createElement('div');
+            modal.id = 'global-quiz-answer-modal';
+            modal.className = 'fixed inset-0 z-[999] bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4 hide';
+            modal.innerHTML = `
+                <div class="bg-white rounded-3xl max-w-sm w-full p-5 shadow-2xl text-center">
+                    <h3 class="font-bold text-slate-900 mb-2">Gambar Jawapan</h3>
+                    <div id="global-quiz-answer-modal-content" class="space-y-3 max-h-[65vh] overflow-y-auto"></div>
+                    <button type="button" onclick="closeGlobalQuizAnswerModal()" class="mt-4 bg-slate-900 text-white text-xs font-bold px-5 py-2.5 rounded-xl">Tutup</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            return modal;
+        }
+
+        window.closeGlobalQuizAnswerModal = function() {
+            document.getElementById('global-quiz-answer-modal')?.classList.add('hide');
+        };
+
         window.showSubtopicQuizAnswerImages = function(urls = []) {
             const cleanUrls = normalizeQuizImageUrls(urls);
-            const box = document.getElementById('quiz-answer-modal-content');
+            const modal = ensureGlobalQuizAnswerModal();
+            const box = document.getElementById('global-quiz-answer-modal-content');
             if(!box) return alert('Modal jawapan tidak dijumpai.');
             box.innerHTML = cleanUrls.length
                 ? cleanUrls.map(url => `<img src="${url}" class="w-full rounded-xl border border-gray-100 shadow-sm" alt="Gambar jawapan quiz">`).join('')
                 : '<p class="text-xs text-gray-500">Tiada gambar jawapan untuk soalan ini.</p>';
-            const modal = document.getElementById('quiz-answer-modal');
-            if(modal) modal.classList.remove('hide');
+            modal.classList.remove('hide');
         };
 
         window.submitSubtopicQuizAnswer = async function(q, level, resultKey, chosen) {
@@ -4741,7 +4763,8 @@
         };
 
         window.closeQuizAnswerModal = function() {
-            document.getElementById('quiz-answer-modal').classList.add('hide');
+            document.getElementById('quiz-answer-modal')?.classList.add('hide');
+            document.getElementById('global-quiz-answer-modal')?.classList.add('hide');
         };
 
         function getLeaderboardDisplayName(userData = {}) {
