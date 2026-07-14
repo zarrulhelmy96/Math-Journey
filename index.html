@@ -1139,17 +1139,29 @@
         <section id="view-content-flow" class="view hide">
             <div class="p-5 border-b border-gray-100 bg-white sticky top-14 z-40">
                 <button onclick="switchView('chapters')" class="text-gray-500 text-sm"><i class="fa-solid fa-arrow-left"></i> Senarai Bab</button>
-                <h2 id="content-flow-title" class="text-xl font-bold text-slate-900 mt-3">Contoh Soalan</h2>
-                <p class="text-xs text-gray-500 mt-1">Pilih subtopik, kemudian buka contoh soalan untuk lihat jalan kerja gambar demi gambar.</p>
+                <h2 id="content-flow-title" class="text-xl font-bold text-slate-900 mt-3">Senarai Subtopik</h2>
+                <p class="text-xs text-gray-500 mt-1">Pilih subtopik, kemudian pilih tab Nota, Contoh atau Quiz.</p>
             </div>
 
-            <div class="p-3 bg-slate-50 border-b border-gray-100 flex items-center justify-between">
-                <span class="text-xs font-bold text-gray-500">Subtopik:</span>
-                <select id="flow-subtopic-select" onchange="onSubtopicChange()" class="text-xs bg-white border border-gray-200 rounded p-1.5 font-medium max-w-[250px] outline-none"></select>
-            </div>
+            <select id="flow-subtopic-select" onchange="onSubtopicChange()" class="hide"></select>
 
-            <div id="contoh-list-content" class="p-5 space-y-3"></div>
-            <div id="contoh-viewer-content" class="p-5 hide"></div>
+            <div id="flow-subtopic-list" class="p-5 space-y-3"></div>
+
+            <div id="flow-content-area" class="hide">
+                <div class="p-3 bg-slate-50 border-b border-gray-100">
+                    <p id="flow-active-subtopic-title" class="text-xs font-extrabold text-slate-900 mb-3">Subtopik</p>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button id="flow-tab-nota" onclick="switchFlowSubTab('nota')" class="bg-white border border-gray-200 text-gray-600 font-bold py-2 rounded-xl text-xs">Nota</button>
+                        <button id="flow-tab-contoh" onclick="switchFlowSubTab('contoh')" class="bg-white border border-gray-200 text-gray-600 font-bold py-2 rounded-xl text-xs">Contoh</button>
+                        <button id="flow-tab-quiz" onclick="switchFlowSubTab('quiz')" class="bg-white border border-gray-200 text-gray-600 font-bold py-2 rounded-xl text-xs">Quiz</button>
+                    </div>
+                </div>
+
+                <div id="nota-list-content" class="p-5 space-y-3 hide"></div>
+                <div id="contoh-list-content" class="p-5 space-y-3 hide"></div>
+                <div id="flow-quiz-content" class="p-5 space-y-3 hide"></div>
+                <div id="contoh-viewer-content" class="p-5 hide"></div>
+            </div>
         </section>
 
         <section id="view-quiz" class="view p-5 hide">
@@ -1186,6 +1198,16 @@
                     <div id="quiz-answer-modal-content" class="space-y-3 max-h-[65vh] overflow-y-auto"></div>
                     <button onclick="closeQuizAnswerModal()" class="mt-4 bg-slate-900 text-white text-xs font-bold px-5 py-2.5 rounded-xl">Tutup</button>
                 </div>
+            </div>
+        </section>
+
+        <section id="view-shop" class="view p-5 hide">
+            <div class="mb-6">
+                <h2 class="text-xl font-bold text-slate-900">Math Journey Shop</h2>
+                <p class="text-xs text-gray-500 mt-1">Produk pilihan Math Journey. Tekan Beli untuk terus WhatsApp admin.</p>
+            </div>
+            <div id="shop-products-list" class="space-y-4">
+                <p class="text-xs text-gray-400 text-center py-6">Memuatkan produk...</p>
             </div>
         </section>
 
@@ -1425,9 +1447,80 @@
             </div>
 
 
+            <div class="bg-white border border-gray-200 p-4 rounded-xl space-y-3 mb-6 text-xs shadow-sm">
+                <h3 class="font-bold text-sm text-slate-800 border-b pb-2"><i class="fa-solid fa-images"></i> 2. Upload Contoh Soalan Bergambar</h3>
+                <p class="text-[11px] text-gray-500 leading-relaxed">Pilih Tingkatan, Bab dan Subtopik di bahagian struktur atas. Kemudian upload gambar contoh soalan / jalan kerja. Setiap gambar akan dipaparkan kepada pelajar sebagai step berasingan dengan butang Back dan Next.</p>
+
+                <div class="bg-indigo-50 p-3 rounded border border-indigo-200 space-y-2">
+                    <p class="font-bold text-[11px] text-indigo-700"><i class="fa-solid fa-folder-open"></i> Senarai Contoh Soalan Dalam Subtopik Ini</p>
+                    <select id="adm-content-list-select" onchange="renderSelectedContentImageOrder()" class="w-full border p-2 rounded bg-white outline-none">
+                        <option value="">-- Tiada Contoh Soalan Dipilih --</option>
+                    </select>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button onclick="editSelectedContent()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold p-2 rounded flex items-center justify-center space-x-1">
+                            <i class="fa-solid fa-pen"></i> <span>Edit</span>
+                        </button>
+                        <button onclick="moveSelectedContent('up')" class="bg-slate-700 hover:bg-slate-800 text-white font-bold p-2 rounded flex items-center justify-center space-x-1">
+                            <i class="fa-solid fa-arrow-up"></i> <span>Up</span>
+                        </button>
+                        <button onclick="moveSelectedContent('down')" class="bg-slate-700 hover:bg-slate-800 text-white font-bold p-2 rounded flex items-center justify-center space-x-1">
+                            <i class="fa-solid fa-arrow-down"></i> <span>Down</span>
+                        </button>
+                    </div>
+                    <button onclick="deleteSelectedContent()" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold p-2 rounded flex items-center justify-center space-x-1">
+                        <i class="fa-solid fa-trash-can"></i> <span>Padam Contoh Soalan Terpilih</span>
+                    </button>
+                    <div id="adm-content-image-order-panel" class="hide bg-white border border-indigo-200 rounded-xl p-3 space-y-2"></div>
+                </div>
+
+                <input type="hidden" id="adm-content-type" value="contoh">
+
+                <div id="fields-contoh" class="space-y-3">
+                    <div>
+                        <label class="block font-semibold text-gray-600 mb-1">Nama / Tajuk Contoh Soalan</label>
+                        <textarea id="adm-contoh-soalan" rows="2" class="w-full border p-2 rounded-lg focus:outline-none" placeholder="Contoh: Contoh Soalan 1 - Faktor Perdana"></textarea>
+                    </div>
+                    <textarea id="adm-contoh-langkah" class="hide"></textarea>
+                    <div>
+                        <label class="block font-semibold text-gray-600 mb-1">Gambar Contoh Soalan & Jalan Kerja</label>
+                        <input type="file" id="adm-contoh-image-file" accept="image/jpeg, image/png, image/webp" multiple class="w-full border p-2 rounded-lg text-xs bg-gray-50">
+                        <p class="text-[10px] text-gray-400 mt-1">Boleh upload banyak gambar serentak. Susunan gambar ikut pilihan file anda dan akan menjadi slide step-by-step kepada pelajar.</p>
+                    </div>
+                </div>
+
+                <button id="adm-submit-content-btn" onclick="addContentToFirebase()" class="w-full bg-purple-700 hover:bg-purple-800 text-white font-bold py-3 rounded-xl text-sm flex items-center justify-center space-x-1 shadow-md">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> <span>Upload Contoh Soalan</span>
+                </button>
+                <button id="adm-cancel-edit-btn" onclick="cancelContentEdit()" class="hide w-full bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold py-2.5 rounded-xl text-xs">
+                    Batal Edit
+                </button>
+            </div>
+            <div class="bg-orange-50 border border-orange-300 p-4 rounded-xl space-y-3 mb-6 text-xs shadow-sm">
+                <h3 class="font-bold text-sm text-orange-900 border-b border-orange-200 pb-2"><i class="fa-solid fa-store"></i> Math Journey Shop Manager</h3>
+                <p class="text-[11px] text-orange-800">Upload gambar produk dan description. Button Beli akan bawa user terus ke WhatsApp admin.</p>
+                <div>
+                    <label class="block font-semibold text-gray-700 mb-1">Nama Produk</label>
+                    <input type="text" id="adm-shop-title" placeholder="Contoh: Set Nota Matematik" class="w-full border p-2.5 rounded-lg bg-white outline-none">
+                </div>
+                <div>
+                    <label class="block font-semibold text-gray-700 mb-1">Description Produk</label>
+                    <textarea id="adm-shop-description" rows="3" placeholder="Tulis detail produk..." class="w-full border p-2.5 rounded-lg bg-white outline-none"></textarea>
+                </div>
+                <div>
+                    <label class="block font-semibold text-gray-700 mb-1">Gambar Produk</label>
+                    <input type="file" id="adm-shop-image-file" accept="image/jpeg, image/png, image/webp" class="w-full border p-2 rounded-lg text-xs bg-white">
+                </div>
+                <button onclick="addShopProductFromAdmin()" class="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 rounded-xl text-sm">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Upload Produk Shop
+                </button>
+                <div id="adm-shop-products-list" class="space-y-2 max-h-72 overflow-y-auto bg-white border border-orange-100 rounded-xl p-2">
+                    <p class="text-[10px] text-orange-700 text-center py-2">Memuatkan produk...</p>
+                </div>
+            </div>
+
             <div class="bg-blue-50 border border-blue-300 p-4 rounded-xl space-y-3 mb-6 text-xs shadow-sm">
-                <h3 class="font-bold text-sm text-blue-900 border-b border-blue-200 pb-2"><i class="fa-solid fa-circle-question"></i> Quiz Manager Berasingan</h3>
-                <p class="text-[11px] text-blue-800">Upload soalan quiz mengikut Tingkatan, Bab dan Level Easy / Medium / Hard. Bahagian Silibus pula hanya untuk Contoh Soalan Bergambar.</p>
+                <h3 class="font-bold text-sm text-blue-900 border-b border-blue-200 pb-2"><i class="fa-solid fa-circle-question"></i> 3. Quiz Manager</h3>
+                <p class="text-[11px] text-blue-800">Upload soalan quiz mengikut Tingkatan, Bab, Subtopik dan markah. Pelajar boleh pilih soalan satu per satu dalam tab Quiz.</p>
                 <div class="grid grid-cols-1 gap-2">
                     <div>
                         <label class="block font-semibold text-gray-700 mb-1">Tingkatan</label>
@@ -1441,8 +1534,14 @@
                     </div>
                     <div>
                         <label class="block font-semibold text-gray-700 mb-1">Bab</label>
-                        <select id="adm-quiz-chapter" onchange="loadAdminStandaloneQuizList()" class="w-full border p-2.5 rounded-lg bg-white outline-none">
+                        <select id="adm-quiz-chapter" onchange="updateAdminQuizSubtopicOptions(); loadAdminStandaloneQuizList()" class="w-full border p-2.5 rounded-lg bg-white outline-none">
                             <option value="">-- Pilih Bab --</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-gray-700 mb-1">Subtopik</label>
+                        <select id="adm-quiz-subtopic" onchange="loadAdminStandaloneQuizList()" class="w-full border p-2.5 rounded-lg bg-white outline-none">
+                            <option value="">-- Pilih Subtopik --</option>
                         </select>
                     </div>
                     <div>
@@ -1584,9 +1683,15 @@
                         </div>
                     </div>
                 </div>
-                <div>
-                    <label class="block font-semibold text-gray-700 mb-1">Jawapan Betul (A/B/C/D)</label>
-                    <input type="text" id="adm-standalone-quiz-jawapan" maxlength="1" placeholder="A" class="w-full border p-2.5 rounded-lg bg-white outline-none uppercase font-bold tracking-wider max-w-[100px]">
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block font-semibold text-gray-700 mb-1">Jawapan Betul (A/B/C/D)</label>
+                        <input type="text" id="adm-standalone-quiz-jawapan" maxlength="1" placeholder="A" class="w-full border p-2.5 rounded-lg bg-white outline-none uppercase font-bold tracking-wider">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-gray-700 mb-1">Markah Soalan</label>
+                        <input type="number" id="adm-standalone-quiz-marks" min="1" value="1" class="w-full border p-2.5 rounded-lg bg-white outline-none font-bold">
+                    </div>
                 </div>
                 <div>
                     <label class="block font-semibold text-gray-700 mb-1">Gambar Jawapan / Solusi</label>
@@ -1616,54 +1721,6 @@
                 </div>
             </div>
 
-            <div class="bg-white border border-gray-200 p-4 rounded-xl space-y-3 mb-6 text-xs shadow-sm">
-                <h3 class="font-bold text-sm text-slate-800 border-b pb-2"><i class="fa-solid fa-images"></i> 2. Upload Contoh Soalan Bergambar</h3>
-                <p class="text-[11px] text-gray-500 leading-relaxed">Pilih Tingkatan, Bab dan Subtopik di bahagian struktur atas. Kemudian upload gambar contoh soalan / jalan kerja. Setiap gambar akan dipaparkan kepada pelajar sebagai step berasingan dengan butang Back dan Next.</p>
-
-                <div class="bg-indigo-50 p-3 rounded border border-indigo-200 space-y-2">
-                    <p class="font-bold text-[11px] text-indigo-700"><i class="fa-solid fa-folder-open"></i> Senarai Contoh Soalan Dalam Subtopik Ini</p>
-                    <select id="adm-content-list-select" onchange="renderSelectedContentImageOrder()" class="w-full border p-2 rounded bg-white outline-none">
-                        <option value="">-- Tiada Contoh Soalan Dipilih --</option>
-                    </select>
-                    <div class="grid grid-cols-3 gap-2">
-                        <button onclick="editSelectedContent()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold p-2 rounded flex items-center justify-center space-x-1">
-                            <i class="fa-solid fa-pen"></i> <span>Edit</span>
-                        </button>
-                        <button onclick="moveSelectedContent('up')" class="bg-slate-700 hover:bg-slate-800 text-white font-bold p-2 rounded flex items-center justify-center space-x-1">
-                            <i class="fa-solid fa-arrow-up"></i> <span>Up</span>
-                        </button>
-                        <button onclick="moveSelectedContent('down')" class="bg-slate-700 hover:bg-slate-800 text-white font-bold p-2 rounded flex items-center justify-center space-x-1">
-                            <i class="fa-solid fa-arrow-down"></i> <span>Down</span>
-                        </button>
-                    </div>
-                    <button onclick="deleteSelectedContent()" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold p-2 rounded flex items-center justify-center space-x-1">
-                        <i class="fa-solid fa-trash-can"></i> <span>Padam Contoh Soalan Terpilih</span>
-                    </button>
-                    <div id="adm-content-image-order-panel" class="hide bg-white border border-indigo-200 rounded-xl p-3 space-y-2"></div>
-                </div>
-
-                <input type="hidden" id="adm-content-type" value="contoh">
-
-                <div id="fields-contoh" class="space-y-3">
-                    <div>
-                        <label class="block font-semibold text-gray-600 mb-1">Nama / Tajuk Contoh Soalan</label>
-                        <textarea id="adm-contoh-soalan" rows="2" class="w-full border p-2 rounded-lg focus:outline-none" placeholder="Contoh: Contoh Soalan 1 - Faktor Perdana"></textarea>
-                    </div>
-                    <textarea id="adm-contoh-langkah" class="hide"></textarea>
-                    <div>
-                        <label class="block font-semibold text-gray-600 mb-1">Gambar Contoh Soalan & Jalan Kerja</label>
-                        <input type="file" id="adm-contoh-image-file" accept="image/jpeg, image/png, image/webp" multiple class="w-full border p-2 rounded-lg text-xs bg-gray-50">
-                        <p class="text-[10px] text-gray-400 mt-1">Boleh upload banyak gambar serentak. Susunan gambar ikut pilihan file anda dan akan menjadi slide step-by-step kepada pelajar.</p>
-                    </div>
-                </div>
-
-                <button id="adm-submit-content-btn" onclick="addContentToFirebase()" class="w-full bg-purple-700 hover:bg-purple-800 text-white font-bold py-3 rounded-xl text-sm flex items-center justify-center space-x-1 shadow-md">
-                    <i class="fa-solid fa-cloud-arrow-up"></i> <span>Upload Contoh Soalan</span>
-                </button>
-                <button id="adm-cancel-edit-btn" onclick="cancelContentEdit()" class="hide w-full bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold py-2.5 rounded-xl text-xs">
-                    Batal Edit
-                </button>
-            </div>
         </section>
 
     </main>
@@ -1676,8 +1733,8 @@
             <button onclick="handleAccessToLevels()" id="nav-btn-levels" class="flex flex-col items-center space-y-1">
                 <i class="fa-solid fa-book-bookmark text-lg"></i> <span>Silibus</span>
             </button>
-            <button onclick="openQuizView()" id="nav-btn-quiz" class="flex flex-col items-center space-y-1">
-                <i class="fa-solid fa-circle-question text-lg"></i> <span>Quiz</span>
+            <button onclick="openShopView()" id="nav-btn-shop" class="flex flex-col items-center space-y-1">
+                <i class="fa-solid fa-store text-lg"></i> <span>Shop</span>
             </button>
             <button onclick="switchView('profile')" id="nav-btn-profile" class="flex flex-col items-center space-y-1">
                 <i class="fa-solid fa-id-badge text-lg"></i> <span>Profil</span>
@@ -2384,7 +2441,9 @@
                 if (isAdminAccount) {
                     updateAdminAffiliateManagerUI();
                     updateAdminQuizChapterOptions();
+                    updateAdminQuizSubtopicOptions();
                     loadAdminStandaloneQuizList();
+                    loadAdminShopProducts();
                 }
                 updateAdminChapterDropdown();
                 if (!document.getElementById('view-quiz').classList.contains('hide')) loadQuizChaptersForUser();
@@ -2426,7 +2485,13 @@
                 updateAdminAffiliateManagerUI();
                 updateAdminVoucherManagerUI();
                 updateAdminQuizChapterOptions();
+                updateAdminQuizSubtopicOptions();
                 loadAdminStandaloneQuizList();
+                loadAdminShopProducts();
+            }
+
+            if(viewId === 'shop') {
+                loadShopProducts();
             }
 
             document.querySelectorAll('#app-footer button').forEach(b => b.classList.remove('text-soft-pink'));
@@ -2894,18 +2959,22 @@
                 selectEl.appendChild(opt);
             });
 
+            selectedStudentSubtopicKey = '';
             const titleEl = document.getElementById('content-flow-title');
             if(titleEl) titleEl.innerText = chapterData.nama_bab || chKey;
+            document.getElementById('flow-subtopic-list')?.classList.remove('hide');
+            document.getElementById('flow-content-area')?.classList.add('hide');
             switchView('content-flow');
-            renderContohQuestionList();
+            renderStudentSubtopicList();
         };
 
         window.onSubtopicChange = function() {
+            selectedStudentSubtopicKey = document.getElementById('flow-subtopic-select')?.value || selectedStudentSubtopicKey || '';
             contohIndex = 0;
             selectedContohIndex = 0;
             contohStepImages = [];
             contohStepIndex = 0;
-            renderContohQuestionList();
+            switchFlowSubTab(currentFlowTab || 'nota');
         };
 
         function renderImageGallery(imageUrls, oldImageUrl = "") {
@@ -3059,10 +3128,469 @@
             return [...new Set(urls)];
         }
 
-        window.switchFlowSubTab = function(tabName = 'contoh') {
-            currentFlowTab = 'contoh';
-            renderContohQuestionList();
+
+        let selectedStudentSubtopicKey = '';
+
+        function getStudentSubtopicEntries() {
+            if(!currentLevel || !currentChapterKey) return [];
+            const chapterData = appSilibusData?.[currentLevel]?.[currentChapterKey] || {};
+            const subtopicObj = chapterData.subtopik || {};
+            return Object.keys(subtopicObj).sort().map(subKey => ({
+                key: subKey,
+                data: subtopicObj[subKey] || {},
+                name: subtopicObj[subKey]?.nama_subtopik || subKey
+            }));
+        }
+
+        function renderStudentSubtopicList() {
+            const list = document.getElementById('flow-subtopic-list');
+            const area = document.getElementById('flow-content-area');
+            const selectEl = document.getElementById('flow-subtopic-select');
+            const viewerDiv = document.getElementById('contoh-viewer-content');
+            if(viewerDiv) viewerDiv.classList.add('hide');
+            if(area) area.classList.add('hide');
+            if(!list || !selectEl) return;
+
+            const entries = getStudentSubtopicEntries();
+            selectEl.innerHTML = '';
+            list.innerHTML = '';
+
+            if(entries.length === 0) {
+                list.innerHTML = `<p class="text-xs text-gray-400 text-center py-6">Bab ini belum mempunyai subtopik.</p>`;
+                return;
+            }
+
+            entries.forEach((entry, index) => {
+                const opt = document.createElement('option');
+                opt.value = entry.key;
+                opt.innerText = entry.name;
+                selectEl.appendChild(opt);
+
+                const kandunganList = getKandunganListFromSubtopic(entry.data);
+                const items = sortExpandedItems(expandKandunganItems(kandunganList));
+                const notaCount = items.filter(i => i.type === 'nota').length;
+                const contohCount = items.filter(i => i.type === 'contoh').length;
+
+                list.innerHTML += `
+                    <button onclick="openStudentSubtopic(${JSON.stringify(entry.key)})" class="w-full bg-white border border-gray-100 p-4 rounded-2xl text-left shadow-sm hover:border-soft-pink transition flex justify-between items-center">
+                        <div class="pr-3">
+                            <span class="bg-green-50 text-green-700 text-[10px] font-bold px-2 py-1 rounded-full">SUBTOPIK ${index + 1}</span>
+                            <h4 class="font-bold text-sm text-slate-900 mt-2 leading-relaxed">${escapeHtml(entry.name)}</h4>
+                            <p class="text-[11px] text-gray-400 mt-1">Nota: ${notaCount} • Contoh: ${contohCount} • Quiz: pilih dalam tab Quiz</p>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-xs text-gray-400"></i>
+                    </button>
+                `;
+            });
+        }
+
+        window.openStudentSubtopic = function(subKey) {
+            selectedStudentSubtopicKey = subKey;
+            const selectEl = document.getElementById('flow-subtopic-select');
+            if(selectEl) selectEl.value = subKey;
+
+            const subtopicData = getCurrentStudentSubtopicData();
+            const title = subtopicData?.nama_subtopik || subKey;
+            const activeTitle = document.getElementById('flow-active-subtopic-title');
+            if(activeTitle) activeTitle.innerText = title;
+
+            document.getElementById('flow-subtopic-list')?.classList.add('hide');
+            document.getElementById('flow-content-area')?.classList.remove('hide');
+            switchFlowSubTab('nota');
+            window.scrollTo(0, 0);
         };
+
+        function setFlowTabButtonActive(tabName) {
+            ['nota','contoh','quiz'].forEach(tab => {
+                const btn = document.getElementById(`flow-tab-${tab}`);
+                if(!btn) return;
+                btn.className = tab === tabName
+                    ? 'bg-slate-900 text-white font-bold py-2 rounded-xl text-xs'
+                    : 'bg-white border border-gray-200 text-gray-600 font-bold py-2 rounded-xl text-xs';
+            });
+        }
+
+        window.switchFlowSubTab = function(tabName = 'nota') {
+            currentFlowTab = ['nota','contoh','quiz'].includes(tabName) ? tabName : 'nota';
+            setFlowTabButtonActive(currentFlowTab);
+
+            const notaDiv = document.getElementById('nota-list-content');
+            const contohDiv = document.getElementById('contoh-list-content');
+            const quizDiv = document.getElementById('flow-quiz-content');
+            const viewerDiv = document.getElementById('contoh-viewer-content');
+
+            if(viewerDiv) viewerDiv.classList.add('hide');
+            if(notaDiv) notaDiv.classList.add('hide');
+            if(contohDiv) contohDiv.classList.add('hide');
+            if(quizDiv) quizDiv.classList.add('hide');
+
+            if(currentFlowTab === 'nota') {
+                if(notaDiv) notaDiv.classList.remove('hide');
+                renderStudentNotaList();
+            } else if(currentFlowTab === 'contoh') {
+                if(contohDiv) contohDiv.classList.remove('hide');
+                renderContohQuestionList();
+            } else {
+                if(quizDiv) quizDiv.classList.remove('hide');
+                renderSubtopicQuizList();
+            }
+        };
+
+        function renderStudentNotaList() {
+            const listDiv = document.getElementById('nota-list-content');
+            if(!listDiv) return;
+            const subtopicData = getCurrentStudentSubtopicData();
+            if(!subtopicData) {
+                listDiv.innerHTML = `<p class="text-xs text-gray-400 text-center py-6">Sila pilih subtopik terlebih dahulu.</p>`;
+                return;
+            }
+
+            const items = sortExpandedItems(expandKandunganItems(getKandunganListFromSubtopic(subtopicData))).filter(i => i.type === 'nota');
+            if(items.length === 0) {
+                listDiv.innerHTML = `<div class="text-center py-10 px-4 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+                    <div class="text-3xl mb-2">📝</div>
+                    <p class="text-sm font-bold text-slate-700">Belum ada nota.</p>
+                    <p class="text-xs text-gray-400 mt-1">Admin boleh upload nota untuk subtopik ini kemudian.</p>
+                </div>`;
+                return;
+            }
+
+            listDiv.innerHTML = items.map((item, index) => {
+                const n = item.nota || {};
+                const images = getImageUrlsForDisplay(n);
+                return `
+                    <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm text-xs space-y-3">
+                        <div>
+                            <span class="bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-1 rounded-full">NOTA ${index + 1}</span>
+                        </div>
+                        ${n.maksud ? `<div><p class="font-bold text-slate-900 mb-1">Maksud</p><p class="text-gray-600 bg-gray-50 p-2.5 rounded-xl leading-relaxed whitespace-pre-line">${escapeHtml(n.maksud)}</p></div>` : ''}
+                        ${n.formula ? `<div><p class="font-bold text-slate-900 mb-1">Formula</p><p class="text-gray-600 bg-gray-50 p-2.5 rounded-xl leading-relaxed whitespace-pre-line">${renderQuizMathText(n.formula)}</p></div>` : ''}
+                        ${n.tips ? `<div><p class="font-bold text-slate-900 mb-1">Tips</p><p class="text-gray-600 bg-gray-50 p-2.5 rounded-xl leading-relaxed whitespace-pre-line">${escapeHtml(n.tips)}</p></div>` : ''}
+                        ${renderImageGallery(images, '')}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function getSelectedStudentSubtopicKey() {
+            return selectedStudentSubtopicKey || document.getElementById('flow-subtopic-select')?.value || '';
+        }
+
+        function getQuizQuestionMark(q = {}, level = 'easy') {
+            const raw = q.marks ?? q.markah ?? q.questionMarks ?? q.markPerQuestion;
+            const mark = Number(raw);
+            return Number.isFinite(mark) && mark > 0 ? mark : getQuizLevelMark(level);
+        }
+
+        function getQuizQuestionResultKey(formNum, chKey, subKey, level, questionId) {
+            return `${formNum}_${chKey}_${subKey || 'general'}_${normalizeQuizLevel(level)}_${questionId}`.replace(/[^a-zA-Z0-9_-]/g, '_');
+        }
+
+        async function getSavedQuestionAnswer(resultKey) {
+            if(!currentUser || !resultKey) return null;
+            try {
+                const snap = await get(ref(db, `quizResults/${currentUser.uid}/${resultKey}`));
+                if(snap.exists()) return snap.val();
+            } catch (err) {
+                console.warn('Question result read skipped:', err.message);
+            }
+            return loadLocalQuizResult(currentUser.uid, resultKey);
+        }
+
+        async function renderSubtopicQuizList() {
+            const box = document.getElementById('flow-quiz-content');
+            if(!box) return;
+            if(!isPremiumUser && !isCurrentUserAdmin()) {
+                box.innerHTML = `<div class="text-center py-10 bg-amber-50 border border-amber-100 rounded-2xl">
+                    <p class="font-bold text-amber-800">Quiz ialah akses premium.</p>
+                    <button onclick="showPremiumModal()" class="mt-3 btn-primary font-bold py-2.5 px-5 rounded-xl text-xs">Unlock Premium</button>
+                </div>`;
+                return;
+            }
+
+            const subKey = getSelectedStudentSubtopicKey();
+            const subtopicData = getCurrentStudentSubtopicData();
+            const subtopicName = subtopicData?.nama_subtopik || subKey || 'Subtopik';
+
+            box.innerHTML = `<p class="text-xs text-gray-400 text-center py-6">Memuatkan soalan quiz...</p>`;
+
+            try {
+                const snap = await get(ref(db, `quizzes/${currentLevel}/${currentChapterKey}`));
+                const chapterQuizData = snap.exists() ? (snap.val() || {}) : {};
+                let allEntries = [];
+
+                ['easy','medium','hard'].forEach(level => {
+                    getQuizEntriesWithSourceForLevelFromChapterData(chapterQuizData, level).forEach(entry => {
+                        const qSubKey = entry.q?.subKey || entry.q?.subtopicKey || '';
+                        if(!qSubKey || qSubKey === subKey) {
+                            allEntries.push({ ...entry, level, q: entry.q || {} });
+                        }
+                    });
+                });
+
+                allEntries = allEntries
+                    .map((entry, index) => ({ ...entry, index }))
+                    .sort((a, b) => {
+                        const orderA = getQuizQuestionSortValue(a.q, a.index);
+                        const orderB = getQuizQuestionSortValue(b.q, b.index);
+                        if(orderA !== orderB) return orderA - orderB;
+                        return a.index - b.index;
+                    });
+
+                if(allEntries.length === 0) {
+                    box.innerHTML = `<div class="text-center py-10 px-4 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+                        <div class="text-3xl mb-2">❓</div>
+                        <p class="text-sm font-bold text-slate-700">Belum ada quiz untuk subtopik ini.</p>
+                        <p class="text-xs text-gray-400 mt-1">Admin boleh upload quiz dan pilih subtopik ini di panel admin.</p>
+                    </div>`;
+                    return;
+                }
+
+                let html = `
+                    <div class="mb-3">
+                        <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">${escapeHtml(subtopicName)}</p>
+                        <h3 class="font-bold text-slate-900 text-base">Pilih Soalan Quiz</h3>
+                        <p class="text-xs text-gray-500 mt-1">Setiap soalan hanya boleh dijawab sekali sahaja.</p>
+                    </div>
+                `;
+
+                for (let i = 0; i < allEntries.length; i++) {
+                    const entry = allEntries[i];
+                    const q = entry.q || {};
+                    const resultKey = getQuizQuestionResultKey(currentLevel, currentChapterKey, subKey, entry.level, entry.id);
+                    const saved = await getSavedQuestionAnswer(resultKey);
+                    const isDone = !!saved;
+                    const mark = getQuizQuestionMark(q, entry.level);
+                    const title = (q.soalan || `Soalan ${i + 1}`).toString().trim();
+                    html += `
+                        <button onclick='openSubtopicQuizQuestion(${JSON.stringify(entry.level)}, ${JSON.stringify(entry.id)}, ${JSON.stringify(entry.sourceMode || "level")})' class="w-full bg-white border ${isDone ? 'border-green-200 bg-green-50' : 'border-gray-100 hover:border-soft-pink'} p-4 rounded-2xl text-left shadow-sm transition flex justify-between items-center">
+                            <div class="pr-3">
+                                <span class="${getQuizLevelBadgeClass(entry.level)} text-[10px] font-bold px-2 py-1 rounded-full">${getQuizLevelLabel(entry.level)}</span>
+                                <span class="bg-amber-50 text-amber-700 text-[10px] font-bold px-2 py-1 rounded-full ml-1">${mark} markah</span>
+                                ${isDone ? '<span class="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-1 rounded-full ml-1">Sudah dijawab</span>' : ''}
+                                <h4 class="font-bold text-sm text-slate-900 mt-2 leading-relaxed">${renderQuizMathText(title)}</h4>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-xs text-gray-400"></i>
+                        </button>
+                    `;
+                }
+
+                box.innerHTML = html;
+            } catch (err) {
+                box.innerHTML = `<p class="text-xs text-red-500 bg-red-50 border border-red-100 rounded-xl p-3">Ralat load quiz: ${err.message}</p>`;
+            }
+        }
+
+        async function findSubtopicQuizQuestion(level, questionId) {
+            const snap = await get(ref(db, `quizzes/${currentLevel}/${currentChapterKey}`));
+            const chapterQuizData = snap.exists() ? (snap.val() || {}) : {};
+            const entries = getQuizEntriesWithSourceForLevelFromChapterData(chapterQuizData, level);
+            return entries.find(entry => entry.id === questionId) || null;
+        }
+
+        window.openSubtopicQuizQuestion = async function(level, questionId, sourceMode = 'level') {
+            const box = document.getElementById('flow-quiz-content');
+            if(!box) return;
+            const subKey = getSelectedStudentSubtopicKey();
+            box.innerHTML = `<p class="text-xs text-gray-400 text-center py-6">Memuatkan soalan...</p>`;
+
+            try {
+                const entry = await findSubtopicQuizQuestion(level, questionId);
+                if(!entry) {
+                    box.innerHTML = `<p class="text-xs text-red-500 bg-red-50 border border-red-100 rounded-xl p-3">Soalan tidak dijumpai.</p>`;
+                    return;
+                }
+
+                const q = { id: entry.id, ...(entry.q || {}) };
+                const resultKey = getQuizQuestionResultKey(currentLevel, currentChapterKey, subKey, level, entry.id);
+                const saved = await getSavedQuestionAnswer(resultKey);
+                renderSubtopicQuizQuestion(q, level, resultKey, saved);
+            } catch (err) {
+                box.innerHTML = `<p class="text-xs text-red-500 bg-red-50 border border-red-100 rounded-xl p-3">Ralat buka soalan: ${err.message}</p>`;
+            }
+        };
+
+        function renderSubtopicQuizQuestion(q, level, resultKey, savedAnswer = null, selectedChoice = null) {
+            const box = document.getElementById('flow-quiz-content');
+            if(!box) return;
+
+            window.currentSubtopicQuizQuestion = q;
+            window.currentSubtopicQuizLevel = level;
+            window.currentSubtopicQuizResultKey = resultKey;
+
+            const mark = getQuizQuestionMark(q, level);
+            const answered = !!savedAnswer;
+            let html = `
+                <button onclick="renderSubtopicQuizList()" class="text-gray-500 text-sm mb-3"><i class="fa-solid fa-arrow-left"></i> Kembali ke senarai soalan</button>
+                <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm text-xs space-y-4">
+                    <div>
+                        <span class="${getQuizLevelBadgeClass(level)} font-bold px-2.5 py-1 rounded-lg text-[10px] uppercase tracking-wider">${getQuizLevelLabel(level)}</span>
+                        <span class="ml-1 bg-amber-50 text-amber-700 font-bold px-2.5 py-1 rounded-lg text-[10px] uppercase tracking-wider">${mark} markah</span>
+                        ${answered ? '<span class="ml-1 bg-green-100 text-green-700 font-bold px-2.5 py-1 rounded-lg text-[10px] uppercase tracking-wider">Sudah dijawab</span>' : ''}
+                        <p class="text-slate-900 font-bold text-base mt-3 leading-relaxed">${renderQuizMathText(q.soalan || '')}</p>
+                        ${renderImageGallery(q.imageUrls, '')}
+                    </div>
+                    <div class="grid grid-cols-1 gap-2 pt-1">
+            `;
+
+            ['A','B','C','D'].forEach(opt => {
+                const optText = q[opt.toLowerCase()] || '';
+                const optionImageMap = q.optionImageUrls || q.optionImages || {};
+                const optImagesRaw = optionImageMap[opt] || optionImageMap[opt.toLowerCase()] || [];
+                const optImages = Array.isArray(optImagesRaw) ? optImagesRaw.filter(Boolean) : [];
+                if(!optText && optImages.length === 0) return;
+
+                let style = 'border-gray-200 bg-white text-slate-700 hover:bg-slate-50';
+                let icon = '';
+                if(answered) {
+                    if(opt === q.jawapan) {
+                        style = 'border-green-500 bg-green-50 text-green-700 font-bold';
+                        icon = '<i class="fa-solid fa-circle-check text-green-600"></i>';
+                    } else if(opt === savedAnswer.chosen && opt !== q.jawapan) {
+                        style = 'border-red-500 bg-red-50 text-red-700 font-bold';
+                        icon = '<i class="fa-solid fa-circle-xmark text-red-600"></i>';
+                    } else {
+                        style = 'border-gray-100 bg-gray-50 text-gray-400';
+                    }
+                } else if(selectedChoice === opt) {
+                    style = 'border-blue-500 bg-blue-50 text-blue-700 font-bold';
+                    icon = '<i class="fa-solid fa-circle-dot text-blue-600"></i>';
+                }
+
+                const optionImageHtml = optImages.map((url, imgIndex) => `
+                    <img src="${url}" class="mt-2 w-full max-h-28 object-contain rounded-lg border border-gray-100 bg-white p-1" alt="Gambar pilihan ${opt} ${imgIndex + 1}">
+                `).join('');
+
+                html += `
+                    <button ${answered ? 'disabled' : ''} onclick="selectSubtopicQuizChoice('${opt}')" class="w-full text-left p-4 rounded-xl border ${style} transition text-base">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="flex-1 min-w-0">
+                                <p class="text-base md:text-lg leading-relaxed"><strong class="mr-1">${opt}.</strong> ${optText ? renderQuizMathText(optText) : `Pilihan ${opt}`}</p>
+                                ${optionImageHtml}
+                            </div>
+                            <span class="shrink-0 pt-0.5">${icon}</span>
+                        </div>
+                    </button>
+                `;
+            });
+
+            html += `</div>`;
+
+            if(!answered) {
+                html += `
+                    <div class="p-3 rounded-xl border bg-blue-50 text-blue-700 border-blue-100">
+                        <p class="font-bold">${selectedChoice ? `Pilihan anda: ${selectedChoice}. Tekan Semak Jawapan untuk lock jawapan.` : 'Pilih satu jawapan dahulu.'}</p>
+                        <button onclick="submitCurrentSubtopicQuizAnswer('${selectedChoice || ''}')" ${selectedChoice ? '' : 'disabled'} class="mt-2 ${selectedChoice ? 'bg-slate-900 text-white hover:bg-slate-800' : 'bg-gray-100 text-gray-300 cursor-not-allowed'} text-[11px] font-bold px-4 py-2 rounded-lg transition">Semak Jawapan</button>
+                    </div>
+                `;
+            } else {
+                const correct = savedAnswer.correct === true;
+                html += `
+                    <div class="p-3 rounded-xl border ${correct ? 'bg-green-50 text-green-700 border-green-100' : 'bg-red-50 text-red-700 border-red-100'}">
+                        <p class="font-bold">${correct ? `Betul! Anda dapat ${savedAnswer.earnedMarks || mark} markah.` : `Salah. Jawapan betul ialah ${q.jawapan}.`}</p>
+                        ${((q.answerImageUrls || []).length > 0) ? `<button onclick='showSubtopicQuizAnswerImages(${JSON.stringify(q.answerImageUrls || [])})' class="mt-2 bg-slate-900 text-white text-[11px] font-bold px-3 py-2 rounded-lg">Lihat Gambar Jawapan</button>` : '<p class="text-[11px] mt-1">Tiada gambar jawapan dimuat naik.</p>'}
+                    </div>
+                `;
+            }
+
+            html += `</div>`;
+            box.innerHTML = html;
+            window.scrollTo(0,0);
+        }
+
+        window.selectSubtopicQuizChoice = function(opt) {
+            if(!window.currentSubtopicQuizQuestion || !window.currentSubtopicQuizLevel || !window.currentSubtopicQuizResultKey) return;
+            renderSubtopicQuizQuestion(
+                window.currentSubtopicQuizQuestion,
+                window.currentSubtopicQuizLevel,
+                window.currentSubtopicQuizResultKey,
+                null,
+                opt
+            );
+        };
+
+        window.submitCurrentSubtopicQuizAnswer = function(chosen) {
+            if(!window.currentSubtopicQuizQuestion || !window.currentSubtopicQuizLevel || !window.currentSubtopicQuizResultKey) return;
+            submitSubtopicQuizAnswer(
+                window.currentSubtopicQuizQuestion,
+                window.currentSubtopicQuizLevel,
+                window.currentSubtopicQuizResultKey,
+                chosen
+            );
+        };
+
+        window.showSubtopicQuizAnswerImages = function(urls = []) {
+            const box = document.getElementById('quiz-answer-modal-content');
+            box.innerHTML = (urls || []).length
+                ? urls.map(url => `<img src="${url}" class="w-full rounded-xl border border-gray-100 shadow-sm" alt="Gambar jawapan quiz">`).join('')
+                : '<p class="text-xs text-gray-500">Tiada gambar jawapan untuk soalan ini.</p>';
+            document.getElementById('quiz-answer-modal').classList.remove('hide');
+        };
+
+        window.submitSubtopicQuizAnswer = async function(q, level, resultKey, chosen) {
+            if(!chosen) return alert('Sila pilih jawapan dahulu.');
+            if(!currentUser) return alert('Sila log masuk dahulu.');
+
+            const already = await getSavedQuestionAnswer(resultKey);
+            if(already) {
+                alert('Soalan ini sudah pernah dijawab. Markah tidak akan dikira semula.');
+                renderSubtopicQuizQuestion(q, level, resultKey, already);
+                return;
+            }
+
+            const mark = getQuizQuestionMark(q, level);
+            const correct = chosen === q.jawapan;
+            const earnedMarks = correct ? mark : 0;
+            const resultData = {
+                formNum: currentLevel,
+                chapterKey: currentChapterKey,
+                subKey: getSelectedStudentSubtopicKey(),
+                questionId: q.id,
+                question: q.soalan || '',
+                level,
+                levelLabel: getQuizLevelLabel(level),
+                chosen,
+                correctAnswer: q.jawapan,
+                correct,
+                markPerQuestion: mark,
+                earnedMarks,
+                totalPossibleMarks: mark,
+                answerImageUrls: q.answerImageUrls || [],
+                optionImageUrls: q.optionImageUrls || q.optionImages || {},
+                completedAt: Date.now(),
+                perQuestionMode: true
+            };
+
+            saveLocalQuizResult(currentUser.uid, resultKey, resultData);
+
+            const baseProfile = { ...(currentUserProfileData || {}), ...(getLocalUserStats(currentUser.uid) || {}) };
+            const updates = saveLocalUserStats(currentUser.uid, {
+                answeredCount: Number(baseProfile.answeredCount || 0) + 1,
+                correctAnswerCount: Number(baseProfile.correctAnswerCount || baseProfile.totalCorrectAnswers || 0) + (correct ? 1 : 0),
+                leaderboardScore: Number(baseProfile.leaderboardScore || baseProfile.quizMarks || baseProfile.quizScore || 0) + earnedMarks
+            });
+            refreshQuizStatsInUI(updates);
+
+            try {
+                await set(ref(db, `quizResults/${currentUser.uid}/${resultKey}`), resultData);
+            } catch (err) {
+                console.warn('Question result remote save skipped:', err.message);
+            }
+
+            try {
+                await update(ref(db, `users/${currentUser.uid}`), {
+                    answeredCount: updates.answeredCount,
+                    correctAnswerCount: updates.correctAnswerCount,
+                    leaderboardScore: updates.leaderboardScore
+                });
+            } catch (err) {
+                console.warn('Question stats remote update skipped:', err.message);
+            }
+
+            await updateLeaderboardEntryForCurrentUser(updates);
+            renderSubtopicQuizQuestion(q, level, resultKey, resultData);
+        };
+
 
         function getCurrentStudentSubtopicData() {
             const subKey = document.getElementById('flow-subtopic-select')?.value;
@@ -3086,6 +3614,8 @@
             const viewerDiv = document.getElementById('contoh-viewer-content');
             if(!listDiv) return;
             if(viewerDiv) viewerDiv.classList.add('hide');
+            document.getElementById('nota-list-content')?.classList.add('hide');
+            document.getElementById('flow-quiz-content')?.classList.add('hide');
             listDiv.classList.remove('hide');
             listDiv.innerHTML = '';
 
@@ -3452,6 +3982,141 @@
                 } else {
                     alert("Tahniah! Anda sudah selesai menjawab kesemua soalan latihan bagi subtopik ini! 🌟");
                 }
+            }
+        };
+
+
+
+        const MATH_JOURNEY_SHOP_WHATSAPP = 'https://wa.me/60177541909?text=' + encodeURIComponent('Hai Admin, Saya nak beli barang di Math Journey Shop');
+
+        window.openShopView = function() {
+            switchView('shop');
+            loadShopProducts();
+        };
+
+        function getShopBuyLink(product = {}) {
+            const title = (product.title || '').toString().trim();
+            const msg = title
+                ? `Hai Admin, Saya nak beli barang di Math Journey Shop: ${title}`
+                : 'Hai Admin, Saya nak beli barang di Math Journey Shop';
+            return 'https://wa.me/60177541909?text=' + encodeURIComponent(msg);
+        }
+
+        window.loadShopProducts = async function() {
+            const list = document.getElementById('shop-products-list');
+            if(!list) return;
+            list.innerHTML = '<p class="text-xs text-gray-400 text-center py-6">Memuatkan produk...</p>';
+
+            try {
+                const snap = await get(ref(db, 'shopProducts'));
+                const raw = snap.exists() ? snap.val() : {};
+                const entries = Object.entries(raw || {})
+                    .map(([id, product]) => ({ id, ...(product || {}) }))
+                    .sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0));
+
+                if(entries.length === 0) {
+                    list.innerHTML = `<div class="text-center py-10 px-4 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+                        <div class="text-3xl mb-2">🛒</div>
+                        <p class="text-sm font-bold text-slate-700">Belum ada produk.</p>
+                        <p class="text-xs text-gray-400 mt-1">Produk akan muncul selepas admin upload di panel admin.</p>
+                    </div>`;
+                    return;
+                }
+
+                list.innerHTML = entries.map(product => `
+                    <div class="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
+                        ${product.imageUrl ? `<img src="${product.imageUrl}" class="w-full h-auto object-contain bg-gray-50" alt="Produk Math Journey">` : ''}
+                        <div class="p-4 space-y-3">
+                            <h3 class="font-extrabold text-slate-900 text-sm">${escapeHtml(product.title || 'Produk Math Journey')}</h3>
+                            <p class="text-xs text-gray-600 leading-relaxed whitespace-pre-line">${escapeHtml(product.description || '')}</p>
+                            <a href="${getShopBuyLink(product)}" target="_blank" class="block w-full bg-green-600 hover:bg-green-700 text-white text-center font-bold py-3 rounded-xl text-sm">
+                                <i class="fa-brands fa-whatsapp"></i> Beli di WhatsApp
+                            </a>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                list.innerHTML = `<p class="text-xs text-red-500 bg-red-50 border border-red-100 rounded-xl p-3">Ralat load shop: ${err.message}</p>`;
+            }
+        };
+
+        window.addShopProductFromAdmin = async function() {
+            if(!isCurrentUserAdmin()) return alert('Admin sahaja.');
+            const title = document.getElementById('adm-shop-title')?.value.trim() || '';
+            const description = document.getElementById('adm-shop-description')?.value.trim() || '';
+            const fileCount = document.getElementById('adm-shop-image-file')?.files?.length || 0;
+
+            if(!title) return alert('Sila isi nama produk.');
+            if(!description) return alert('Sila isi description produk.');
+            if(fileCount === 0) return alert('Sila upload gambar produk.');
+
+            try {
+                const urls = await uploadMultipleFilesHelper('adm-shop-image-file', 'shop_products');
+                const newRef = push(ref(db, 'shopProducts'));
+                await set(newRef, {
+                    title,
+                    description,
+                    imageUrl: urls[0] || '',
+                    buyText: 'Beli',
+                    whatsappNumber: '+60177541909',
+                    createdAt: Date.now(),
+                    createdBy: currentUser?.uid || ''
+                });
+
+                ['adm-shop-title','adm-shop-description','adm-shop-image-file'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if(el) el.value = '';
+                });
+
+                alert('Produk berjaya diupload.');
+                loadAdminShopProducts();
+                loadShopProducts();
+            } catch (err) {
+                alert('Ralat upload produk: ' + err.message);
+            }
+        };
+
+        window.loadAdminShopProducts = async function() {
+            const list = document.getElementById('adm-shop-products-list');
+            if(!list) return;
+            list.innerHTML = '<p class="text-[10px] text-orange-700 text-center py-2">Memuatkan produk...</p>';
+
+            try {
+                const snap = await get(ref(db, 'shopProducts'));
+                const raw = snap.exists() ? snap.val() : {};
+                const entries = Object.entries(raw || {})
+                    .map(([id, product]) => ({ id, ...(product || {}) }))
+                    .sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0));
+
+                if(entries.length === 0) {
+                    list.innerHTML = '<p class="text-[10px] text-orange-700 text-center py-2">Belum ada produk.</p>';
+                    return;
+                }
+
+                list.innerHTML = entries.map(product => `
+                    <div class="bg-orange-50 border border-orange-100 rounded-xl p-2 flex gap-2 items-start">
+                        ${product.imageUrl ? `<img src="${product.imageUrl}" class="w-16 h-16 object-cover rounded-lg bg-white border">` : ''}
+                        <div class="flex-1 min-w-0">
+                            <p class="font-bold text-slate-900 text-xs truncate">${escapeHtml(product.title || 'Produk')}</p>
+                            <p class="text-[10px] text-gray-500 line-clamp-2">${escapeHtml(product.description || '')}</p>
+                        </div>
+                        <button onclick="deleteShopProduct(${JSON.stringify(product.id)})" class="bg-red-50 text-red-600 font-bold px-2 py-1 rounded-lg text-[10px]">Padam</button>
+                    </div>
+                `).join('');
+            } catch (err) {
+                list.innerHTML = `<p class="text-[10px] text-red-500 text-center py-2">Ralat: ${err.message}</p>`;
+            }
+        };
+
+        window.deleteShopProduct = async function(productId) {
+            if(!isCurrentUserAdmin()) return alert('Admin sahaja.');
+            if(!confirm('Padam produk ini?')) return;
+            try {
+                await remove(ref(db, `shopProducts/${productId}`));
+                loadAdminShopProducts();
+                loadShopProducts();
+            } catch (err) {
+                alert('Ralat padam produk: ' + err.message);
             }
         };
 
@@ -4482,6 +5147,22 @@
             return Math.floor(maxOrder) + 1;
         }
 
+        window.updateAdminQuizSubtopicOptions = function() {
+            const formNum = document.getElementById('adm-quiz-form')?.value || '';
+            const chKey = document.getElementById('adm-quiz-chapter')?.value || '';
+            const subSelect = document.getElementById('adm-quiz-subtopic');
+            if(!subSelect) return;
+
+            subSelect.innerHTML = '<option value="">-- Pilih Subtopik --</option>';
+            const subtopics = appSilibusData?.[formNum]?.[chKey]?.subtopik || {};
+            Object.keys(subtopics).sort().forEach(subKey => {
+                const opt = document.createElement('option');
+                opt.value = subKey;
+                opt.innerText = subtopics[subKey].nama_subtopik || subKey;
+                subSelect.appendChild(opt);
+            });
+        };
+
         window.updateAdminQuizChapterOptions = function() {
             const formSelect = document.getElementById('adm-quiz-form');
             const chSelect = document.getElementById('adm-quiz-chapter');
@@ -4495,6 +5176,7 @@
                 opt.innerText = chapters[chKey].nama_bab || chKey;
                 chSelect.appendChild(opt);
             });
+            updateAdminQuizSubtopicOptions();
             loadAdminStandaloneQuizList();
         };
 
@@ -4502,6 +5184,9 @@
             const formNum = document.getElementById('adm-quiz-form').value;
             const chKey = document.getElementById('adm-quiz-chapter').value;
             const quizLevel = getAdminQuizLevel();
+            const subKey = document.getElementById('adm-quiz-subtopic')?.value || '';
+            const subtopicName = document.getElementById('adm-quiz-subtopic')?.selectedOptions?.[0]?.textContent || '';
+            const marks = Math.max(1, Number(document.getElementById('adm-standalone-quiz-marks')?.value || getQuizLevelMark(quizLevel) || 1));
             const soalan = document.getElementById('adm-standalone-quiz-soalan').value.trim();
             const a = document.getElementById('adm-standalone-quiz-a').value.trim();
             const b = document.getElementById('adm-standalone-quiz-b').value.trim();
@@ -4515,6 +5200,7 @@
             const hasOptionDImage = (document.getElementById('adm-standalone-quiz-option-d-image-file')?.files?.length || 0) > 0;
 
             if(!formNum || !chKey) return alert('Sila pilih Tingkatan dan Bab.');
+            if(!subKey) return alert('Sila pilih Subtopik untuk soalan quiz.');
             if(!soalan) return alert('Sila taip soalan quiz.');
             if(!a && !hasOptionAImage) return alert('Sila isi teks atau upload gambar untuk pilihan A.');
             if(!b && !hasOptionBImage) return alert('Sila isi teks atau upload gambar untuk pilihan B.');
@@ -4537,14 +5223,18 @@
                     soalan, imageUrls, a, b, c, d, jawapan, answerImageUrls, optionImageUrls,
                     formNum, chapterKey: chKey,
                     chapterName: getChapterDisplayName(formNum, chKey),
+                    subKey,
+                    subtopicKey: subKey,
+                    subtopicName,
                     level: quizLevel,
                     levelLabel: getQuizLevelLabel(quizLevel),
+                    marks,
                     sortOrder,
                     createdAt: Date.now(),
                     createdBy: currentUser?.uid || ''
                 });
                 alert(`Soalan quiz level ${getQuizLevelLabel(quizLevel)} berjaya diupload.`);
-                ['adm-standalone-quiz-soalan','adm-standalone-quiz-image-file','adm-standalone-quiz-a','adm-standalone-quiz-b','adm-standalone-quiz-c','adm-standalone-quiz-d','adm-standalone-quiz-option-a-image-file','adm-standalone-quiz-option-b-image-file','adm-standalone-quiz-option-c-image-file','adm-standalone-quiz-option-d-image-file','adm-standalone-quiz-jawapan','adm-standalone-quiz-answer-image-file'].forEach(id => {
+                ['adm-standalone-quiz-soalan','adm-standalone-quiz-image-file','adm-standalone-quiz-a','adm-standalone-quiz-b','adm-standalone-quiz-c','adm-standalone-quiz-d','adm-standalone-quiz-option-a-image-file','adm-standalone-quiz-option-b-image-file','adm-standalone-quiz-option-c-image-file','adm-standalone-quiz-option-d-image-file','adm-standalone-quiz-jawapan','adm-standalone-quiz-marks','adm-standalone-quiz-answer-image-file'].forEach(id => {
                     const el = document.getElementById(id);
                     if(el) el.value = '';
                 });
@@ -4569,6 +5259,7 @@
             const formNum = formEl.value;
             const chKey = chEl.value;
             const quizLevel = getAdminQuizLevel();
+            const selectedSubKey = document.getElementById('adm-quiz-subtopic')?.value || '';
             if(!chKey) {
                 list.innerHTML = '<p class="text-[10px] text-blue-700 text-center py-2">Pilih bab untuk lihat senarai soalan quiz.</p>';
                 return;
@@ -4580,6 +5271,7 @@
                 const snap = await get(ref(db, `quizzes/${formNum}/${chKey}`));
                 const chapterQuizData = snap.exists() ? (snap.val() || {}) : {};
                 const entries = getQuizEntriesWithSourceForLevelFromChapterData(chapterQuizData, quizLevel)
+                    .filter(entry => !selectedSubKey || (entry.q?.subKey || entry.q?.subtopicKey || '') === selectedSubKey)
                     .map((entry, index) => ({ ...entry, index }))
                     .sort((a, b) => {
                         const orderA = getQuizQuestionSortValue(a.q, a.index);
@@ -4606,12 +5298,14 @@
                     const sourceBadge = sourceMode === 'legacy'
                         ? '<span class="bg-amber-100 text-amber-700 font-bold px-1.5 py-0.5 rounded">Legacy Easy</span>'
                         : `<span class="font-bold">${getQuizLevelLabel(quizLevel)}</span>`;
+                    const qMarks = getQuizQuestionMark(q, quizLevel);
+                    const qSubtopic = q.subtopicName || q.subKey || q.subtopicKey || 'Belum set subtopik';
                     return `
                         <div class="bg-white border border-blue-100 rounded-xl p-3 space-y-2 shadow-sm">
                             <div class="flex justify-between gap-3 items-start">
                                 <div class="flex-1">
                                     <p class="font-bold text-slate-800 leading-relaxed">${index + 1}. ${shortQuestion}</p>
-                                    <p class="text-[10px] text-gray-500 mt-1">Level: ${sourceBadge} | Jawapan betul: <span class="font-bold text-emerald-700">${escapeHtml(q.jawapan || '-')}</span> | Gambar soalan: ${questionImageCount} | Gambar pilihan: ${optionImageCount} | Gambar solusi: ${answerImageCount}</p>
+                                    <p class="text-[10px] text-gray-500 mt-1">Level: ${sourceBadge} | Subtopik: <span class="font-bold">${escapeHtml(qSubtopic)}</span> | Markah: <span class="font-bold text-amber-700">${qMarks}</span> | Jawapan betul: <span class="font-bold text-emerald-700">${escapeHtml(q.jawapan || '-')}</span> | Gambar soalan: ${questionImageCount} | Gambar pilihan: ${optionImageCount} | Gambar solusi: ${answerImageCount}</p>
                                 </div>
                                 <button onclick='deleteStandaloneQuizQuestion(${JSON.stringify(formNum)}, ${JSON.stringify(chKey)}, ${JSON.stringify(quizLevel)}, ${JSON.stringify(id)}, ${JSON.stringify(sourceMode)})' class="bg-red-50 text-red-600 font-bold px-3 py-1.5 rounded-lg text-[10px] hover:bg-red-100 transition">
                                     <i class="fa-solid fa-trash"></i> Padam
