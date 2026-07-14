@@ -3450,6 +3450,15 @@
             }
         };
 
+        function normalizeQuizImageUrls(raw = []) {
+            if(Array.isArray(raw)) return raw.filter(url => typeof url === 'string' && url.trim() !== '');
+            if(typeof raw === 'string' && raw.trim() !== '') return [raw.trim()];
+            if(raw && typeof raw === 'object') {
+                return Object.values(raw).flat().filter(url => typeof url === 'string' && url.trim() !== '');
+            }
+            return [];
+        }
+
         function renderSubtopicQuizQuestion(q, level, resultKey, savedAnswer = null, selectedChoice = null) {
             const box = document.getElementById('flow-quiz-content');
             if(!box) return;
@@ -3457,6 +3466,7 @@
             window.currentSubtopicQuizQuestion = q;
             window.currentSubtopicQuizLevel = level;
             window.currentSubtopicQuizResultKey = resultKey;
+            window.currentSubtopicQuizAnswerImages = normalizeQuizImageUrls(q.answerImageUrls || savedAnswer?.answerImageUrls || []);
 
             const mark = getQuizQuestionMark(q, level);
             const answered = !!savedAnswer;
@@ -3528,7 +3538,8 @@
                 html += `
                     <div class="p-3 rounded-xl border ${correct ? 'bg-green-50 text-green-700 border-green-100' : 'bg-red-50 text-red-700 border-red-100'}">
                         <p class="font-bold">${correct ? `Betul! Anda dapat ${savedAnswer.earnedMarks || mark} markah.` : `Salah. Jawapan betul ialah ${q.jawapan}.`}</p>
-                        ${((q.answerImageUrls || []).length > 0) ? `<button onclick='showSubtopicQuizAnswerImages(${JSON.stringify(q.answerImageUrls || [])})' class="mt-2 bg-slate-900 text-white text-[11px] font-bold px-3 py-2 rounded-lg">Lihat Gambar Jawapan</button>` : '<p class="text-[11px] mt-1">Tiada gambar jawapan dimuat naik.</p>'}
+                        ${(window.currentSubtopicQuizAnswerImages || []).length > 0 ? `<button onclick="showCurrentSubtopicQuizAnswerImages()" class="mt-2 bg-slate-900 text-white text-[11px] font-bold px-3 py-2 rounded-lg">Lihat Gambar Jawapan</button>` : '<p class="text-[11px] mt-1">Tiada gambar jawapan dimuat naik.</p>'}
+                        <button onclick="renderSubtopicQuizList()" class="mt-2 ml-2 bg-white border border-gray-200 text-slate-700 text-[11px] font-bold px-3 py-2 rounded-lg">← Kembali ke Pilihan Quiz</button>
                     </div>
                 `;
             }
@@ -3559,12 +3570,18 @@
             );
         };
 
+        window.showCurrentSubtopicQuizAnswerImages = function() {
+            showSubtopicQuizAnswerImages(window.currentSubtopicQuizAnswerImages || []);
+        };
+
         window.showSubtopicQuizAnswerImages = function(urls = []) {
+            const cleanUrls = normalizeQuizImageUrls(urls);
             const box = document.getElementById('quiz-answer-modal-content');
-            box.innerHTML = (urls || []).length
-                ? urls.map(url => `<img src="${url}" class="w-full rounded-xl border border-gray-100 shadow-sm" alt="Gambar jawapan quiz">`).join('')
+            if(!box) return alert('Modal jawapan tidak dijumpai.');
+            box.innerHTML = cleanUrls.length
+                ? cleanUrls.map(url => `<img src="${url}" class="w-full rounded-xl border border-gray-100 shadow-sm" alt="Gambar jawapan quiz">`).join('')
                 : '<p class="text-xs text-gray-500">Tiada gambar jawapan untuk soalan ini.</p>';
-            document.getElementById('quiz-answer-modal').classList.remove('hide');
+            document.getElementById('quiz-answer-modal')?.classList.remove('hide');
         };
 
         window.submitSubtopicQuizAnswer = async function(q, level, resultKey, chosen) {
