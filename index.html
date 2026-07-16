@@ -1748,22 +1748,22 @@
                     <p class="text-[10px] text-gray-500 mt-1">Gambar ini akan muncul sebagai pop up selepas user jawab soalan.</p>
                 </div>
                 <div class="bg-white border border-blue-100 rounded-xl p-3 space-y-2">
-                    <button onclick="addStandaloneQuizQuestion()" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 rounded-xl text-sm flex items-center justify-center space-x-1 shadow-md">
+                    <button type="button" onclick="window.addStandaloneQuizQuestion ? window.addStandaloneQuizQuestion() : alert('Sistem quiz belum siap load. Sila tunggu sebentar dan cuba lagi.')" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 rounded-xl text-sm flex items-center justify-center space-x-1 shadow-md">
                         <i class="fa-solid fa-cloud-arrow-up"></i> <span>Simpan & Tambah Soalan Seterusnya</span>
                     </button>
                     <div class="grid grid-cols-2 gap-2">
-                        <button onclick="duplicateLastQuizDraft()" class="bg-amber-50 border border-amber-200 text-amber-700 font-bold py-2 rounded-xl text-xs hover:bg-amber-100 transition">
+                        <button type="button" onclick="window.duplicateLastQuizDraft ? window.duplicateLastQuizDraft() : alert('Sistem quiz belum siap load.')" class="bg-amber-50 border border-amber-200 text-amber-700 font-bold py-2 rounded-xl text-xs hover:bg-amber-100 transition">
                             <i class="fa-solid fa-copy"></i> Duplicate Soalan Terakhir
                         </button>
-                        <button onclick="resetQuizWizardForm()" class="bg-gray-50 border border-gray-200 text-gray-700 font-bold py-2 rounded-xl text-xs hover:bg-gray-100 transition">
+                        <button type="button" onclick="window.resetQuizWizardForm ? window.resetQuizWizardForm() : alert('Sistem quiz belum siap load.')" class="bg-gray-50 border border-gray-200 text-gray-700 font-bold py-2 rounded-xl text-xs hover:bg-gray-100 transition">
                             <i class="fa-solid fa-eraser"></i> Reset Borang
                         </button>
                     </div>
                     <div class="grid grid-cols-2 gap-2">
-                        <button onclick="loadAdminStandaloneQuizList()" class="bg-white border border-blue-200 text-blue-700 font-bold py-2 rounded-xl text-xs hover:bg-blue-50 transition">
+                        <button type="button" onclick="window.loadAdminStandaloneQuizList ? window.loadAdminStandaloneQuizList() : alert('Sistem quiz belum siap load.')" class="bg-white border border-blue-200 text-blue-700 font-bold py-2 rounded-xl text-xs hover:bg-blue-50 transition">
                             <i class="fa-solid fa-rotate"></i> Refresh Senarai
                         </button>
-                        <button onclick="deleteAllStandaloneQuizForSelectedChapter()" class="bg-red-600 text-white font-bold py-2 rounded-xl text-xs hover:bg-red-700 transition">
+                        <button type="button" onclick="window.deleteAllStandaloneQuizForSelectedChapter ? window.deleteAllStandaloneQuizForSelectedChapter() : alert('Sistem quiz belum siap load.')" class="bg-red-600 text-white font-bold py-2 rounded-xl text-xs hover:bg-red-700 transition">
                             <i class="fa-solid fa-trash"></i> Padam Semua Quiz Subtopik Ini
                         </button>
                     </div>
@@ -5381,35 +5381,49 @@
         };
 
         window.addStandaloneQuizQuestion = async function() {
-            const formNum = document.getElementById('adm-quiz-form').value;
-            const chKey = document.getElementById('adm-quiz-chapter').value;
-            const quizLevel = getAdminQuizLevel();
-            const subKey = document.getElementById('adm-quiz-subtopic')?.value || '';
-            const subtopicName = document.getElementById('adm-quiz-subtopic')?.selectedOptions?.[0]?.textContent || '';
-            const marks = Math.max(1, Number(document.getElementById('adm-standalone-quiz-marks')?.value || getQuizLevelMark(quizLevel) || 1));
-            const soalan = document.getElementById('adm-standalone-quiz-soalan').value.trim();
-            const a = document.getElementById('adm-standalone-quiz-a').value.trim();
-            const b = document.getElementById('adm-standalone-quiz-b').value.trim();
-            const c = document.getElementById('adm-standalone-quiz-c').value.trim();
-            const d = document.getElementById('adm-standalone-quiz-d').value.trim();
-            const jawapan = document.getElementById('adm-standalone-quiz-jawapan').value.trim().toUpperCase();
-            const draftBeforeUpload = getCurrentQuizFormDraft();
-
-            const hasOptionAImage = (document.getElementById('adm-standalone-quiz-option-a-image-file')?.files?.length || 0) > 0;
-            const hasOptionBImage = (document.getElementById('adm-standalone-quiz-option-b-image-file')?.files?.length || 0) > 0;
-            const hasOptionCImage = (document.getElementById('adm-standalone-quiz-option-c-image-file')?.files?.length || 0) > 0;
-            const hasOptionDImage = (document.getElementById('adm-standalone-quiz-option-d-image-file')?.files?.length || 0) > 0;
-
-            if(!formNum || !chKey) return alert('Sila pilih Tingkatan dan Bab.');
-            if(!subKey) return alert('Sila pilih Subtopik untuk soalan quiz.');
-            if(!soalan) return alert('Sila taip soalan quiz.');
-            if(!a && !hasOptionAImage) return alert('Sila isi teks atau upload gambar untuk pilihan A.');
-            if(!b && !hasOptionBImage) return alert('Sila isi teks atau upload gambar untuk pilihan B.');
-            if(!c && !hasOptionCImage) return alert('Sila isi teks atau upload gambar untuk pilihan C.');
-            if(!d && !hasOptionDImage) return alert('Sila isi teks atau upload gambar untuk pilihan D.');
-            if(!['A','B','C','D'].includes(jawapan)) return alert('Jawapan betul mesti A, B, C atau D.');
-
             try {
+                const formEl = document.getElementById('adm-quiz-form');
+                const chEl = document.getElementById('adm-quiz-chapter');
+                const subEl = document.getElementById('adm-quiz-subtopic');
+                const soalanEl = document.getElementById('adm-standalone-quiz-soalan');
+                const aEl = document.getElementById('adm-standalone-quiz-a');
+                const bEl = document.getElementById('adm-standalone-quiz-b');
+                const cEl = document.getElementById('adm-standalone-quiz-c');
+                const dEl = document.getElementById('adm-standalone-quiz-d');
+                const jawapanEl = document.getElementById('adm-standalone-quiz-jawapan');
+
+                if(!formEl || !chEl || !subEl || !soalanEl || !aEl || !bEl || !cEl || !dEl || !jawapanEl) {
+                    return alert('Ralat: Ada input Quiz Manager yang tidak dijumpai. Sila refresh page dan cuba semula.');
+                }
+
+                const formNum = formEl.value;
+                const chKey = chEl.value;
+                const quizLevel = getAdminQuizLevel();
+                const subKey = subEl.value || '';
+                const subtopicName = subEl.selectedOptions?.[0]?.textContent || '';
+                const marks = Math.max(1, Number(document.getElementById('adm-standalone-quiz-marks')?.value || getQuizLevelMark(quizLevel) || 1));
+                const soalan = soalanEl.value.trim();
+                const a = aEl.value.trim();
+                const b = bEl.value.trim();
+                const c = cEl.value.trim();
+                const d = dEl.value.trim();
+                const jawapan = jawapanEl.value.trim().toUpperCase();
+                const draftBeforeUpload = getCurrentQuizFormDraft();
+
+                const hasOptionAImage = (document.getElementById('adm-standalone-quiz-option-a-image-file')?.files?.length || 0) > 0;
+                const hasOptionBImage = (document.getElementById('adm-standalone-quiz-option-b-image-file')?.files?.length || 0) > 0;
+                const hasOptionCImage = (document.getElementById('adm-standalone-quiz-option-c-image-file')?.files?.length || 0) > 0;
+                const hasOptionDImage = (document.getElementById('adm-standalone-quiz-option-d-image-file')?.files?.length || 0) > 0;
+
+                if(!formNum || !chKey) return alert('Sila pilih Tingkatan dan Bab.');
+                if(!subKey) return alert('Sila pilih Subtopik untuk soalan quiz.');
+                if(!soalan) return alert('Sila taip soalan quiz.');
+                if(!a && !hasOptionAImage) return alert('Sila isi teks atau upload gambar untuk pilihan A.');
+                if(!b && !hasOptionBImage) return alert('Sila isi teks atau upload gambar untuk pilihan B.');
+                if(!c && !hasOptionCImage) return alert('Sila isi teks atau upload gambar untuk pilihan C.');
+                if(!d && !hasOptionDImage) return alert('Sila isi teks atau upload gambar untuk pilihan D.');
+                if(!['A','B','C','D'].includes(jawapan)) return alert('Jawapan betul mesti A, B, C atau D.');
+
                 const imageUrls = await uploadMultipleFilesHelper('adm-standalone-quiz-image-file', 'standalone_quiz_questions');
                 const answerImageUrls = await uploadMultipleFilesHelper('adm-standalone-quiz-answer-image-file', 'standalone_quiz_answers');
                 const optionImageUrls = {
@@ -5443,7 +5457,8 @@
                 resetQuizWizardForm();
                 loadAdminStandaloneQuizList();
             } catch(err) {
-                alert('Ralat upload quiz: ' + err.message);
+                alert('Ralat upload quiz: ' + (err?.message || err));
+                console.error('Ralat upload quiz:', err);
             }
         };
 
