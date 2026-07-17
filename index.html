@@ -610,6 +610,33 @@
         }
         .hide { display: none !important; }
     
+
+
+        .bg-red-50 {
+            background: linear-gradient(135deg, #FAF5FF 0%, #FFFEFA 100%) !important;
+        }
+        .text-red-400,
+        .text-red-500,
+        .text-red-600,
+        .text-red-700,
+        .text-red-800,
+        .text-red-900 {
+            color: var(--mj-purple-dark) !important;
+        }
+        .border-red-100,
+        .border-red-200,
+        .border-red-300,
+        .border-red-400 {
+            border-color: rgba(109, 40, 217, 0.18) !important;
+        }
+        .bg-red-500,
+        .bg-red-600,
+        .bg-red-700 {
+            background: linear-gradient(135deg, var(--mj-purple-dark) 0%, var(--mj-purple-deep) 100%) !important;
+            color: #FFFFFF !important;
+            box-shadow: 0 12px 24px rgba(46, 16, 101, 0.14), 0 3px 0 rgba(250, 204, 21, 0.38) !important;
+        }
+
         .math-symbol-btn {
             border: 1px solid #f8c7df;
             background: #fff;
@@ -648,7 +675,775 @@
             padding: 0.08rem 0.22rem 0;
         }
 
-    </style>
+    
+        /* ===== Math Journey Premium Theme: Purple + Yellow + White ===== */
+        :root {
+            --mj-purple-deep: #2E1065;
+            --mj-purple-dark: #4C1D95;
+            --mj-purple: #6D28D9;
+            --mj-purple-soft: #EDE9FE;
+            --mj-yellow: #FACC15;
+            --mj-yellow-deep: #D97706;
+            --mj-yellow-soft: #FEF3C7;
+            --mj-white: #FFFEFA;
+            --mj-matte: #F7F3EA;
+            --mj-ink: #1E1B4B;
+        }
+
+        body {
+            background:
+                radial-gradient(circle at top left, rgba(250,204,21,0.14), transparent 32%),
+                radial-gradient(circle at top right, rgba(109,40,217,0.12), transparent 34%),
+                var(--mj-matte);
+        }
+
+        main {
+            background: var(--mj-white);
+        }
+
+        .bg-soft-pink { background-color: var(--mj-purple-soft) !important; }
+        .text-soft-pink { color: var(--mj-purple) !important; }
+        .border-soft-pink { border-color: #C4B5FD !important; }
+        .bg-neon-green { background-color: var(--mj-yellow-soft) !important; }
+        .text-neon-green { color: var(--mj-yellow-deep) !important; }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--mj-purple) 0%, var(--mj-purple-dark) 100%) !important;
+            color: #fff !important;
+            box-shadow: 0 16px 28px rgba(76, 29, 149, 0.22), inset 0 1px 0 rgba(255,255,255,0.18);
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #7C3AED 0%, #3B0764 100%) !important;
+            transform: translateY(-2px);
+        }
+        .btn-secondary {
+            background: var(--mj-yellow-soft) !important;
+            color: var(--mj-purple-dark) !important;
+        }
+        .btn-secondary:hover {
+            background: #FDE68A !important;
+        }
+
+        .bg-slate-900 { background-color: var(--mj-purple-deep) !important; }
+        .bg-slate-800 { background-color: var(--mj-purple-dark) !important; }
+        .text-purple-600, .text-purple-800, .text-purple-900 { color: var(--mj-purple-dark) !important; }
+        .bg-pink-50, .bg-rose-50 { background-color: #FAF5FF !important; }
+        .bg-pink-100 { background-color: #EDE9FE !important; }
+        .border-pink-100, .border-pink-200 { border-color: #DDD6FE !important; }
+        .text-pink-600 { color: var(--mj-purple) !important; }
+        .bg-green-50, .bg-emerald-50 { background-color: #FFFBEB !important; }
+        .bg-green-100, .bg-emerald-100 { background-color: #FEF3C7 !important; }
+        .text-green-600, .text-green-700, .text-emerald-700, .text-emerald-900 { color: #92400E !important; }
+
+        #app-nav {
+            background: rgba(255, 254, 250, 0.92) !important;
+            backdrop-filter: blur(14px);
+            border-bottom-color: rgba(109, 40, 217, 0.12) !important;
+        }
+
+        #app-footer {
+            background: rgba(255, 254, 250, 0.94) !important;
+            backdrop-filter: blur(14px);
+            border-top-color: rgba(109, 40, 217, 0.12) !important;
+        }
+
+        .testimonial-slider-shell {
+            background:
+                radial-gradient(circle at top right, rgba(250, 204, 21, 0.24), transparent 28%),
+                linear-gradient(145deg, #FFFFFF 0%, #FAF5FF 48%, #FFFBEB 100%) !important;
+            border: 1px solid rgba(109, 40, 217, 0.16) !important;
+            box-shadow: 0 22px 44px rgba(76, 29, 149, 0.13), 0 4px 0 rgba(250, 204, 21, 0.45) !important;
+        }
+        .testimonial-card {
+            display: none;
+            animation: testimonialSlideIn 0.45s ease both;
+        }
+        .testimonial-card.active { display: block; }
+        .testimonial-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 999px;
+            background: #DDD6FE !important;
+            transition: all 0.25s ease;
+        }
+        .testimonial-dot.active {
+            width: 22px;
+            background: var(--mj-yellow) !important;
+            box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.18);
+        }
+
+        .mj-premium-landing {
+            position: relative;
+            overflow: hidden;
+            background:
+                radial-gradient(circle at 12% 8%, rgba(250,204,21,0.22), transparent 28%),
+                radial-gradient(circle at 88% 4%, rgba(109,40,217,0.18), transparent 26%),
+                linear-gradient(180deg, #FFFEFA 0%, #F7F3EA 100%);
+        }
+        .mj-premium-landing::before,
+        .mj-premium-landing::after {
+            content: '';
+            position: absolute;
+            pointer-events: none;
+            border-radius: 999px;
+            filter: blur(0.2px);
+        }
+        .mj-premium-landing::before {
+            width: 210px;
+            height: 210px;
+            top: -95px;
+            right: -85px;
+            background: rgba(109, 40, 217, 0.14);
+            box-shadow: -120px 42px 0 rgba(250, 204, 21, 0.13);
+        }
+        .mj-premium-landing::after {
+            width: 190px;
+            height: 190px;
+            bottom: -100px;
+            left: -80px;
+            background: rgba(250, 204, 21, 0.16);
+            box-shadow: 132px -28px 0 rgba(109, 40, 217, 0.08);
+        }
+
+        .mj-hero-shell {
+            position: relative;
+            z-index: 2;
+            padding: 54px 22px 34px;
+            text-align: center;
+        }
+        .mj-premium-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.88);
+            color: var(--mj-purple-dark);
+            border: 1px solid rgba(109, 40, 217, 0.18);
+            border-radius: 999px;
+            padding: 9px 15px;
+            font-size: 0.68rem;
+            font-weight: 900;
+            letter-spacing: 0.13em;
+            text-transform: uppercase;
+            box-shadow: 0 12px 24px rgba(76,29,149,0.08);
+        }
+        .mj-product-box-wrap {
+            position: relative;
+            width: min(290px, 90%);
+            margin: 28px auto 24px;
+            perspective: 900px;
+        }
+        .mj-product-box {
+            position: relative;
+            min-height: 285px;
+            border-radius: 30px;
+            padding: 28px 22px 24px;
+            background:
+                linear-gradient(135deg, rgba(255,255,255,0.08), transparent 28%),
+                linear-gradient(160deg, #6D28D9 0%, #4C1D95 54%, #2E1065 100%);
+            color: #fff;
+            box-shadow:
+                0 30px 54px rgba(46,16,101,0.26),
+                12px 12px 0 rgba(250,204,21,0.72),
+                inset 0 1px 0 rgba(255,255,255,0.2);
+            transform: rotateY(-8deg) rotateX(2deg);
+            transform-style: preserve-3d;
+            overflow: hidden;
+        }
+        .mj-product-box::before {
+            content: '';
+            position: absolute;
+            inset: 16px;
+            border: 1px solid rgba(255,255,255,0.13);
+            border-radius: 24px;
+        }
+        .mj-product-box::after {
+            content: '';
+            position: absolute;
+            right: -34px;
+            top: -34px;
+            width: 118px;
+            height: 118px;
+            background: var(--mj-yellow);
+            transform: rotate(18deg);
+            border-radius: 28px;
+            box-shadow: 0 16px 30px rgba(0,0,0,0.16);
+        }
+        .mj-license-corner {
+            position: absolute;
+            right: 14px;
+            top: 17px;
+            z-index: 2;
+            color: #2E1065;
+            font-weight: 900;
+            font-size: 0.67rem;
+            line-height: 1.05;
+            text-transform: uppercase;
+            transform: rotate(8deg);
+        }
+        .mj-logo-chip {
+            position: relative;
+            z-index: 2;
+            width: 66px;
+            height: 66px;
+            margin: 0 auto 16px;
+            border-radius: 22px;
+            background: #fff;
+            color: var(--mj-purple-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 950;
+            font-size: 1.45rem;
+            box-shadow: 0 14px 26px rgba(0,0,0,0.16), inset 0 -4px 0 rgba(250,204,21,0.5);
+        }
+        .mj-box-title {
+            position: relative;
+            z-index: 2;
+            font-size: clamp(2.3rem, 13vw, 3.75rem);
+            line-height: 0.9;
+            font-weight: 950;
+            letter-spacing: -0.06em;
+            text-shadow: 0 8px 18px rgba(0,0,0,0.18);
+        }
+        .mj-box-title span {
+            display: block;
+            color: var(--mj-yellow);
+        }
+        .mj-access-pill {
+            position: relative;
+            z-index: 2;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 15px;
+            padding: 10px 18px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.96);
+            color: var(--mj-purple-dark);
+            font-size: 0.76rem;
+            font-weight: 900;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            box-shadow: 0 10px 18px rgba(0,0,0,0.14);
+        }
+        .mj-box-formula {
+            position: absolute;
+            color: rgba(255,255,255,0.2);
+            font-weight: 900;
+            z-index: 1;
+        }
+        .mj-box-formula.f1 { left: 20px; top: 28px; font-size: 0.92rem; }
+        .mj-box-formula.f2 { right: 22px; bottom: 28px; font-size: 1rem; }
+        .mj-box-formula.f3 { left: 24px; bottom: 76px; font-size: 0.8rem; color: rgba(250,204,21,0.28); }
+
+        .mj-hero-title {
+            color: var(--mj-ink);
+            font-size: clamp(2rem, 9vw, 3rem);
+            line-height: 1.03;
+            font-weight: 950;
+            letter-spacing: -0.055em;
+            margin-top: 8px;
+        }
+        .mj-hero-title span {
+            color: var(--mj-purple);
+        }
+        .mj-hero-desc {
+            max-width: 340px;
+            margin: 14px auto 0;
+            color: #57534E;
+            font-size: 0.92rem;
+            line-height: 1.7;
+        }
+        .mj-chip-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 9px;
+            margin-top: 18px;
+        }
+        .mj-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 11px;
+            background: rgba(255,255,255,0.82);
+            border: 1px solid rgba(109,40,217,0.13);
+            border-radius: 999px;
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: var(--mj-purple-dark);
+            box-shadow: 0 10px 18px rgba(46,16,101,0.06);
+        }
+        .mj-cta-col {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .mj-btn-light {
+            background: rgba(255,255,255,0.88);
+            border: 1px solid rgba(109,40,217,0.16);
+            color: var(--mj-purple-dark);
+            box-shadow: 0 12px 24px rgba(76,29,149,0.07);
+        }
+        .mj-section {
+            position: relative;
+            overflow: hidden;
+            background: #FFFEFA;
+            border-top: 1px solid rgba(109, 40, 217, 0.1);
+            padding: 28px 24px;
+        }
+        .mj-section-title {
+            color: var(--mj-ink);
+            font-size: 1.28rem;
+            line-height: 1.18;
+            font-weight: 950;
+            letter-spacing: -0.03em;
+        }
+        .mj-feature-grid {
+            display: grid;
+            gap: 13px;
+            margin-top: 18px;
+        }
+        .mj-feature-card {
+            display: flex;
+            align-items: flex-start;
+            gap: 13px;
+            text-align: left;
+            border-radius: 24px;
+            padding: 16px;
+            background: #fff;
+            border: 1px solid rgba(109,40,217,0.12);
+            box-shadow: 0 14px 30px rgba(76,29,149,0.07), 0 3px 0 rgba(250,204,21,0.45);
+        }
+        .mj-feature-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--mj-purple-dark);
+            background: var(--mj-yellow);
+            box-shadow: inset 0 -4px 0 rgba(0,0,0,0.08);
+        }
+        .mj-feature-card:nth-child(even) .mj-feature-icon {
+            background: var(--mj-purple-soft);
+            color: var(--mj-purple);
+        }
+
+        @media (max-width: 380px) {
+            .mj-product-box { min-height: 265px; }
+            .mj-box-title { font-size: 2.38rem; }
+        }
+
+
+        /* ===== Math Journey Full App Premium Theme Overrides ===== */
+        #view-login,
+        #view-dashboard,
+        #view-levels,
+        #view-chapters,
+        #view-content-flow,
+        #view-quiz,
+        #view-profile,
+        #view-contact,
+        #view-admin {
+            background:
+                radial-gradient(circle at 92% 0%, rgba(250, 204, 21, 0.14), transparent 26%),
+                radial-gradient(circle at 6% 12%, rgba(109, 40, 217, 0.10), transparent 30%),
+                linear-gradient(180deg, #FFFEFA 0%, #F7F3EA 100%) !important;
+            min-height: calc(100vh - 120px);
+        }
+
+        #view-login > .pt-8,
+        #view-levels > .mb-6,
+        #view-chapters > .mb-6,
+        #view-quiz > .mb-6,
+        #view-profile > .mb-6,
+        #view-contact > .mb-6,
+        #view-admin > .mb-6 {
+            background: rgba(255, 254, 250, 0.82);
+            border: 1px solid rgba(109, 40, 217, 0.10);
+            border-radius: 28px;
+            padding: 16px;
+            box-shadow: 0 14px 30px rgba(46, 16, 101, 0.06), 0 3px 0 rgba(250, 204, 21, 0.34);
+        }
+
+        #view-login h2,
+        #view-dashboard h2,
+        #view-levels h2,
+        #view-chapters h2,
+        #view-quiz h2,
+        #view-profile h2,
+        #view-contact h2,
+        #view-admin h2,
+        #view-content-flow h2,
+        #view-login h3,
+        #view-dashboard h3,
+        #view-levels h3,
+        #view-chapters h3,
+        #view-quiz h3,
+        #view-profile h3,
+        #view-contact h3,
+        #view-admin h3,
+        #view-content-flow h3 {
+            color: var(--mj-ink) !important;
+            letter-spacing: -0.02em;
+        }
+
+        #view-login input,
+        #view-login select,
+        #view-login textarea,
+        #view-profile input,
+        #view-profile select,
+        #view-profile textarea,
+        #view-contact input,
+        #view-contact select,
+        #view-contact textarea,
+        #view-admin input,
+        #view-admin select,
+        #view-admin textarea,
+        #view-quiz input,
+        #view-quiz select,
+        #view-quiz textarea,
+        #view-content-flow input,
+        #view-content-flow select,
+        #view-content-flow textarea,
+        #payment-modal input,
+        #activation-guide-modal input {
+            background: rgba(255, 254, 250, 0.96) !important;
+            border-color: rgba(109, 40, 217, 0.18) !important;
+            color: var(--mj-ink) !important;
+            box-shadow: 0 8px 18px rgba(46, 16, 101, 0.04);
+        }
+
+        #view-login input:focus,
+        #view-login select:focus,
+        #view-login textarea:focus,
+        #view-profile input:focus,
+        #view-profile select:focus,
+        #view-profile textarea:focus,
+        #view-contact input:focus,
+        #view-contact select:focus,
+        #view-contact textarea:focus,
+        #view-admin input:focus,
+        #view-admin select:focus,
+        #view-admin textarea:focus,
+        #view-quiz input:focus,
+        #view-quiz select:focus,
+        #view-quiz textarea:focus,
+        #view-content-flow input:focus,
+        #view-content-flow select:focus,
+        #view-content-flow textarea:focus {
+            border-color: var(--mj-yellow) !important;
+            box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.22), 0 8px 18px rgba(46, 16, 101, 0.05) !important;
+        }
+
+        #view-dashboard .bg-white,
+        #view-levels .bg-white,
+        #view-chapters .bg-white,
+        #view-content-flow .bg-white,
+        #view-quiz .bg-white,
+        #view-profile .bg-white,
+        #view-contact .bg-white,
+        #view-admin .bg-white,
+        #payment-modal .bg-white,
+        #activation-guide-modal .bg-white {
+            background: rgba(255, 254, 250, 0.96) !important;
+        }
+
+        #view-dashboard .border-gray-100,
+        #view-dashboard .border-gray-200,
+        #view-levels .border-gray-100,
+        #view-levels .border-gray-200,
+        #view-chapters .border-gray-100,
+        #view-chapters .border-gray-200,
+        #view-content-flow .border-gray-100,
+        #view-content-flow .border-gray-200,
+        #view-quiz .border-gray-100,
+        #view-quiz .border-gray-200,
+        #view-profile .border-gray-100,
+        #view-profile .border-gray-200,
+        #view-contact .border-gray-100,
+        #view-contact .border-gray-200,
+        #view-admin .border-gray-100,
+        #view-admin .border-gray-200,
+        #payment-modal .border-gray-100,
+        #activation-guide-modal .border-gray-100 {
+            border-color: rgba(109, 40, 217, 0.13) !important;
+        }
+
+        #view-dashboard .shadow-sm,
+        #view-levels .shadow-sm,
+        #view-chapters .shadow-sm,
+        #view-content-flow .shadow-sm,
+        #view-quiz .shadow-sm,
+        #view-profile .shadow-sm,
+        #view-contact .shadow-sm,
+        #view-admin .shadow-sm {
+            box-shadow: 0 14px 28px rgba(46, 16, 101, 0.06), 0 3px 0 rgba(250, 204, 21, 0.22) !important;
+        }
+
+        #view-dashboard .bg-gradient-to-r,
+        #view-profile .bg-slate-900,
+        #quiz-final-result .bg-slate-900,
+        #quiz-runner .bg-slate-900,
+        #view-content-flow .bg-slate-900 {
+            background:
+                radial-gradient(circle at top right, rgba(250, 204, 21, 0.18), transparent 34%),
+                linear-gradient(135deg, var(--mj-purple) 0%, var(--mj-purple-deep) 100%) !important;
+            color: white !important;
+            border: 1px solid rgba(250, 204, 21, 0.22) !important;
+            box-shadow: 0 18px 34px rgba(46, 16, 101, 0.18), 0 4px 0 rgba(250, 204, 21, 0.45) !important;
+        }
+
+        #dash-announcement-box,
+        .bg-amber-50,
+        .bg-yellow-50,
+        #activation-guide-modal .bg-amber-50 {
+            background: linear-gradient(135deg, #FFFBEB 0%, #FFFFFF 100%) !important;
+            border-color: rgba(250, 204, 21, 0.42) !important;
+        }
+
+        .text-amber-600,
+        .text-amber-700,
+        .text-amber-800,
+        .text-amber-900,
+        .text-yellow-600,
+        .text-yellow-700,
+        .text-yellow-800,
+        .text-yellow-900 {
+            color: #92400E !important;
+        }
+
+        .bg-purple-50,
+        .bg-blue-50,
+        .bg-indigo-50,
+        .bg-violet-50,
+        .bg-pink-50,
+        .bg-rose-50 {
+            background: linear-gradient(135deg, #FAF5FF 0%, #FFFFFF 100%) !important;
+        }
+
+        .border-purple-100,
+        .border-purple-200,
+        .border-purple-300,
+        .border-blue-100,
+        .border-blue-200,
+        .border-blue-300,
+        .border-indigo-100,
+        .border-indigo-200,
+        .border-violet-100,
+        .border-violet-200,
+        .border-pink-100,
+        .border-pink-200 {
+            border-color: rgba(109, 40, 217, 0.18) !important;
+        }
+
+        .text-blue-600,
+        .text-blue-700,
+        .text-blue-800,
+        .text-blue-900,
+        .text-indigo-600,
+        .text-indigo-700,
+        .text-indigo-800,
+        .text-indigo-900,
+        .text-violet-600,
+        .text-violet-700,
+        .text-violet-800,
+        .text-violet-900 {
+            color: var(--mj-purple-dark) !important;
+        }
+
+        .bg-emerald-50,
+        .bg-green-50,
+        .bg-lime-50 {
+            background: linear-gradient(135deg, #FFFBEB 0%, #FFFFFF 100%) !important;
+        }
+
+        .border-emerald-200,
+        .border-emerald-300,
+        .border-green-100,
+        .border-green-200,
+        .border-green-300,
+        .border-lime-100,
+        .border-lime-200 {
+            border-color: rgba(250, 204, 21, 0.42) !important;
+        }
+
+        .text-emerald-600,
+        .text-emerald-700,
+        .text-emerald-800,
+        .text-emerald-900,
+        .text-green-600,
+        .text-green-700,
+        .text-green-800,
+        .text-green-900,
+        .text-lime-600,
+        .text-lime-700,
+        .text-lime-800,
+        .text-lime-900 {
+            color: #92400E !important;
+        }
+
+        .bg-purple-900,
+        .bg-purple-950,
+        .bg-blue-600,
+        .bg-blue-700,
+        .bg-blue-800,
+        .bg-indigo-600,
+        .bg-indigo-700,
+        .bg-slate-700,
+        .bg-slate-800,
+        .bg-slate-900,
+        .bg-emerald-600,
+        .bg-emerald-700,
+        .bg-green-600,
+        .bg-green-700,
+        .bg-amber-600,
+        .bg-amber-700 {
+            background: linear-gradient(135deg, var(--mj-purple) 0%, var(--mj-purple-deep) 100%) !important;
+            color: #FFFFFF !important;
+        }
+
+        button.bg-white,
+        button.bg-gray-100,
+        button.bg-slate-50,
+        .paper-btn-outline,
+        .mj-btn-light {
+            background: rgba(255, 254, 250, 0.96) !important;
+            border: 1px solid rgba(109, 40, 217, 0.16) !important;
+            color: var(--mj-purple-dark) !important;
+            box-shadow: 0 12px 24px rgba(76,29,149,0.07), 0 2px 0 rgba(250,204,21,0.32) !important;
+        }
+
+        #view-levels button,
+        #chapters-container button,
+        #quiz-chapter-list button,
+        #quiz-level-list button,
+        #contoh-list-container button,
+        #subtopics-container button,
+        #view-content-flow button,
+        #view-dashboard button,
+        #view-profile button,
+        #view-contact button,
+        #view-admin button {
+            transform: translateZ(0);
+            transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+        }
+
+        #view-levels button:hover,
+        #chapters-container button:hover,
+        #quiz-chapter-list button:hover,
+        #quiz-level-list button:hover,
+        #contoh-list-container button:hover,
+        #subtopics-container button:hover,
+        #view-content-flow button:hover,
+        #view-dashboard button:hover,
+        #view-profile button:hover,
+        #view-contact button:hover,
+        #view-admin button:hover {
+            transform: translateY(-1px);
+            border-color: rgba(250, 204, 21, 0.55) !important;
+        }
+
+        #view-admin > div:not(.mb-6),
+        #view-profile > div:not(.mb-6),
+        #view-contact > div:not(.mb-6),
+        #quiz-picker > div,
+        #quiz-runner > div,
+        #quiz-final-result > div,
+        #chapters-container > div,
+        #chapters-container > button,
+        #view-content-flow .flow-subview > div,
+        #view-dashboard > div:not(.mb-6) {
+            border-radius: 24px;
+        }
+
+        #view-admin .bg-purple-900,
+        #view-admin .bg-slate-800,
+        #view-admin .bg-emerald-50,
+        #view-admin .bg-amber-50,
+        #view-admin .bg-blue-50,
+        #view-admin .bg-white,
+        #view-profile .bg-white,
+        #view-contact .bg-white,
+        #view-quiz .bg-white,
+        #view-dashboard .bg-white {
+            border: 1px solid rgba(109, 40, 217, 0.14) !important;
+            box-shadow: 0 16px 30px rgba(46, 16, 101, 0.07), 0 3px 0 rgba(250, 204, 21, 0.28) !important;
+        }
+
+        #view-admin .bg-purple-900,
+        #view-admin .bg-slate-800 {
+            background:
+                radial-gradient(circle at top right, rgba(250,204,21,0.14), transparent 32%),
+                linear-gradient(135deg, var(--mj-purple-dark), var(--mj-purple-deep)) !important;
+            color: white !important;
+        }
+
+        #app-footer button.text-soft-pink,
+        #app-footer button:hover,
+        #app-nav button:hover,
+        #auth-toggle-btn,
+        a.text-soft-pink {
+            color: var(--mj-purple) !important;
+        }
+
+        #app-footer button.text-soft-pink i,
+        #app-footer button:hover i {
+            filter: drop-shadow(0 4px 6px rgba(250, 204, 21, 0.35));
+        }
+
+        #payment-modal > div,
+        #activation-guide-modal > div,
+        #quiz-answer-modal > div {
+            background:
+                radial-gradient(circle at top right, rgba(250,204,21,0.16), transparent 30%),
+                linear-gradient(180deg, #FFFEFA 0%, #FAF5FF 100%) !important;
+            border: 1px solid rgba(109,40,217,0.16) !important;
+            box-shadow: 0 24px 54px rgba(46,16,101,0.26), 0 5px 0 rgba(250,204,21,0.48) !important;
+        }
+
+
+
+        .bg-red-50 {
+            background: linear-gradient(135deg, #FAF5FF 0%, #FFFEFA 100%) !important;
+        }
+        .text-red-400,
+        .text-red-500,
+        .text-red-600,
+        .text-red-700,
+        .text-red-800,
+        .text-red-900 {
+            color: var(--mj-purple-dark) !important;
+        }
+        .border-red-100,
+        .border-red-200,
+        .border-red-300,
+        .border-red-400 {
+            border-color: rgba(109, 40, 217, 0.18) !important;
+        }
+        .bg-red-500,
+        .bg-red-600,
+        .bg-red-700 {
+            background: linear-gradient(135deg, var(--mj-purple-dark) 0%, var(--mj-purple-deep) 100%) !important;
+            color: #FFFFFF !important;
+            box-shadow: 0 12px 24px rgba(46, 16, 101, 0.14), 0 3px 0 rgba(250, 204, 21, 0.38) !important;
+        }
+
+        .math-symbol-btn {
+            border-color: rgba(109,40,217,0.18) !important;
+            color: var(--mj-purple-dark) !important;
+            background: #FFFEFA !important;
+        }
+        .math-symbol-btn:hover {
+            background: #FFFBEB !important;
+            border-color: rgba(250,204,21,0.66) !important;
+        }
+
+</style>
 </head>
 <body class="text-slate-800 antialiased">
 
@@ -727,147 +1522,109 @@
             </div>
         </div>
 
-        <section id="view-landing" class="view">
-            <div class="paper-cut-landing">
-                <div class="paper-top-wave"></div>
-                <div class="paper-bottom-wave"></div>
+        
+<section id="view-landing" class="view">
+            <div class="mj-premium-landing">
+                <div class="mj-hero-shell">
+                    <span class="mj-premium-badge">
+                        <i class="fa-solid fa-crown text-amber-400"></i>
+                        Digital License • Premium Access
+                    </span>
 
-                <div class="paper-floating-symbol white s1">a² + b² = c²</div>
-                <div class="paper-floating-symbol white s2">x² - 4x + 4 = 0</div>
-                <div class="paper-floating-symbol pink s3">f(x)</div>
-                <div class="paper-floating-symbol white s4">√x</div>
-                <div class="paper-floating-symbol white s5">π</div>
-                <div class="paper-floating-symbol white s6">(a+b)²</div>
+                    <div class="mj-product-box-wrap">
+                        <div class="mj-product-box">
+                            <div class="mj-license-corner">
+                                Lifetime<br>Access
+                            </div>
+                            <span class="mj-box-formula f1">a² + b² = c²</span>
+                            <span class="mj-box-formula f2">y = mx + c</span>
+                            <span class="mj-box-formula f3">√x • π • ∑</span>
 
-                <div class="paper-hero-shell">
-                    <div class="paper-mini-logo">
-                        <div class="paper-mini-logo-inner">MJ</div>
-                    </div>
-
-                    <div class="paper-cut-cloud">
-                        <div class="paper-cut-title-stack">
-                            <span class="paper-cut-word math">Math</span>
-                            <span class="paper-cut-word journey">Journey</span>
-                            <span class="paper-cut-subpill">Belajar Hari Ini, Skor Esok</span>
+                            <div class="mj-logo-chip">MJ</div>
+                            <div class="mj-box-title">
+                                Math
+                                <span>Journey</span>
+                            </div>
+                            <div class="mj-access-pill">Premium Access</div>
                         </div>
                     </div>
 
-                    <div class="paper-cut-chip-row">
-                        <span class="paper-cut-chip"><i class="fa-solid fa-book-open text-soft-pink"></i> Contoh soalan bergambar</span>
-                        <span class="paper-cut-chip"><i class="fa-solid fa-arrow-right-arrow-left text-neon-green"></i> Step-by-step</span>
-                        <span class="paper-cut-chip"><i class="fa-solid fa-calculator text-soft-pink"></i> Quiz premium</span>
+                    <h1 class="mj-hero-title">
+                        Belajar Math lebih jelas, kemas dan yakin.
+                    </h1>
+                    <p class="mj-hero-desc">
+                        Fokus kepada contoh soalan bergambar, jalan kerja step-by-step dan quiz premium mengikut level Easy, Medium dan Hard.
+                    </p>
+
+                    <div class="mj-chip-row">
+                        <span class="mj-chip"><i class="fa-solid fa-images text-amber-500"></i> Contoh bergambar</span>
+                        <span class="mj-chip"><i class="fa-solid fa-arrow-right-arrow-left text-purple-600"></i> Back & Next</span>
+                        <span class="mj-chip"><i class="fa-solid fa-layer-group text-amber-500"></i> Easy / Medium / Hard</span>
                     </div>
 
-                    <div class="paper-cut-info-grid">
-                        <div class="paper-cut-info-card">
-                            <p>Akses percuma</p>
-                            <p>2 bab pertama setiap tingkatan</p>
-                            <p>Sesuai untuk cuba dulu sebelum unlock semua kandungan.</p>
-                        </div>
-                        <div class="paper-cut-info-card">
-                            <p>Akses premium</p>
-                            <p>RM129 seumur hidup</p>
-                            <p>Dapat semua bab, semua quiz dan akses penuh Math Journey.</p>
-                        </div>
-                    </div>
-
-                    <div class="paper-cta-col px-1">
-                        <button type="button" onclick="switchView('login')" class="w-full btn-primary font-bold py-3.5 rounded-2xl shadow-lg shadow-pink-100 text-sm">
+                    <div class="mj-cta-col px-1">
+                        <button type="button" onclick="switchView('login')" class="w-full btn-primary font-bold py-3.5 rounded-2xl text-sm">
                             Mula Belajar Sekarang
                         </button>
-                        <button onclick="smoothScrollTo('landing-features')" class="w-full paper-btn-outline font-semibold py-3.5 rounded-2xl text-sm transition">
+                        <button onclick="smoothScrollTo('landing-features')" class="w-full mj-btn-light font-semibold py-3.5 rounded-2xl text-sm transition">
                             Lihat Kelebihan Math Journey
                         </button>
                     </div>
-
-                    <div class="paper-decor-grid">
-                        <div class="paper-note-card pink">
-                            <p class="text-[11px] font-extrabold uppercase tracking-wider text-gray-400">Graf Fungsi</p>
-                            <div class="paper-graph">
-                                <span class="axis-x"></span>
-                                <span class="axis-y"></span>
-                                <span class="curve"></span>
-                            </div>
-                        </div>
-                        <div class="paper-note-card green">
-                            <p class="text-[11px] font-extrabold uppercase tracking-wider text-gray-400">Formula Ringkas</p>
-                            <div class="paper-formula">x² + y² = r²</div>
-                            <div class="paper-formula small">x² - 4x + 4 = 0</div>
-                        </div>
-                    </div>
-
-                    <div class="paper-tool-row">
-                        <div class="paper-tool-card">
-                            <div class="paper-tool-shape pink"><i class="fa-solid fa-calculator"></i></div>
-                            <p class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Calculator</p>
-                        </div>
-                        <div class="paper-tool-card">
-                            <div class="paper-tool-shape green"><i class="fa-solid fa-ruler"></i></div>
-                            <p class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Ruler</p>
-                        </div>
-                        <div class="paper-tool-card">
-                            <div class="paper-tool-shape white"><i class="fa-solid fa-drafting-compass"></i></div>
-                            <p class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Tools</p>
-                        </div>
-                    </div>
                 </div>
             </div>
 
-            <div id="landing-features" class="paper-section-shell p-6">
-                <div class="relative z-10">
-                    <div class="landing-highlight-card rounded-3xl p-5 mb-6 text-center">
-                        <span class="inline-flex items-center gap-2 bg-white text-neon-green px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider border border-green-100">
-                            <i class="fa-solid fa-shapes"></i> Kenapa Math Journey Menarik?
-                        </span>
-                        <h3 class="text-xl font-extrabold text-slate-900 mt-3 leading-tight">Visual yang ceria, susun atur kemas, dan pembelajaran lebih jelas</h3>
-                        <p class="text-xs text-gray-500 mt-2 leading-5">Math Journey bantu pelajar belajar melalui contoh visual, langkah yang jelas dan quiz yang tersusun.</p>
-                    </div>
-
-                    <div class="space-y-4">
-                        <div class="paper-feature-card flex items-start space-x-3">
-                            <div class="paper-feature-icon pink"><i class="fa-solid fa-images"></i></div>
-                            <div>
-                                <h4 class="font-bold text-sm text-slate-900">Contoh Soalan Bergambar</h4>
-                                <p class="text-xs text-gray-500 leading-5 mt-1">Pelajar boleh fokus kepada contoh soalan sebenar dengan penerangan yang lebih visual dan lebih senang difahami.</p>
-                            </div>
-                        </div>
-                        <div class="paper-feature-card flex items-start space-x-3">
-                            <div class="paper-feature-icon green"><i class="fa-solid fa-repeat"></i></div>
-                            <div>
-                                <h4 class="font-bold text-sm text-slate-900">Back & Next Untuk Ulang Step</h4>
-                                <p class="text-xs text-gray-500 leading-5 mt-1">Setiap langkah boleh diulang berkali-kali tanpa rasa rushing — sangat sesuai untuk pelajar yang perlukan masa untuk faham.</p>
-                            </div>
-                        </div>
-                        <div class="paper-feature-card flex items-start space-x-3">
-                            <div class="paper-feature-icon white"><i class="fa-solid fa-trophy"></i></div>
-                            <div>
-                                <h4 class="font-bold text-sm text-slate-900">Quiz, Progress & Motivasi</h4>
-                                <p class="text-xs text-gray-500 leading-5 mt-1">Pantau perkembangan pelajar, kumpul badge, dan buka lebih banyak topik premium dengan sistem yang tersusun.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="landing-testimonials" class="p-6 bg-white border-t border-gray-100">
-                <div class="text-center mb-5">
-                    <span class="inline-flex items-center gap-1 bg-soft-pink text-soft-pink px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
-                        <i class="fa-solid fa-heart"></i> Testimoni Pelanggan
+            <div id="landing-features" class="mj-section">
+                <div class="text-center">
+                    <span class="inline-flex items-center gap-2 bg-yellow-100 text-purple-900 px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider border border-yellow-200">
+                        <i class="fa-solid fa-shapes"></i> Pembelajaran Visual Premium
                     </span>
-                    <h3 class="text-xl font-extrabold text-slate-900 mt-3 leading-tight">Apa kata pelajar & ibu bapa?</h3>
-                    <p class="text-xs text-gray-500 mt-1">Pengalaman mereka selepas belajar menggunakan Math Journey.</p>
+                    <h3 class="mj-section-title mt-3">Tak serabut. Terus pilih bab, tengok contoh, ulang sampai faham.</h3>
+                    <p class="text-xs text-stone-500 mt-2 leading-5">
+                        Setiap bahagian disusun ringkas supaya pelajar boleh terus pilih topik, ulang langkah dan belajar dengan lebih tenang.
+                    </p>
+                </div>
+
+                <div class="mj-feature-grid">
+                    <div class="mj-feature-card">
+                        <div class="mj-feature-icon"><i class="fa-solid fa-image"></i></div>
+                        <div>
+                            <h4 class="font-extrabold text-sm text-slate-900">Contoh Soalan Sebagai Fokus Utama</h4>
+                            <p class="text-xs text-stone-500 leading-5 mt-1">Pelajar belajar melalui contoh sebenar dan gambar jalan kerja yang admin upload.</p>
+                        </div>
+                    </div>
+                    <div class="mj-feature-card">
+                        <div class="mj-feature-icon"><i class="fa-solid fa-clone"></i></div>
+                        <div>
+                            <h4 class="font-extrabold text-sm text-slate-900">Reka Bentuk Premium</h4>
+                            <p class="text-xs text-stone-500 leading-5 mt-1">Paparan yang kemas, moden dan selesa digunakan supaya pengalaman belajar rasa lebih tersusun.</p>
+                        </div>
+                    </div>
+                    <div class="mj-feature-card">
+                        <div class="mj-feature-icon"><i class="fa-solid fa-circle-question"></i></div>
+                        <div>
+                            <h4 class="font-extrabold text-sm text-slate-900">Quiz Premium Mengikut Level</h4>
+                            <p class="text-xs text-stone-500 leading-5 mt-1">Pelajar boleh mula dengan Easy, kemudian naik ke Medium dan Hard bila sudah lebih yakin.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="landing-testimonials" class="mj-section">
+                <div class="text-center mb-5">
+                    <span class="inline-flex items-center gap-1 bg-purple-50 text-purple-800 px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider border border-purple-100">
+                        <i class="fa-solid fa-star text-amber-400"></i> Testimoni Pelanggan
+                    </span>
+                    <h3 class="mj-section-title mt-3">Apa kata pelajar & ibu bapa?</h3>
+                    <p class="text-xs text-stone-500 mt-1">Pengalaman mereka selepas belajar menggunakan Math Journey.</p>
                 </div>
 
                 <div class="testimonial-slider-shell rounded-3xl p-5 overflow-hidden relative">
-                    <div class="absolute -top-6 -right-6 w-24 h-24 bg-pink-100 rounded-full opacity-70"></div>
-                    <div class="absolute -bottom-8 -left-8 w-28 h-28 bg-green-100 rounded-full opacity-70"></div>
-
                     <div id="testimonial-slider" class="relative z-10 min-h-[230px]">
                         <div class="testimonial-card active" data-testimonial-index="0">
                             <div class="flex items-center justify-between mb-4">
                                 <div>
                                     <p class="font-extrabold text-slate-900 text-sm">Puan Aina</p>
-                                    <p class="text-[10px] text-gray-500 font-semibold">Ibu pelajar Tingkatan 2</p>
+                                    <p class="text-[10px] text-stone-500 font-semibold">Ibu pelajar Tingkatan 2</p>
                                 </div>
                                 <div class="text-amber-400 text-xs">★★★★★</div>
                             </div>
@@ -878,7 +1635,7 @@
                             <div class="flex items-center justify-between mb-4">
                                 <div>
                                     <p class="font-extrabold text-slate-900 text-sm">Farhan</p>
-                                    <p class="text-[10px] text-gray-500 font-semibold">Pelajar Tingkatan 3</p>
+                                    <p class="text-[10px] text-stone-500 font-semibold">Pelajar Tingkatan 3</p>
                                 </div>
                                 <div class="text-amber-400 text-xs">★★★★★</div>
                             </div>
@@ -889,7 +1646,7 @@
                             <div class="flex items-center justify-between mb-4">
                                 <div>
                                     <p class="font-extrabold text-slate-900 text-sm">Cikgu Mira</p>
-                                    <p class="text-[10px] text-gray-500 font-semibold">Tutor matematik</p>
+                                    <p class="text-[10px] text-stone-500 font-semibold">Tutor matematik</p>
                                 </div>
                                 <div class="text-amber-400 text-xs">★★★★★</div>
                             </div>
@@ -900,7 +1657,7 @@
                             <div class="flex items-center justify-between mb-4">
                                 <div>
                                     <p class="font-extrabold text-slate-900 text-sm">Syafiqah</p>
-                                    <p class="text-[10px] text-gray-500 font-semibold">Pelajar Tingkatan 4</p>
+                                    <p class="text-[10px] text-stone-500 font-semibold">Pelajar Tingkatan 4</p>
                                 </div>
                                 <div class="text-amber-400 text-xs">★★★★★</div>
                             </div>
@@ -911,7 +1668,7 @@
                             <div class="flex items-center justify-between mb-4">
                                 <div>
                                     <p class="font-extrabold text-slate-900 text-sm">Encik Hafiz</p>
-                                    <p class="text-[10px] text-gray-500 font-semibold">Ayah pelajar Tingkatan 1</p>
+                                    <p class="text-[10px] text-stone-500 font-semibold">Ayah pelajar Tingkatan 1</p>
                                 </div>
                                 <div class="text-amber-400 text-xs">★★★★★</div>
                             </div>
@@ -922,7 +1679,7 @@
                             <div class="flex items-center justify-between mb-4">
                                 <div>
                                     <p class="font-extrabold text-slate-900 text-sm">Nadia</p>
-                                    <p class="text-[10px] text-gray-500 font-semibold">Pelajar Tingkatan 5</p>
+                                    <p class="text-[10px] text-stone-500 font-semibold">Pelajar Tingkatan 5</p>
                                 </div>
                                 <div class="text-amber-400 text-xs">★★★★★</div>
                             </div>
@@ -933,7 +1690,7 @@
                             <div class="flex items-center justify-between mb-4">
                                 <div>
                                     <p class="font-extrabold text-slate-900 text-sm">Puan Liyana</p>
-                                    <p class="text-[10px] text-gray-500 font-semibold">Ibu pelajar Tingkatan 3</p>
+                                    <p class="text-[10px] text-stone-500 font-semibold">Ibu pelajar Tingkatan 3</p>
                                 </div>
                                 <div class="text-amber-400 text-xs">★★★★★</div>
                             </div>
@@ -944,7 +1701,7 @@
                             <div class="flex items-center justify-between mb-4">
                                 <div>
                                     <p class="font-extrabold text-slate-900 text-sm">Aiman</p>
-                                    <p class="text-[10px] text-gray-500 font-semibold">Pelajar Tingkatan 2</p>
+                                    <p class="text-[10px] text-stone-500 font-semibold">Pelajar Tingkatan 2</p>
                                 </div>
                                 <div class="text-amber-400 text-xs">★★★★★</div>
                             </div>
@@ -955,7 +1712,7 @@
                             <div class="flex items-center justify-between mb-4">
                                 <div>
                                     <p class="font-extrabold text-slate-900 text-sm">Puan Sarah</p>
-                                    <p class="text-[10px] text-gray-500 font-semibold">Ibu pelajar Tingkatan 4</p>
+                                    <p class="text-[10px] text-stone-500 font-semibold">Ibu pelajar Tingkatan 4</p>
                                 </div>
                                 <div class="text-amber-400 text-xs">★★★★★</div>
                             </div>
@@ -966,7 +1723,7 @@
                             <div class="flex items-center justify-between mb-4">
                                 <div>
                                     <p class="font-extrabold text-slate-900 text-sm">Izzat</p>
-                                    <p class="text-[10px] text-gray-500 font-semibold">Pelajar Tingkatan 1</p>
+                                    <p class="text-[10px] text-stone-500 font-semibold">Pelajar Tingkatan 1</p>
                                 </div>
                                 <div class="text-amber-400 text-xs">★★★★★</div>
                             </div>
@@ -975,11 +1732,11 @@
                     </div>
 
                     <div class="relative z-10 mt-5 flex items-center justify-between">
-                        <button type="button" onclick="moveTestimonialSlide(-1)" class="w-9 h-9 rounded-full bg-white border border-pink-100 text-soft-pink shadow-sm hover:bg-pink-50 transition" aria-label="Testimoni sebelum">
+                        <button type="button" onclick="moveTestimonialSlide(-1)" class="w-9 h-9 rounded-full bg-white border border-purple-100 text-purple-700 shadow-sm hover:bg-purple-50 transition" aria-label="Testimoni sebelum">
                             <i class="fa-solid fa-chevron-left text-xs"></i>
                         </button>
                         <div id="testimonial-dots" class="flex items-center gap-1.5"></div>
-                        <button type="button" onclick="moveTestimonialSlide(1)" class="w-9 h-9 rounded-full bg-white border border-pink-100 text-soft-pink shadow-sm hover:bg-pink-50 transition" aria-label="Testimoni seterusnya">
+                        <button type="button" onclick="moveTestimonialSlide(1)" class="w-9 h-9 rounded-full bg-white border border-purple-100 text-purple-700 shadow-sm hover:bg-purple-50 transition" aria-label="Testimoni seterusnya">
                             <i class="fa-solid fa-chevron-right text-xs"></i>
                         </button>
                     </div>
