@@ -2365,6 +2365,14 @@
                     <div><p class="text-[10px] text-purple-700 font-black uppercase tracking-wider">Tugasan Crew</p><h3 class="font-bold text-slate-900">Soalan Tersedia</h3></div>
                     <button onclick="loadCrewTasks()" class="bg-purple-50 text-purple-700 px-3 py-2 rounded-xl text-[10px] font-bold"><i class="fa-solid fa-rotate"></i> Refresh</button>
                 </div>
+                <div class="grid grid-cols-1 gap-2 mb-3">
+                    <select id="crew-task-filter-form" onchange="updateCrewTaskFilterChapterOptions()" class="w-full border border-purple-100 p-2.5 rounded-xl text-xs bg-white">
+                        <option value="">Semua Tingkatan</option>
+                    </select>
+                    <select id="crew-task-filter-chapter" onchange="renderCrewAvailableTasksFromCache()" class="w-full border border-purple-100 p-2.5 rounded-xl text-xs bg-white">
+                        <option value="">Semua Bab</option>
+                    </select>
+                </div>
                 <div id="crew-task-list" class="space-y-3"><p class="text-[10px] text-gray-400 text-center py-4">Memuatkan tugasan...</p></div>
             </div>
 
@@ -2478,9 +2486,16 @@
                 <div class="border-t border-purple-200 pt-4 space-y-3">
                     <div><p class="font-bold text-purple-900">Upload Soalan Berbayar</p><p class="text-[10px] text-purple-700 mt-1">Tetapkan nilai bayaran sendiri untuk setiap soalan.</p></div>
                     <input id="adm-crew-task-title" type="text" placeholder="Tajuk tugasan / nama soalan" class="w-full border border-purple-200 p-2.5 rounded-lg text-xs bg-white">
-                    <div class="grid grid-cols-2 gap-2">
-                        <input id="adm-crew-task-form" type="text" placeholder="Tingkatan, contoh: T3" class="w-full border border-purple-200 p-2.5 rounded-lg text-xs bg-white">
-                        <input id="adm-crew-task-chapter" type="text" placeholder="Bab / subtopik" class="w-full border border-purple-200 p-2.5 rounded-lg text-xs bg-white">
+                    <div class="grid grid-cols-1 gap-2">
+                        <select id="adm-crew-task-form" onchange="updateAdminCrewTaskChapterOptions()" class="w-full border border-purple-200 p-2.5 rounded-lg text-xs bg-white">
+                            <option value="">-- Pilih Tingkatan --</option>
+                        </select>
+                        <select id="adm-crew-task-chapter" onchange="updateAdminCrewTaskSubtopicOptions()" class="w-full border border-purple-200 p-2.5 rounded-lg text-xs bg-white">
+                            <option value="">-- Pilih Bab --</option>
+                        </select>
+                        <select id="adm-crew-task-subtopic" class="w-full border border-purple-200 p-2.5 rounded-lg text-xs bg-white">
+                            <option value="">-- Pilih Subtopik --</option>
+                        </select>
                     </div>
                     <div class="grid grid-cols-3 gap-2">
                         <select id="adm-crew-task-difficulty" class="border border-purple-200 p-2.5 rounded-lg text-xs bg-white"><option value="Mudah">Mudah</option><option value="Sederhana">Sederhana</option><option value="Sukar">Sukar</option></select>
@@ -3759,6 +3774,7 @@
 
                 const silSnap = await get(ref(db, 'silibus'));
                 appSilibusData = silSnap.exists() ? silSnap.val() : {};
+                populateAdminCrewTaskFormOptions();
                 
                 renderCrewProfileSection(udata);
                 renderAffiliateProfileSection(udata);
@@ -8909,28 +8925,242 @@
             return `${h}j ${m}m lagi`;
         }
 
+
+        window.crewAvailableTaskCache = [];
+
+        function isCrewTaskNew(task) {
+            const createdAt = Number(task?.createdAt || 0);
+            return createdAt > 0 && (Date.now() - createdAt) < (24 * 60 * 60 * 1000);
+        }
+
+        function getCrewTaskFormLabel(task) {
+            return task.formName || task.form || task.formKey || '-';
+        }
+
+        function getCrewTaskChapterLabel(task) {
+            return task.chapterName || task.chapter || task.chapterKey || '-';
+        }
+
+        function getCrewTaskSubtopicLabel(task) {
+            return task.subtopicName || task.subtopic || task.subtopicKey || '-';
+        }
+
+        function populateAdminCrewTaskFormOptions() {
+            const select = document.getElementById('adm-crew-task-form');
+            if(!select) return;
+            const previous = select.value;
+            select.innerHTML = '<option value="">-- Pilih Tingkatan --</option>';
+            Object.keys(appSilibusData || {}).sort().forEach(formKey => {
+                const opt = document.createElement('option');
+                opt.value = formKey;
+                opt.textContent = `Tingkatan ${formKey}`;
+                select.appendChild(opt);
+            });
+            if(previous && appSilibusData?.[previous]) select.value = previous;
+            updateAdminCrewTaskChapterOptions();
+        }
+
+        window.updateAdminCrewTaskChapterOptions = function() {
+            const formKey = document.getElementById('adm-crew-task-form')?.value || '';
+            const chapterSelect = document.getElementById('adm-crew-task-chapter');
+            const subtopicSelect = document.getElementById('adm-crew-task-subtopic');
+            if(!chapterSelect || !subtopicSelect) return;
+
+            const previous = chapterSelect.value;
+            chapterSelect.innerHTML = '<option value="">-- Pilih Bab --</option>';
+            subtopicSelect.innerHTML = '<option value="">-- Pilih Subtopik --</option>';
+
+            const chapters = appSilibusData?.[formKey] || {};
+            Object.keys(chapters).sort().forEach(chKey => {
+                const opt = document.createElement('option');
+                opt.value = chKey;
+                opt.textContent = chapters[chKey]?.nama_bab || chKey;
+                chapterSelect.appendChild(opt);
+            });
+
+            if(previous && chapters[previous]) chapterSelect.value = previous;
+            updateAdminCrewTaskSubtopicOptions();
+        };
+
+        window.updateAdminCrewTaskSubtopicOptions = function() {
+            const formKey = document.getElementById('adm-crew-task-form')?.value || '';
+            const chapterKey = document.getElementById('adm-crew-task-chapter')?.value || '';
+            const select = document.getElementById('adm-crew-task-subtopic');
+            if(!select) return;
+
+            const previous = select.value;
+            select.innerHTML = '<option value="">-- Pilih Subtopik --</option>';
+            const subtopics = appSilibusData?.[formKey]?.[chapterKey]?.subtopik || {};
+            Object.keys(subtopics).sort().forEach(subKey => {
+                const opt = document.createElement('option');
+                opt.value = subKey;
+                opt.textContent = subtopics[subKey]?.nama_subtopik || subKey;
+                select.appendChild(opt);
+            });
+            if(previous && subtopics[previous]) select.value = previous;
+        };
+
+        function populateCrewTaskFilters(tasks = []) {
+            const formSelect = document.getElementById('crew-task-filter-form');
+            if(!formSelect) return;
+            const current = formSelect.value;
+            const forms = [...new Set(tasks.map(t => String(t.formKey || t.form || '')).filter(Boolean))].sort();
+            formSelect.innerHTML = '<option value="">Semua Tingkatan</option>';
+            forms.forEach(formKey => {
+                const sample = tasks.find(t => String(t.formKey || t.form || '') === formKey);
+                const opt = document.createElement('option');
+                opt.value = formKey;
+                opt.textContent = getCrewTaskFormLabel(sample);
+                formSelect.appendChild(opt);
+            });
+            if(current && forms.includes(current)) formSelect.value = current;
+            updateCrewTaskFilterChapterOptions(false);
+        }
+
+        window.updateCrewTaskFilterChapterOptions = function(shouldRender = true) {
+            const formKey = document.getElementById('crew-task-filter-form')?.value || '';
+            const chapterSelect = document.getElementById('crew-task-filter-chapter');
+            if(!chapterSelect) return;
+            const current = chapterSelect.value;
+            const tasks = window.crewAvailableTaskCache || [];
+            const filtered = formKey ? tasks.filter(t => String(t.formKey || t.form || '') === formKey) : tasks;
+            const chapters = [...new Set(filtered.map(t => String(t.chapterKey || t.chapter || '')).filter(Boolean))].sort();
+
+            chapterSelect.innerHTML = '<option value="">Semua Bab</option>';
+            chapters.forEach(chKey => {
+                const sample = filtered.find(t => String(t.chapterKey || t.chapter || '') === chKey);
+                const opt = document.createElement('option');
+                opt.value = chKey;
+                opt.textContent = getCrewTaskChapterLabel(sample);
+                chapterSelect.appendChild(opt);
+            });
+            if(current && chapters.includes(current)) chapterSelect.value = current;
+            if(shouldRender) renderCrewAvailableTasksFromCache();
+        };
+
+        function renderCrewTaskCard(t) {
+            const newBadge = isCrewTaskNew(t)
+                ? '<span class="inline-flex items-center bg-red-500 text-white px-2 py-1 rounded-full text-[9px] font-black mb-2"><i class="fa-solid fa-bolt mr-1"></i> SOALAN BARU</span>'
+                : '';
+            return `<div class="border border-purple-100 rounded-xl p-3">
+                ${newBadge}
+                <div class="flex justify-between gap-3">
+                    <div>
+                        <p class="font-bold text-xs text-slate-900">${escapeHtml(t.title)}</p>
+                        <p class="text-[10px] text-gray-500 mt-1">${escapeHtml(getCrewTaskSubtopicLabel(t))} • ${escapeHtml(t.difficulty)}</p>
+                    </div>
+                    <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-[10px] font-black h-fit">${formatRM(t.rewardAmount)}</span>
+                </div>
+                ${t.questionImageUrl?`<img src="${t.questionImageUrl}" class="w-full max-h-52 object-contain bg-gray-50 rounded-lg mt-3 border">`:''}
+                <p class="text-[10px] text-gray-500 mt-2">Tempoh: ${Number(t.deadlineHours||24)} jam</p>
+                <p class="text-[10px] text-gray-600 mt-1">${escapeHtml(t.instructions||'Sediakan jalan kerja lengkap dan jelas.')}</p>
+                <button onclick="claimCrewTask('${t.id}')" class="w-full bg-purple-700 text-white font-black py-2.5 rounded-xl text-xs mt-3">Ambil Tugasan • ${formatRM(t.rewardAmount)}</button>
+            </div>`;
+        }
+
+        window.renderCrewAvailableTasksFromCache = function() {
+            const box = document.getElementById('crew-task-list');
+            if(!box) return;
+            const formKey = document.getElementById('crew-task-filter-form')?.value || '';
+            const chapterKey = document.getElementById('crew-task-filter-chapter')?.value || '';
+            let tasks = [...(window.crewAvailableTaskCache || [])];
+
+            if(formKey) tasks = tasks.filter(t => String(t.formKey || t.form || '') === formKey);
+            if(chapterKey) tasks = tasks.filter(t => String(t.chapterKey || t.chapter || '') === chapterKey);
+
+            if(!tasks.length) {
+                box.innerHTML = '<p class="text-[10px] text-gray-400 text-center py-4">Tiada soalan untuk pilihan ini.</p>';
+                return;
+            }
+
+            const grouped = {};
+            tasks.forEach(t => {
+                const fKey = String(t.formKey || t.form || 'lain');
+                const cKey = String(t.chapterKey || t.chapter || 'lain');
+                const sKey = String(t.subtopicKey || t.subtopic || 'lain');
+                grouped[fKey] ??= { label:getCrewTaskFormLabel(t), chapters:{} };
+                grouped[fKey].chapters[cKey] ??= { label:getCrewTaskChapterLabel(t), subtopics:{} };
+                grouped[fKey].chapters[cKey].subtopics[sKey] ??= { label:getCrewTaskSubtopicLabel(t), tasks:[] };
+                grouped[fKey].chapters[cKey].subtopics[sKey].tasks.push(t);
+            });
+
+            box.innerHTML = Object.values(grouped).map(formGroup => `
+                <div class="space-y-3">
+                    <div class="bg-purple-800 text-white px-3 py-2 rounded-xl text-xs font-black">${escapeHtml(formGroup.label)}</div>
+                    ${Object.values(formGroup.chapters).map(chGroup => `
+                        <div class="border border-purple-100 rounded-2xl p-3 bg-purple-50/40">
+                            <p class="text-xs font-black text-purple-900 mb-2">${escapeHtml(chGroup.label)}</p>
+                            ${Object.values(chGroup.subtopics).map(subGroup => `
+                                <div class="mb-3 last:mb-0">
+                                    <p class="text-[10px] font-black text-purple-700 uppercase tracking-wide mb-2">${escapeHtml(subGroup.label)}</p>
+                                    <div class="space-y-3">${subGroup.tasks.map(renderCrewTaskCard).join('')}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `).join('')}
+                </div>
+            `).join('');
+        };
+
         window.createCrewTask = async function() {
             if(!isCurrentUserAdmin()) return alert('Admin sahaja.');
+
             const title=(document.getElementById('adm-crew-task-title')?.value||'').trim();
-            const form=(document.getElementById('adm-crew-task-form')?.value||'').trim();
-            const chapter=(document.getElementById('adm-crew-task-chapter')?.value||'').trim();
+            const formKey=document.getElementById('adm-crew-task-form')?.value||'';
+            const chapterKey=document.getElementById('adm-crew-task-chapter')?.value||'';
+            const subtopicKey=document.getElementById('adm-crew-task-subtopic')?.value||'';
             const difficulty=document.getElementById('adm-crew-task-difficulty')?.value||'Sederhana';
             const rewardAmount=Number(document.getElementById('adm-crew-task-reward')?.value||0);
             const deadlineHours=Number(document.getElementById('adm-crew-task-hours')?.value||24);
             const instructions=(document.getElementById('adm-crew-task-instructions')?.value||'').trim();
             const file=document.getElementById('adm-crew-task-image')?.files?.[0];
-            if(!title || !form || !chapter || !rewardAmount || rewardAmount <= 0 || !deadlineHours || deadlineHours < 1 || !file) return alert('Sila lengkapkan tajuk, tingkatan, bab, bayaran, tempoh dan gambar soalan.');
+
+            const chapterData=appSilibusData?.[formKey]?.[chapterKey];
+            const subtopicData=chapterData?.subtopik?.[subtopicKey];
+            const formName=`Tingkatan ${formKey}`;
+            const chapterName=chapterData?.nama_bab||chapterKey;
+            const subtopicName=subtopicData?.nama_subtopik||subtopicKey;
+
+            if(!title || !formKey || !chapterKey || !subtopicKey || !rewardAmount || rewardAmount <= 0 || !deadlineHours || deadlineHours < 1 || !file) {
+                return alert('Sila lengkapkan tajuk, tingkatan, bab, subtopik, bayaran, tempoh dan gambar soalan.');
+            }
+
             try {
                 const id=push(ref(db,'crewTasks')).key;
                 const path=`crewTasks/${id}/question_${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`;
                 const storageRef=sRef(storage,path);
                 await uploadBytes(storageRef,file);
                 const questionImageUrl=await getDownloadURL(storageRef);
-                await set(ref(db,`crewTasks/${id}`),{id,title,form,chapter,difficulty,rewardAmount:Number(rewardAmount.toFixed(2)),deadlineHours:Math.round(deadlineHours),instructions,questionImageUrl,status:'available',createdAt:Date.now(),createdBy:currentUser.uid,paymentCredited:false});
-                ['adm-crew-task-title','adm-crew-task-form','adm-crew-task-chapter','adm-crew-task-reward','adm-crew-task-instructions'].forEach(x=>{const el=document.getElementById(x);if(el)el.value='';});
-                document.getElementById('adm-crew-task-hours').value='24'; document.getElementById('adm-crew-task-image').value='';
-                alert('Tugasan Crew berjaya dimuat naik.'); loadAdminCrewTasks();
-            } catch(err){ alert('Ralat upload tugasan: '+err.message); }
+                const createdAt=Date.now();
+
+                await set(ref(db,`crewTasks/${id}`),{
+                    id,title,
+                    formKey,formName,form:formName,
+                    chapterKey,chapterName,chapter:chapterName,
+                    subtopicKey,subtopicName,subtopic:subtopicName,
+                    difficulty,
+                    rewardAmount:Number(rewardAmount.toFixed(2)),
+                    deadlineHours:Math.round(deadlineHours),
+                    instructions,
+                    questionImageUrl,
+                    status:'available',
+                    createdAt,
+                    newUntil:createdAt+(24*60*60*1000),
+                    createdBy:currentUser.uid,
+                    paymentCredited:false
+                });
+
+                ['adm-crew-task-title','adm-crew-task-reward','adm-crew-task-instructions'].forEach(x=>{
+                    const el=document.getElementById(x);
+                    if(el)el.value='';
+                });
+                document.getElementById('adm-crew-task-hours').value='24';
+                document.getElementById('adm-crew-task-image').value='';
+                alert('Tugasan Crew berjaya dimuat naik mengikut silibus.');
+                loadAdminCrewTasks();
+            } catch(err){
+                alert('Ralat upload tugasan: '+err.message);
+            }
         };
 
         window.loadCrewTasks = async function() {
@@ -8946,10 +9176,78 @@
                 const history=rows.filter(t=>t.claimedBy===currentUser.uid && ['approved','rejected'].includes(t.status)).sort((a,b)=>(b.reviewedAt||0)-(a.reviewedAt||0));
                 const setText=(id,val)=>{const el=document.getElementById(id);if(el)el.textContent=val;};
                 setText('crew-active-task-count',available.length); setText('crew-income-balance',formatRM(crew.availableBalance||0)); setText('crew-approved-count',history.filter(t=>t.status==='approved').length); setText('crew-review-count',mine.filter(t=>t.status==='submitted').length);
-                if(availableBox) availableBox.innerHTML=available.length?available.map(t=>`<div class="border border-purple-100 rounded-xl p-3"><div class="flex justify-between gap-3"><div><p class="font-bold text-xs text-slate-900">${escapeHtml(t.title)}</p><p class="text-[10px] text-gray-500 mt-1">${escapeHtml(t.form)} • ${escapeHtml(t.chapter)} • ${escapeHtml(t.difficulty)}</p></div><span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-[10px] font-black h-fit">${formatRM(t.rewardAmount)}</span></div>${t.questionImageUrl?`<img src="${t.questionImageUrl}" class="w-full max-h-52 object-contain bg-gray-50 rounded-lg mt-3 border">`:''}<p class="text-[10px] text-gray-500 mt-2">Tempoh: ${Number(t.deadlineHours||24)} jam</p><p class="text-[10px] text-gray-600 mt-1">${escapeHtml(t.instructions||'Sediakan jalan kerja lengkap dan jelas.')}</p><button onclick="claimCrewTask('${t.id}')" class="w-full bg-purple-700 text-white font-black py-2.5 rounded-xl text-xs mt-3">Ambil Tugasan • ${formatRM(t.rewardAmount)}</button></div>`).join(''):'<p class="text-[10px] text-gray-400 text-center py-4">Belum ada soalan tersedia.</p>';
-                if(myBox) myBox.innerHTML=mine.length?mine.map(t=>`<div class="border border-yellow-200 rounded-xl p-3"><div class="flex justify-between gap-2"><div><p class="font-bold text-xs">${escapeHtml(t.title)}</p><p class="text-[10px] text-gray-500">${escapeHtml(t.form)} • ${escapeHtml(t.chapter)}</p></div><span class="${crewTaskBadge(t.status)} px-2 py-1 rounded-full text-[9px] font-bold h-fit">${crewTaskStatusLabel(t.status)}</span></div><p class="text-[10px] text-gray-500 mt-2"><b>Bayaran:</b> ${formatRM(t.rewardAmount)} • <b>Masa:</b> ${crewDeadlineText(t)}</p>${t.reviewNote?`<p class="text-[10px] bg-red-50 text-red-700 p-2 rounded-lg mt-2"><b>Komen admin:</b> ${escapeHtml(t.reviewNote)}</p>`:''}<textarea id="crew-answer-${t.id}" rows="3" placeholder="Penerangan / langkah penyelesaian" class="w-full border p-2 rounded-lg text-xs mt-3">${escapeHtml(t.answerText||'')}</textarea><input id="crew-answer-file-${t.id}" type="file" accept="image/*" class="w-full text-[10px] border p-2 rounded-lg mt-2"><button onclick="submitCrewTask('${t.id}')" class="w-full bg-yellow-300 text-purple-950 font-black py-2.5 rounded-xl text-xs mt-2">${t.status==='revision'?'Hantar Semula':'Hantar Jawapan'}</button></div>`).join(''):'<p class="text-[10px] text-gray-400 text-center py-4">Belum ada tugasan yang anda claim.</p>';
+                window.crewAvailableTaskCache = available;
+                populateCrewTaskFilters(available);
+                renderCrewAvailableTasksFromCache();
+                if(myBox) myBox.innerHTML=mine.length?mine.map(t=>{
+                    const claimedQuestionImages = Array.isArray(t.questionImageUrls) && t.questionImageUrls.length
+                        ? t.questionImageUrls
+                        : (t.questionImageUrl ? [t.questionImageUrl] : []);
+
+                    const claimedQuestionGallery = claimedQuestionImages.length
+                        ? `<div class="mt-3 bg-purple-50 border border-purple-100 rounded-xl p-3">
+                                <div class="flex items-center justify-between gap-2 mb-2">
+                                    <p class="text-[10px] font-black text-purple-800">
+                                        <i class="fa-solid fa-image mr-1"></i> Gambar Soalan
+                                    </p>
+                                    <span class="text-[9px] text-purple-600">Tekan gambar untuk lihat penuh</span>
+                                </div>
+                                <div class="space-y-2">
+                                    ${claimedQuestionImages.map((url,index)=>`
+                                        <button type="button" onclick="openCrewQuestionImage('${url.replace(/'/g, "\\'")}')" class="block w-full bg-white border border-purple-100 rounded-xl overflow-hidden">
+                                            <img src="${url}" alt="Gambar soalan ${index+1}" class="w-full max-h-80 object-contain bg-white">
+                                        </button>
+                                    `).join('')}
+                                </div>
+                           </div>`
+                        : `<div class="mt-3 bg-gray-50 border border-gray-100 rounded-xl p-3">
+                                <p class="text-[10px] text-gray-500 text-center">Gambar soalan tidak tersedia.</p>
+                           </div>`;
+
+                    return `<div class="border border-yellow-200 rounded-xl p-3">
+                        <div class="flex justify-between gap-2">
+                            <div>
+                                <p class="font-bold text-xs">${escapeHtml(t.title)}</p>
+                                <p class="text-[10px] text-gray-500">${escapeHtml(t.form)} • ${escapeHtml(t.chapter)}</p>
+                            </div>
+                            <span class="${crewTaskBadge(t.status)} px-2 py-1 rounded-full text-[9px] font-bold h-fit">${crewTaskStatusLabel(t.status)}</span>
+                        </div>
+                        <p class="text-[10px] text-gray-500 mt-2"><b>Bayaran:</b> ${formatRM(t.rewardAmount)} • <b>Masa:</b> ${crewDeadlineText(t)}</p>
+                        ${claimedQuestionGallery}
+                        ${t.instructions?`<p class="text-[10px] text-gray-600 bg-yellow-50 border border-yellow-100 p-2 rounded-lg mt-2"><b>Arahan:</b> ${escapeHtml(t.instructions)}</p>`:''}
+                        ${t.reviewNote?`<p class="text-[10px] bg-red-50 text-red-700 p-2 rounded-lg mt-2"><b>Komen admin:</b> ${escapeHtml(t.reviewNote)}</p>`:''}
+                        <textarea id="crew-answer-${t.id}" rows="3" placeholder="Penerangan / langkah penyelesaian" class="w-full border p-2 rounded-lg text-xs mt-3">${escapeHtml(t.answerText||'')}</textarea>
+                        <input id="crew-answer-file-${t.id}" type="file" accept="image/*" class="w-full text-[10px] border p-2 rounded-lg mt-2">
+                        <button onclick="submitCrewTask('${t.id}')" class="w-full bg-yellow-300 text-purple-950 font-black py-2.5 rounded-xl text-xs mt-2">${t.status==='revision'?'Hantar Semula':'Hantar Jawapan'}</button>
+                    </div>`;
+                }).join(''):'<p class="text-[10px] text-gray-400 text-center py-4">Belum ada tugasan yang anda claim.</p>';
                 if(historyBox) historyBox.innerHTML=history.length?history.map(t=>`<div class="border border-gray-100 rounded-xl p-3 flex justify-between gap-3"><div><p class="font-bold text-xs">${escapeHtml(t.title)}</p><p class="text-[10px] text-gray-400 mt-1">${t.reviewedAt?new Date(t.reviewedAt).toLocaleString('ms-MY'):'-'}</p>${t.reviewNote?`<p class="text-[10px] text-red-600 mt-1">${escapeHtml(t.reviewNote)}</p>`:''}</div><div class="text-right"><span class="${crewTaskBadge(t.status)} px-2 py-1 rounded-full text-[9px] font-bold">${crewTaskStatusLabel(t.status)}</span><p class="font-black text-emerald-700 text-xs mt-2">${t.status==='approved'?'+ '+formatRM(t.rewardAmount):formatRM(0)}</p></div></div>`).join(''):'<p class="text-[10px] text-gray-400 text-center py-3">Belum ada rekod pendapatan.</p>';
             } catch(err){ console.error(err); if(availableBox) availableBox.innerHTML=`<p class="text-[10px] text-red-500 text-center">Ralat: ${escapeHtml(err.message)}</p>`; }
+        };
+
+        window.openCrewQuestionImage = function(imageUrl) {
+            if(!imageUrl) return;
+
+            const existing = document.getElementById('crew-question-image-modal');
+            if(existing) existing.remove();
+
+            const modal = document.createElement('div');
+            modal.id = 'crew-question-image-modal';
+            modal.className = 'fixed inset-0 z-[9999] bg-black/85 p-4 flex items-center justify-center';
+            modal.innerHTML = `
+                <div class="relative w-full max-w-3xl max-h-full">
+                    <button type="button" onclick="document.getElementById('crew-question-image-modal')?.remove()" class="absolute -top-2 -right-2 z-10 w-10 h-10 rounded-full bg-white text-purple-800 shadow-lg font-black">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                    <img src="${imageUrl}" alt="Gambar soalan penuh" class="w-full max-h-[88vh] object-contain bg-white rounded-2xl shadow-2xl">
+                </div>
+            `;
+
+            modal.addEventListener('click', function(event) {
+                if(event.target === modal) modal.remove();
+            });
+
+            document.body.appendChild(modal);
         };
 
         window.claimCrewTask = async function(taskId) {
@@ -9040,13 +9338,60 @@
         };
 
         window.loadAdminCrewTasks = async function() {
+            populateAdminCrewTaskFormOptions();
             const box=document.getElementById('adm-crew-task-list'); if(!box || !isCurrentUserAdmin()) return;
             box.innerHTML='<p class="text-[10px] text-purple-700 text-center py-2">Memuatkan tugasan...</p>';
             try {
                 const [taskSnap,userSnap]=await Promise.all([get(ref(db,'crewTasks')),get(ref(db,'users'))]); const tasks=taskSnap.exists()?taskSnap.val():{}; const users=userSnap.exists()?userSnap.val():{};
                 const rows=Object.entries(tasks).map(([id,t])=>({id,...t})).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
                 if(!rows.length){box.innerHTML='<p class="text-[10px] text-purple-700 text-center py-2">Belum ada tugasan Crew.</p>';return;}
-                box.innerHTML=rows.map(t=>{const crew=users[t.claimedBy]||{};return `<div class="bg-white border border-purple-200 rounded-xl p-3"><div class="flex justify-between gap-2"><div><p class="font-bold text-xs">${escapeHtml(t.title)}</p><p class="text-[10px] text-gray-500">${escapeHtml(t.form)} • ${escapeHtml(t.chapter)} • ${escapeHtml(t.difficulty)} • ${formatRM(t.rewardAmount)}</p></div><span class="${crewTaskBadge(t.status)} px-2 py-1 rounded-full text-[9px] font-bold h-fit">${crewTaskStatusLabel(t.status)}</span></div>${t.questionImageUrl?`<img src="${t.questionImageUrl}" class="w-full max-h-44 object-contain bg-gray-50 rounded-lg mt-2 border">`:''}<p class="text-[10px] text-gray-500 mt-2"><b>Crew:</b> ${escapeHtml(crew.fullname||crew.contactEmail||t.claimedBy||'Belum claim')}</p>${t.answerImageUrl?`<div class="mt-2"><p class="text-[10px] font-bold text-purple-800">Jawapan Crew</p><img src="${t.answerImageUrl}" class="w-full max-h-52 object-contain bg-gray-50 rounded-lg mt-1 border"><p class="text-[10px] text-gray-700 mt-2 whitespace-pre-wrap">${escapeHtml(t.answerText||'')}</p></div>`:''}${t.status==='submitted'?`<textarea id="adm-task-note-${t.id}" rows="2" placeholder="Komen jika perlu pembetulan" class="w-full border p-2 rounded-lg text-xs mt-2"></textarea><div class="grid grid-cols-2 gap-2 mt-2"><button onclick="approveCrewTask('${t.id}')" class="bg-emerald-600 text-white font-bold py-2 rounded-lg text-xs">Lulus & Bayar</button><button onclick="requestCrewTaskRevision('${t.id}')" class="bg-red-100 text-red-700 font-bold py-2 rounded-lg text-xs">Minta Baiki</button></div>`:''}<div class="flex justify-end mt-2"><button onclick="deleteCrewTask('${t.id}')" class="text-[9px] font-bold text-red-500">Padam Tugasan</button></div></div>`}).join('');
+                const grouped = {};
+                rows.forEach(t => {
+                    const fKey=String(t.formKey||t.form||'lain');
+                    const cKey=String(t.chapterKey||t.chapter||'lain');
+                    const sKey=String(t.subtopicKey||t.subtopic||'lain');
+                    grouped[fKey] ??= {label:getCrewTaskFormLabel(t),chapters:{}};
+                    grouped[fKey].chapters[cKey] ??= {label:getCrewTaskChapterLabel(t),subtopics:{}};
+                    grouped[fKey].chapters[cKey].subtopics[sKey] ??= {label:getCrewTaskSubtopicLabel(t),tasks:[]};
+                    grouped[fKey].chapters[cKey].subtopics[sKey].tasks.push(t);
+                });
+
+                box.innerHTML=Object.values(grouped).map(formGroup=>`
+                    <div class="space-y-3">
+                        <div class="bg-purple-800 text-white px-3 py-2 rounded-xl text-xs font-black">${escapeHtml(formGroup.label)}</div>
+                        ${Object.values(formGroup.chapters).map(chGroup=>`
+                            <div class="border border-purple-200 rounded-2xl p-3 bg-white">
+                                <p class="text-xs font-black text-purple-900 mb-2">${escapeHtml(chGroup.label)}</p>
+                                ${Object.values(chGroup.subtopics).map(subGroup=>`
+                                    <div class="mb-4 last:mb-0">
+                                        <p class="text-[10px] font-black text-purple-700 uppercase mb-2">${escapeHtml(subGroup.label)}</p>
+                                        <div class="space-y-3">
+                                            ${subGroup.tasks.map(t=>{
+                                                const crew=users[t.claimedBy]||{};
+                                                const newBadge=isCrewTaskNew(t)?'<span class="inline-flex bg-red-500 text-white px-2 py-1 rounded-full text-[9px] font-black mb-2">SOALAN BARU</span>':'';
+                                                return `<div class="bg-purple-50/30 border border-purple-100 rounded-xl p-3">
+                                                    ${newBadge}
+                                                    <div class="flex justify-between gap-2">
+                                                        <div>
+                                                            <p class="font-bold text-xs">${escapeHtml(t.title)}</p>
+                                                            <p class="text-[10px] text-gray-500">${escapeHtml(t.difficulty)} • ${formatRM(t.rewardAmount)}</p>
+                                                        </div>
+                                                        <span class="${crewTaskBadge(t.status)} px-2 py-1 rounded-full text-[9px] font-bold h-fit">${crewTaskStatusLabel(t.status)}</span>
+                                                    </div>
+                                                    ${t.questionImageUrl?`<img src="${t.questionImageUrl}" class="w-full max-h-44 object-contain bg-gray-50 rounded-lg mt-2 border">`:''}
+                                                    <p class="text-[10px] text-gray-500 mt-2"><b>Crew:</b> ${escapeHtml(crew.fullname||crew.contactEmail||t.claimedBy||'Belum claim')}</p>
+                                                    ${t.answerImageUrl?`<div class="mt-2"><p class="text-[10px] font-bold text-purple-800">Jawapan Crew</p><img src="${t.answerImageUrl}" class="w-full max-h-52 object-contain bg-gray-50 rounded-lg mt-1 border"><p class="text-[10px] text-gray-700 mt-2 whitespace-pre-wrap">${escapeHtml(t.answerText||'')}</p></div>`:''}
+                                                    ${t.status==='submitted'?`<textarea id="adm-task-note-${t.id}" rows="2" placeholder="Komen jika perlu pembetulan" class="w-full border p-2 rounded-lg text-xs mt-2"></textarea><div class="grid grid-cols-2 gap-2 mt-2"><button onclick="approveCrewTask('${t.id}')" class="bg-emerald-600 text-white font-bold py-2 rounded-lg text-xs">Lulus & Bayar</button><button onclick="requestCrewTaskRevision('${t.id}')" class="bg-red-100 text-red-700 font-bold py-2 rounded-lg text-xs">Minta Baiki</button></div>`:''}
+                                                    <div class="flex justify-end mt-2"><button onclick="deleteCrewTask('${t.id}')" class="text-[9px] font-bold text-red-500">Padam Tugasan</button></div>
+                                                </div>`;
+                                            }).join('')}
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        `).join('')}
+                    </div>
+                `).join('');
             } catch(err){box.innerHTML=`<p class="text-[10px] text-red-500 text-center">Ralat: ${escapeHtml(err.message)}</p>`;}
         };
 
