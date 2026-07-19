@@ -8511,8 +8511,31 @@
                 status: 'pending', active: false, appliedAt: Date.now(), reviewedAt: null, reviewedBy: '', rejectionReason: ''
             };
             try {
-                await update(ref(db, `users/${currentUser.uid}`), { phone, contactEmail: email, crew: application });
-                await set(ref(db, `crewApplications/${currentUser.uid}`), application);
+                // Simpan sebagai multi-location update pada laluan anak.
+                // Ini penting kerana Firebase Rules Math Journey tidak membenarkan
+                // user menulis terus pada keseluruhan node users/{uid}.
+                const crewApplicationUpdates = {
+                    [`users/${currentUser.uid}/phone`]: phone,
+                    [`users/${currentUser.uid}/contactEmail`]: email,
+                    [`users/${currentUser.uid}/crew/uid`]: application.uid,
+                    [`users/${currentUser.uid}/crew/fullName`]: application.fullName,
+                    [`users/${currentUser.uid}/crew/dateOfBirth`]: application.dateOfBirth,
+                    [`users/${currentUser.uid}/crew/age`]: application.age,
+                    [`users/${currentUser.uid}/crew/educationBackground`]: application.educationBackground,
+                    [`users/${currentUser.uid}/crew/occupation`]: application.occupation,
+                    [`users/${currentUser.uid}/crew/spmMathGrade`]: application.spmMathGrade,
+                    [`users/${currentUser.uid}/crew/teachingExperience`]: application.teachingExperience || '',
+                    [`users/${currentUser.uid}/crew/phone`]: application.phone,
+                    [`users/${currentUser.uid}/crew/email`]: application.email,
+                    [`users/${currentUser.uid}/crew/reason`]: application.reason,
+                    [`users/${currentUser.uid}/crew/status`]: 'pending',
+                    [`users/${currentUser.uid}/crew/active`]: false,
+                    [`users/${currentUser.uid}/crew/appliedAt`]: application.appliedAt,
+                    [`users/${currentUser.uid}/crew/reviewedBy`]: '',
+                    [`users/${currentUser.uid}/crew/rejectionReason`]: '',
+                    [`crewApplications/${currentUser.uid}`]: application
+                };
+                await update(ref(db), crewApplicationUpdates);
                 userData = { ...(userData || {}), phone, contactEmail: email, crew: application };
                 closeCrewApplicationForm();
                 renderCrewProfileSection(userData);
