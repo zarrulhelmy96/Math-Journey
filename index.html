@@ -9517,8 +9517,10 @@
                 if(crew.status!=='approved' || crew.active===false) return;
                 const rows=Object.entries(tasks).map(([id,t])=>({id,...t}));
                 const available=rows.filter(t=>t.status==='available').sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
-                const mine=rows.filter(t=>t.claimedBy===currentUser.uid && ['claimed','submitted','revision'].includes(t.status)).sort((a,b)=>(b.claimedAt||0)-(a.claimedAt||0));
-                const history=rows.filter(t=>t.claimedBy===currentUser.uid && ['approved','rejected'].includes(t.status)).sort((a,b)=>(b.reviewedAt||0)-(a.reviewedAt||0));
+                // Ruang Claim & Penghantaran hanya memaparkan tugasan yang masih boleh diedit.
+                // Tugasan yang sudah dihantar dipindahkan ke rekod/status supaya butang Batal dan Hantar tidak lagi muncul.
+                const mine=rows.filter(t=>t.claimedBy===currentUser.uid && ['claimed','revision'].includes(t.status)).sort((a,b)=>(b.claimedAt||0)-(a.claimedAt||0));
+                const history=rows.filter(t=>t.claimedBy===currentUser.uid && ['submitted','approved','rejected'].includes(t.status)).sort((a,b)=>(b.submittedAt||b.reviewedAt||0)-(a.submittedAt||a.reviewedAt||0));
                 const setText=(id,val)=>{const el=document.getElementById(id);if(el)el.textContent=val;};
                 setText('crew-active-task-count',available.length); setText('crew-income-balance',formatRM(crew.availableBalance||0)); setText('crew-approved-count',history.filter(t=>t.status==='approved').length); setText('crew-review-count',mine.filter(t=>t.status==='submitted').length);
                 window.crewAvailableTaskCache = available;
@@ -9571,7 +9573,11 @@
                         </div>
                     </div>`;
                 }).join(''):'<p class="text-[10px] text-gray-400 text-center py-4">Belum ada tugasan yang anda claim.</p>';
-                if(historyBox) historyBox.innerHTML=history.length?history.map(t=>`<div class="border border-gray-100 rounded-xl p-3 flex justify-between gap-3"><div><p class="font-bold text-xs">${escapeHtml(t.title)}</p><p class="text-[10px] text-gray-400 mt-1">${t.reviewedAt?new Date(t.reviewedAt).toLocaleString('ms-MY'):'-'}</p>${t.reviewNote?`<p class="text-[10px] text-red-600 mt-1">${escapeHtml(t.reviewNote)}</p>`:''}</div><div class="text-right"><span class="${crewTaskBadge(t.status)} px-2 py-1 rounded-full text-[9px] font-bold">${crewTaskStatusLabel(t.status)}</span><p class="font-black text-emerald-700 text-xs mt-2">${t.status==='approved'?'+ '+formatRM(t.rewardAmount):formatRM(0)}</p></div></div>`).join(''):'<p class="text-[10px] text-gray-400 text-center py-3">Belum ada rekod pendapatan.</p>';
+                if(historyBox) historyBox.innerHTML=history.length?history.map(t=>{
+                    const eventTime=t.status==='submitted' ? t.submittedAt : t.reviewedAt;
+                    const amountText=t.status==='approved' ? '+ '+formatRM(t.rewardAmount) : (t.status==='submitted' ? 'Menunggu admin' : formatRM(0));
+                    return `<div class="border border-gray-100 rounded-xl p-3 flex justify-between gap-3"><div><p class="font-bold text-xs">${escapeHtml(t.title)}</p><p class="text-[10px] text-gray-400 mt-1">${eventTime?new Date(eventTime).toLocaleString('ms-MY'):'-'}</p>${t.reviewNote?`<p class="text-[10px] text-red-600 mt-1">${escapeHtml(t.reviewNote)}</p>`:''}</div><div class="text-right"><span class="${crewTaskBadge(t.status)} px-2 py-1 rounded-full text-[9px] font-bold">${crewTaskStatusLabel(t.status)}</span><p class="font-black ${t.status==='approved'?'text-emerald-700':'text-purple-700'} text-xs mt-2">${amountText}</p></div></div>`;
+                }).join(''):'<p class="text-[10px] text-gray-400 text-center py-3">Belum ada rekod tugasan.</p>';
             } catch(err){ console.error(err); if(availableBox) availableBox.innerHTML=`<p class="text-[10px] text-red-500 text-center">Ralat: ${escapeHtml(err.message)}</p>`; }
         };
 
@@ -9976,15 +9982,84 @@
 
         window.approveCrewTask = async function(taskId) {
             if(!isCurrentUserAdmin() || !confirm('Luluskan jawapan dan kreditkan bayaran kepada Crew?')) return;
+
+            const button = document.activeElement;
+            const originalText = button && button.tagName === 'BUTTON' ? button.innerHTML : '';
+
             try {
-                const taskRef=ref(db,`crewTasks/${taskId}`); let crewUid=null,reward=0;
-                const result=await runTransaction(taskRef,t=>{if(!t || t.status!=='submitted' || t.paymentCredited===true) return; crewUid=t.claimedBy; reward=Number(t.rewardAmount||0); return {...t,status:'approved',paymentCredited:true,reviewedAt:Date.now(),reviewedBy:currentUser.uid,reviewNote:''};});
-                if(!result.committed) return alert('Tugasan telah diproses atau status tidak sah.');
-                await runTransaction(ref(db,`users/${crewUid}/crew/availableBalance`),v=>Number(v||0)+reward);
-                await runTransaction(ref(db,`users/${crewUid}/crew/totalEarned`),v=>Number(v||0)+reward);
-                await runTransaction(ref(db,`users/${crewUid}/crew/approvedTaskCount`),v=>Number(v||0)+1);
-                alert(`Jawapan diluluskan. ${formatRM(reward)} telah dikreditkan.`); loadAdminCrewTasks();
-            } catch(err){alert('Ralat meluluskan jawapan: '+err.message);}
+                if(button && button.tagName === 'BUTTON') {
+                    button.disabled = true;
+                    button.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Memproses...';
+                }
+
+                const taskRef=ref(db,`crewTasks/${taskId}`);
+
+                // Panaskan cache dan semak status sebenar sebelum transaksi.
+                // Ini mengelakkan runTransaction menerima nilai null pada cubaan pertama.
+                const latestSnap=await get(taskRef);
+                if(!latestSnap.exists()) return alert('Tugasan tidak ditemui.');
+
+                const latestTask=latestSnap.val()||{};
+                if(latestTask.status!=='submitted') {
+                    return alert(`Tugasan tidak boleh diluluskan kerana status semasa ialah "${crewTaskStatusLabel(latestTask.status)}".`);
+                }
+                if(latestTask.paymentCredited===true) {
+                    return alert('Bayaran tugasan ini telah pun dikreditkan sebelum ini.');
+                }
+                if(!latestTask.claimedBy) {
+                    return alert('Maklumat Crew untuk tugasan ini tidak ditemui.');
+                }
+
+                const result=await runTransaction(taskRef,currentTask=>{
+                    if(!currentTask) return;
+                    if(currentTask.status!=='submitted') return;
+                    if(currentTask.paymentCredited===true) return;
+
+                    return {
+                        ...currentTask,
+                        status:'approved',
+                        paymentCredited:true,
+                        reviewedAt:Date.now(),
+                        reviewedBy:currentUser.uid,
+                        reviewNote:''
+                    };
+                }, {applyLocally:false});
+
+                if(!result.committed) {
+                    const freshSnap=await get(taskRef);
+                    const freshTask=freshSnap.exists()?(freshSnap.val()||{}):null;
+                    if(!freshTask) return alert('Tugasan tidak ditemui atau telah dipadam.');
+                    if(freshTask.paymentCredited===true || freshTask.status==='approved') return alert('Tugasan ini telah pun diluluskan dan dibayar.');
+                    return alert(`Proses tidak berjaya. Status semasa tugasan: ${crewTaskStatusLabel(freshTask.status)}.`);
+                }
+
+                const approvedTask=result.snapshot.val()||{};
+                const crewUid=approvedTask.claimedBy;
+                const reward=Number(approvedTask.rewardAmount||0);
+
+                if(!crewUid) throw new Error('UID Crew tidak ditemui selepas tugasan diluluskan.');
+                if(!Number.isFinite(reward) || reward<0) throw new Error('Jumlah bayaran tugasan tidak sah.');
+
+                const crewRootRef=ref(db,`users/${crewUid}/crew`);
+                const crewSnap=await get(crewRootRef);
+                const crewData=crewSnap.exists()?(crewSnap.val()||{}):{};
+
+                await update(crewRootRef,{
+                    availableBalance:Number(crewData.availableBalance||0)+reward,
+                    totalEarned:Number(crewData.totalEarned||0)+reward,
+                    approvedTaskCount:Number(crewData.approvedTaskCount||0)+1
+                });
+
+                alert(`Jawapan diluluskan. ${formatRM(reward)} telah dikreditkan.`);
+                await loadAdminCrewTasks();
+            } catch(err){
+                alert('Ralat meluluskan jawapan: '+(err?.message||err));
+            } finally {
+                if(button && button.tagName === 'BUTTON') {
+                    button.disabled = false;
+                    button.innerHTML = originalText;
+                }
+            }
         };
 
         window.requestCrewTaskRevision = async function(taskId) {
