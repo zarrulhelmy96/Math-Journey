@@ -9992,68 +9992,97 @@
                     button.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Memproses...';
                 }
 
-                const taskRef=ref(db,`crewTasks/${taskId}`);
+                const taskRef = ref(db, `crewTasks/${taskId}`);
+                const latestSnap = await get(taskRef);
 
-                // Panaskan cache dan semak status sebenar sebelum transaksi.
-                // Ini mengelakkan runTransaction menerima nilai null pada cubaan pertama.
-                const latestSnap=await get(taskRef);
-                if(!latestSnap.exists()) return alert('Tugasan tidak ditemui.');
+                if(!latestSnap.exists()) {
+                    return alert('Tugasan tidak ditemui.');
+                }
 
-                const latestTask=latestSnap.val()||{};
-                if(latestTask.status!=='submitted') {
-                    return alert(`Tugasan tidak boleh diluluskan kerana status semasa ialah "${crewTaskStatusLabel(latestTask.status)}".`);
+                const task = latestSnap.val() || {};
+
+                if(task.status === 'approved' || task.paymentCredited === true) {
+                    return alert('Tugasan ini telah pun diluluskan dan dibayar.');
                 }
-                if(latestTask.paymentCredited===true) {
-                    return alert('Bayaran tugasan ini telah pun dikreditkan sebelum ini.');
+
+                if(task.status !== 'submitted') {
+                    return alert(`Tugasan tidak boleh diluluskan kerana status semasa ialah "${crewTaskStatusLabel(task.status)}".`);
                 }
-                if(!latestTask.claimedBy) {
+
+                if(!task.claimedBy) {
                     return alert('Maklumat Crew untuk tugasan ini tidak ditemui.');
                 }
 
-                const result=await runTransaction(taskRef,currentTask=>{
-                    if(!currentTask) return;
-                    if(currentTask.status!=='submitted') return;
-                    if(currentTask.paymentCredited===true) return;
+                const crewUid = task.claimedBy;
+                const reward = Number(task.rewardAmount || 0);
 
-                    return {
-                        ...currentTask,
-                        status:'approved',
-                        paymentCredited:true,
-                        reviewedAt:Date.now(),
-                        reviewedBy:currentUser.uid,
-                        reviewNote:''
-                    };
-                }, {applyLocally:false});
-
-                if(!result.committed) {
-                    const freshSnap=await get(taskRef);
-                    const freshTask=freshSnap.exists()?(freshSnap.val()||{}):null;
-                    if(!freshTask) return alert('Tugasan tidak ditemui atau telah dipadam.');
-                    if(freshTask.paymentCredited===true || freshTask.status==='approved') return alert('Tugasan ini telah pun diluluskan dan dibayar.');
-                    return alert(`Proses tidak berjaya. Status semasa tugasan: ${crewTaskStatusLabel(freshTask.status)}.`);
+                if(!Number.isFinite(reward) || reward < 0) {
+                    return alert('Jumlah bayaran tugasan tidak sah.');
                 }
 
-                const approvedTask=result.snapshot.val()||{};
-                const crewUid=approvedTask.claimedBy;
-                const reward=Number(approvedTask.rewardAmount||0);
-
-                if(!crewUid) throw new Error('UID Crew tidak ditemui selepas tugasan diluluskan.');
-                if(!Number.isFinite(reward) || reward<0) throw new Error('Jumlah bayaran tugasan tidak sah.');
-
-                const crewRootRef=ref(db,`users/${crewUid}/crew`);
-                const crewSnap=await get(crewRootRef);
-                const crewData=crewSnap.exists()?(crewSnap.val()||{}):{};
-
-                await update(crewRootRef,{
-                    availableBalance:Number(crewData.availableBalance||0)+reward,
-                    totalEarned:Number(crewData.totalEarned||0)+reward,
-                    approvedTaskCount:Number(crewData.approvedTaskCount||0)+1
+                /*
+                 * Jangan gunakan runTransaction pada keseluruhan task di sini.
+                 * Dalam sesetengah keadaan Firebase memanggil callback transaksi
+                 * dengan nilai null pada pusingan awal lalu transaksi dibatalkan,
+                 * walaupun bacaan semasa menunjukkan status "submitted".
+                 *
+                 * Sebaliknya, tandakan tugasan sebagai sedang diproses dahulu.
+                 */
+                await update(taskRef, {
+                    status: 'processing_approval',
+                    approvalStartedAt: Date.now(),
+                    approvalStartedBy: currentUser.uid
                 });
 
-                alert(`Jawapan diluluskan. ${formatRM(reward)} telah dikreditkan.`);
-                await loadAdminCrewTasks();
-            } catch(err){
-                alert('Ralat meluluskan jawapan: '+(err?.message||err));
+                try {
+                    const crewRootRef = ref(db, `users/${crewUid}/crew`);
+
+                    const balanceResult = await runTransaction(crewRootRef, currentCrew => {
+                        const crewData = currentCrew || {};
+
+                        return {
+                            ...crewData,
+                            availableBalance: Number(crewData.availableBalance || 0) + reward,
+                            totalEarned: Number(crewData.totalEarned || 0) + reward,
+                            approvedTaskCount: Number(crewData.approvedTaskCount || 0) + 1
+                        };
+                    });
+
+                    if(!balanceResult.committed) {
+                        throw new Error('Baki Crew tidak berjaya dikemas kini.');
+                    }
+
+                    await update(taskRef, {
+                        status: 'approved',
+                        paymentCredited: true,
+                        creditedAmount: reward,
+                        reviewedAt: Date.now(),
+                        reviewedBy: currentUser.uid,
+                        reviewNote: '',
+                        approvalCompletedAt: Date.now(),
+                        approvalCompletedBy: currentUser.uid,
+                        approvalStartedAt: null,
+                        approvalStartedBy: null
+                    });
+
+                    alert(`Jawapan diluluskan. ${formatRM(reward)} telah dikreditkan.`);
+                    await loadAdminCrewTasks();
+
+                } catch(paymentError) {
+                    // Pulangkan status kepada submitted supaya admin boleh cuba semula.
+                    await update(taskRef, {
+                        status: 'submitted',
+                        approvalStartedAt: null,
+                        approvalStartedBy: null,
+                        approvalError: paymentError?.message || String(paymentError),
+                        approvalErrorAt: Date.now()
+                    });
+
+                    throw paymentError;
+                }
+
+            } catch(err) {
+                alert('Ralat meluluskan jawapan: ' + (err?.message || err));
             } finally {
                 if(button && button.tagName === 'BUTTON') {
                     button.disabled = false;
