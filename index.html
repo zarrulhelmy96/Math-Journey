@@ -2170,9 +2170,147 @@
                 </div>
             </div>
 
+            <div id="crew-profile-section" class="mb-6">
+                <div class="bg-purple-50 border border-purple-200 p-4 rounded-2xl text-xs text-purple-900">
+                    <p class="font-bold">Memuatkan Crew Math Journey...</p>
+                </div>
+            </div>
+
+            <div id="crew-application-form" class="hide mb-6 bg-white border border-purple-200 p-4 rounded-2xl text-xs shadow-sm space-y-3">
+                <div class="flex items-start justify-between gap-3 border-b border-purple-100 pb-3">
+                    <div>
+                        <h3 class="font-bold text-sm text-purple-900"><i class="fa-solid fa-user-graduate"></i> Permohonan Crew Math Journey</h3>
+                        <p class="text-[10px] text-gray-500 mt-1">Lengkapkan maklumat di bawah untuk memohon sebagai penjawab soalan Matematik berbayar.</p>
+                    </div>
+                    <button type="button" onclick="closeCrewApplicationForm()" class="text-gray-400 hover:text-gray-700 text-lg"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div>
+                    <label class="block font-semibold text-gray-600 mb-1">Nama Penuh</label>
+                    <input type="text" id="crew-fullname" placeholder="Nama penuh seperti dalam kad pengenalan" class="w-full border border-gray-200 p-2.5 rounded-lg text-sm">
+                </div>
+                <div>
+                    <label class="block font-semibold text-gray-600 mb-1">Tarikh Lahir</label>
+                    <input type="date" id="crew-dob" class="w-full border border-gray-200 p-2.5 rounded-lg text-sm">
+                    <p class="text-[10px] text-gray-400 mt-1">Pemohon mestilah berumur antara 18 hingga 40 tahun.</p>
+                </div>
+                <div>
+                    <label class="block font-semibold text-gray-600 mb-1">Latar Belakang Pendidikan</label>
+                    <textarea id="crew-education" rows="3" placeholder="Contoh: Diploma Kejuruteraan Elektrik, Ijazah Pendidikan Matematik..." class="w-full border border-gray-200 p-2.5 rounded-lg text-sm"></textarea>
+                </div>
+                <div>
+                    <label class="block font-semibold text-gray-600 mb-1">Pekerjaan Semasa</label>
+                    <input type="text" id="crew-occupation" placeholder="Contoh: Guru, tutor, pelajar universiti, juruteknik" class="w-full border border-gray-200 p-2.5 rounded-lg text-sm">
+                </div>
+                <div>
+                    <label class="block font-semibold text-gray-600 mb-1">Keputusan Matematik SPM</label>
+                    <select id="crew-spm-grade" class="w-full border border-gray-200 p-2.5 rounded-lg text-sm bg-white">
+                        <option value="">-- Pilih Gred --</option>
+                        <option value="A+">A+</option><option value="A">A</option><option value="A-">A-</option>
+                        <option value="B+">B+</option><option value="B">B</option>
+                        <option value="C+">C+</option><option value="C">C</option><option value="Lain-lain">Lain-lain</option>
+                    </select>
+                    <p class="text-[10px] text-gray-400 mt-1">Syarat minimum yang dicadangkan: Gred B.</p>
+                </div>
+                <div>
+                    <label class="block font-semibold text-gray-600 mb-1">Pengalaman Mengajar <span class="font-normal text-gray-400">(digalakkan)</span></label>
+                    <textarea id="crew-teaching-experience" rows="3" placeholder="Nyatakan pengalaman mengajar, tutor atau membantu pelajar jika ada." class="w-full border border-gray-200 p-2.5 rounded-lg text-sm"></textarea>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-semibold text-gray-600 mb-1">Nombor Telefon</label>
+                        <input type="tel" id="crew-phone" placeholder="0123456789" class="w-full border border-gray-200 p-2.5 rounded-lg text-sm">
+                    </div>
+                    <div>
+                        <label class="block font-semibold text-gray-600 mb-1">Email</label>
+                        <input type="email" id="crew-email" placeholder="nama@email.com" class="w-full border border-gray-200 p-2.5 rounded-lg text-sm">
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-semibold text-gray-600 mb-1">Kenapa Anda Berminat?</label>
+                    <textarea id="crew-reason" rows="3" placeholder="Terangkan secara ringkas kenapa anda mahu menyertai Crew Math Journey." class="w-full border border-gray-200 p-2.5 rounded-lg text-sm"></textarea>
+                </div>
+                <label class="flex items-start gap-2 bg-yellow-50 border border-yellow-200 p-3 rounded-xl">
+                    <input type="checkbox" id="crew-declaration" class="mt-0.5">
+                    <span class="text-[10px] text-yellow-900 leading-relaxed">Saya mengesahkan semua maklumat yang diberikan adalah benar dan bersetuju jawapan saya disemak sebelum bayaran diluluskan.</span>
+                </label>
+                <button onclick="submitCrewApplication()" class="w-full btn-primary font-bold py-3 rounded-xl text-xs">Hantar Permohonan Crew</button>
+            </div>
+
             <div id="affiliate-profile-section" class="mb-6">
                 <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-2xl text-xs text-emerald-900">
                     <p class="font-bold">Memuatkan Affiliate Dashboard...</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="view-crew-income" class="view p-5 hide">
+            <div class="mb-6">
+                <button onclick="switchView('profile')" class="text-gray-500 text-sm"><i class="fa-solid fa-arrow-left"></i> Kembali ke Profil</button>
+                <h2 class="text-xl font-bold text-slate-900 mt-3">Jana Income Sekarang</h2>
+                <p class="text-xs text-gray-500 mt-1">Ruang khas Crew Math Journey untuk menjawab soalan Matematik berbayar.</p>
+            </div>
+            <div class="bg-slate-900 text-white p-5 rounded-2xl mb-5 shadow-sm">
+                <p class="text-xs text-yellow-300 font-bold uppercase tracking-wider">Crew Math Journey</p>
+                <h3 class="text-lg font-bold text-white mt-1">Jawab soalan. Bantu pelajar. Jana pendapatan.</h3>
+                <p class="text-xs text-white/80 mt-2 leading-relaxed">Pilih tugasan yang tersedia, hantar jalan kerja, dan terima bayaran selepas jawapan diluluskan oleh admin.</p>
+            </div>
+            <div class="grid grid-cols-2 gap-3 mb-5">
+                <div class="bg-white border border-purple-100 p-4 rounded-2xl text-center shadow-sm">
+                    <p class="text-[10px] text-gray-400 uppercase font-bold">Soalan Tersedia</p><p id="crew-active-task-count" class="text-2xl font-black text-purple-800 mt-1">0</p>
+                </div>
+                <div class="bg-white border border-yellow-200 p-4 rounded-2xl text-center shadow-sm">
+                    <p class="text-[10px] text-gray-400 uppercase font-bold">Baki Pendapatan</p><p id="crew-income-balance" class="text-2xl font-black text-purple-800 mt-1">RM0.00</p>
+                </div>
+                <div class="bg-white border border-emerald-100 p-4 rounded-2xl text-center shadow-sm">
+                    <p class="text-[10px] text-gray-400 uppercase font-bold">Diluluskan</p><p id="crew-approved-count" class="text-2xl font-black text-emerald-700 mt-1">0</p>
+                </div>
+                <div class="bg-white border border-orange-100 p-4 rounded-2xl text-center shadow-sm">
+                    <p class="text-[10px] text-gray-400 uppercase font-bold">Dalam Semakan</p><p id="crew-review-count" class="text-2xl font-black text-orange-600 mt-1">0</p>
+                </div>
+            </div>
+
+            <div class="bg-white border border-purple-100 rounded-2xl p-4 shadow-sm mb-5">
+                <div class="flex items-center justify-between gap-3 mb-3">
+                    <div><p class="text-[10px] text-purple-700 font-black uppercase tracking-wider">Tugasan Crew</p><h3 class="font-bold text-slate-900">Soalan Tersedia</h3></div>
+                    <button onclick="loadCrewTasks()" class="bg-purple-50 text-purple-700 px-3 py-2 rounded-xl text-[10px] font-bold"><i class="fa-solid fa-rotate"></i> Refresh</button>
+                </div>
+                <div id="crew-task-list" class="space-y-3"><p class="text-[10px] text-gray-400 text-center py-4">Memuatkan tugasan...</p></div>
+            </div>
+
+            <div class="bg-white border border-yellow-200 rounded-2xl p-4 shadow-sm mb-5">
+                <p class="text-[10px] text-yellow-700 font-black uppercase tracking-wider">Tugasan Saya</p>
+                <h3 class="font-bold text-slate-900 mt-1 mb-3">Claim & Penghantaran</h3>
+                <div id="crew-my-task-list" class="space-y-3"><p class="text-[10px] text-gray-400 text-center py-4">Belum ada tugasan yang anda claim.</p></div>
+            </div>
+
+            <div class="bg-white border border-emerald-100 rounded-2xl p-4 shadow-sm mb-5">
+                <p class="text-[10px] text-emerald-700 font-black uppercase tracking-wider">Rekod Pendapatan</p>
+                <h3 class="font-bold text-slate-900 mt-1 mb-3">Sejarah Tugasan</h3>
+                <div id="crew-income-history" class="space-y-2"><p class="text-[10px] text-gray-400 text-center py-3">Belum ada rekod pendapatan.</p></div>
+            </div>
+
+            <div id="crew-withdrawal-section" class="bg-white border border-purple-100 rounded-2xl p-5 shadow-sm space-y-4">
+                <div>
+                    <p class="text-[10px] text-purple-700 font-black uppercase tracking-wider">Pembayaran Crew</p>
+                    <h3 class="font-bold text-slate-900 mt-1"><i class="fa-solid fa-building-columns text-purple-700 mr-1"></i> Maklumat Withdrawal</h3>
+                    <p class="text-[10px] text-gray-500 mt-1 leading-relaxed">Nombor telefon, email dan maklumat bank wajib dilengkapkan sebelum anda boleh membuat permohonan withdrawal.</p>
+                </div>
+                <div class="grid grid-cols-1 gap-3">
+                    <input type="tel" id="crew-withdraw-phone" placeholder="Nombor telefon" class="w-full border border-gray-200 p-2.5 rounded-lg text-xs">
+                    <input type="email" id="crew-withdraw-email" placeholder="Email untuk dihubungi" class="w-full border border-gray-200 p-2.5 rounded-lg text-xs">
+                    <input type="text" id="crew-bank-name" placeholder="Nama bank, contoh: Maybank" class="w-full border border-gray-200 p-2.5 rounded-lg text-xs">
+                    <input type="text" id="crew-account-name" placeholder="Nama pemilik akaun bank" class="w-full border border-gray-200 p-2.5 rounded-lg text-xs">
+                    <input type="text" id="crew-account-number" placeholder="Nombor akaun bank" class="w-full border border-gray-200 p-2.5 rounded-lg text-xs">
+                </div>
+                <button onclick="saveCrewWithdrawalDetails()" class="w-full bg-purple-100 hover:bg-purple-200 text-purple-900 font-bold py-2.5 rounded-xl text-xs"><i class="fa-solid fa-floppy-disk mr-1"></i> Simpan Maklumat Pembayaran</button>
+                <div class="border-t border-purple-100 pt-4 space-y-3">
+                    <p class="text-[10px] text-gray-500">Masukkan jumlah yang ingin dikeluarkan. Permohonan hanya boleh dibuat jika baki pendapatan mencukupi.</p>
+                    <input type="number" id="crew-withdraw-amount" min="1" step="0.01" placeholder="Jumlah withdrawal (RM)" class="w-full border border-gray-200 p-2.5 rounded-lg text-xs">
+                    <button onclick="requestCrewWithdrawal()" class="w-full bg-yellow-300 hover:bg-yellow-200 text-purple-950 font-black py-3 rounded-xl text-xs"><i class="fa-solid fa-money-bill-transfer mr-1"></i> Mohon Withdrawal</button>
+                </div>
+                <div>
+                    <p class="font-bold text-xs text-slate-800 mb-2">Sejarah Withdrawal Crew</p>
+                    <div id="crew-withdraw-history" class="space-y-2"><p class="text-[10px] text-gray-400 text-center py-2">Belum ada rekod withdrawal.</p></div>
                 </div>
             </div>
         </section>
@@ -2233,6 +2371,38 @@
                 <h3 class="font-bold text-sm border-b pb-2"><i class="fa-solid fa-clock-rotate-left"></i> Voucher Attempt Logs</h3>
                 <div class="bg-slate-900/50 rounded-lg p-2 max-h-48 overflow-y-auto space-y-2" id="adm-voucher-logs-list">
                     <p class="text-[10px] text-slate-400 text-center py-2">Memuatkan data log...</p>
+                </div>
+            </div>
+
+            <div class="bg-purple-50 border border-purple-300 p-4 rounded-xl space-y-4 mb-6 text-xs shadow-sm">
+                <h3 class="font-bold text-sm text-purple-900 border-b border-purple-200 pb-2"><i class="fa-solid fa-users-gear"></i> Crew Math Journey Manager</h3>
+                <div>
+                    <p class="font-bold text-purple-800 mb-2">Permohonan Crew</p>
+                    <div id="adm-crew-requests-list" class="space-y-2"><p class="text-[10px] text-purple-700 text-center py-2">Memuatkan permohonan crew...</p></div>
+                </div>
+                <div class="border-t border-purple-200 pt-3">
+                    <p class="font-bold text-purple-800 mb-2">Crew Aktif</p>
+                    <div id="adm-active-crew-list" class="space-y-2"><p class="text-[10px] text-purple-700 text-center py-2">Memuatkan crew aktif...</p></div>
+                </div>
+                <div class="border-t border-purple-200 pt-4 space-y-3">
+                    <div><p class="font-bold text-purple-900">Upload Soalan Berbayar</p><p class="text-[10px] text-purple-700 mt-1">Tetapkan nilai bayaran sendiri untuk setiap soalan.</p></div>
+                    <input id="adm-crew-task-title" type="text" placeholder="Tajuk tugasan / nama soalan" class="w-full border border-purple-200 p-2.5 rounded-lg text-xs bg-white">
+                    <div class="grid grid-cols-2 gap-2">
+                        <input id="adm-crew-task-form" type="text" placeholder="Tingkatan, contoh: T3" class="w-full border border-purple-200 p-2.5 rounded-lg text-xs bg-white">
+                        <input id="adm-crew-task-chapter" type="text" placeholder="Bab / subtopik" class="w-full border border-purple-200 p-2.5 rounded-lg text-xs bg-white">
+                    </div>
+                    <div class="grid grid-cols-3 gap-2">
+                        <select id="adm-crew-task-difficulty" class="border border-purple-200 p-2.5 rounded-lg text-xs bg-white"><option value="Mudah">Mudah</option><option value="Sederhana">Sederhana</option><option value="Sukar">Sukar</option></select>
+                        <input id="adm-crew-task-reward" type="number" min="0.01" step="0.01" placeholder="Bayaran RM" class="border border-purple-200 p-2.5 rounded-lg text-xs bg-white">
+                        <input id="adm-crew-task-hours" type="number" min="1" step="1" value="24" placeholder="Tempoh jam" class="border border-purple-200 p-2.5 rounded-lg text-xs bg-white">
+                    </div>
+                    <textarea id="adm-crew-task-instructions" rows="3" placeholder="Arahan tambahan untuk Crew" class="w-full border border-purple-200 p-2.5 rounded-lg text-xs bg-white"></textarea>
+                    <div><label class="block text-[10px] font-bold text-purple-800 mb-1">Gambar soalan</label><input id="adm-crew-task-image" type="file" accept="image/*" class="w-full text-[10px] bg-white border border-purple-200 p-2 rounded-lg"></div>
+                    <button onclick="createCrewTask()" class="w-full bg-purple-700 hover:bg-purple-800 text-white font-black py-3 rounded-xl text-xs"><i class="fa-solid fa-cloud-arrow-up mr-1"></i> Upload Tugasan Crew</button>
+                </div>
+                <div class="border-t border-purple-200 pt-4">
+                    <div class="flex justify-between items-center mb-2"><p class="font-bold text-purple-800">Senarai Tugasan & Semakan</p><button onclick="loadAdminCrewTasks()" class="text-[10px] font-bold text-purple-700">Refresh</button></div>
+                    <div id="adm-crew-task-list" class="space-y-3"><p class="text-[10px] text-purple-700 text-center py-2">Memuatkan tugasan...</p></div>
                 </div>
             </div>
 
@@ -3398,9 +3568,11 @@
                 const silSnap = await get(ref(db, 'silibus'));
                 appSilibusData = silSnap.exists() ? silSnap.val() : {};
                 
+                renderCrewProfileSection(udata);
                 renderAffiliateProfileSection(udata);
                 updateAdminVoucherManagerUI();
                 if (isAdminAccount) {
+                    updateAdminCrewManagerUI();
                     updateAdminAffiliateManagerUI();
                     updateAdminQuizChapterOptions();
                     updateAdminQuizSubtopicOptions();
@@ -3444,6 +3616,8 @@
             }
 
             if(viewId === 'admin' && isCurrentUserAdmin()) {
+                updateAdminCrewManagerUI();
+                loadAdminCrewTasks();
                 updateAdminAffiliateManagerUI();
                 updateAdminVoucherManagerUI();
                 updateAdminQuizChapterOptions();
@@ -3454,6 +3628,11 @@
 
             if(viewId === 'shop') {
                 loadShopProducts();
+            }
+
+            if(viewId === 'crew-income') {
+                loadCrewIncomeAndWithdrawal();
+                loadCrewTasks();
             }
 
             document.querySelectorAll('#app-footer button').forEach(b => b.classList.remove('text-soft-pink'));
@@ -8183,6 +8362,452 @@
         }
 
 
+
+
+        // ===== Crew Math Journey Application Module =====
+        function calculateCrewAge(dateString) {
+            if(!dateString) return 0;
+            const dob = new Date(dateString);
+            if(Number.isNaN(dob.getTime())) return 0;
+            const now = new Date();
+            let age = now.getFullYear() - dob.getFullYear();
+            const m = now.getMonth() - dob.getMonth();
+            if(m < 0 || (m === 0 && now.getDate() < dob.getDate())) age--;
+            return age;
+        }
+
+        function crewStatusLabel(status) {
+            return ({ none:'Belum Memohon', pending:'Menunggu Semakan', approved:'Diluluskan', rejected:'Tidak Diluluskan', suspended:'Digantung' })[status] || status;
+        }
+
+        window.renderCrewProfileSection = function(udata = {}) {
+            const box = document.getElementById('crew-profile-section');
+            if(!box) return;
+            const crew = udata.crew || {};
+            const status = crew.status || 'none';
+
+            if(status === 'approved' && crew.active !== false) {
+                box.innerHTML = `
+                    <div class="relative overflow-hidden bg-gradient-to-br from-purple-900 via-purple-800 to-purple-700 text-white border border-purple-700 p-5 rounded-2xl shadow-lg">
+                        <div class="absolute -right-8 -top-8 w-28 h-28 bg-yellow-300/20 rounded-full"></div>
+                        <div class="relative z-10">
+                            <div class="flex items-center justify-between gap-3 mb-3">
+                                <div><p class="text-[10px] uppercase tracking-widest text-yellow-300 font-bold">Crew Math Journey</p><h3 class="font-bold text-lg text-white">Akaun Crew Aktif</h3></div>
+                                <span class="bg-yellow-300 text-purple-950 px-3 py-1 rounded-full text-[9px] font-black">APPROVED</span>
+                            </div>
+                            <p class="text-xs text-white/80 leading-relaxed mb-4">Anda kini boleh mengambil dan menjawab soalan Matematik berbayar yang disediakan oleh admin.</p>
+                            <button onclick="switchView('crew-income')" class="w-full bg-yellow-300 hover:bg-yellow-200 text-purple-950 font-black py-3 rounded-xl text-sm shadow-md"><i class="fa-solid fa-coins mr-1"></i> Jana Income Sekarang</button>
+                        </div>
+                    </div>`;
+            } else if(status === 'pending') {
+                box.innerHTML = `
+                    <div class="bg-yellow-50 border border-yellow-300 p-4 rounded-2xl text-xs text-yellow-950 shadow-sm">
+                        <div class="flex items-start gap-3"><div class="w-10 h-10 rounded-xl bg-yellow-200 flex items-center justify-center"><i class="fa-solid fa-hourglass-half"></i></div><div><h3 class="font-bold text-sm">Permohonan Crew Sedang Disemak</h3><p class="mt-1 leading-relaxed">Admin akan menyemak maklumat pendidikan, pekerjaan dan kelayakan anda. Status akan berubah selepas keputusan dibuat.</p></div></div>
+                    </div>`;
+            } else if(status === 'rejected') {
+                box.innerHTML = `
+                    <div class="bg-red-50 border border-red-200 p-4 rounded-2xl text-xs text-red-900 shadow-sm">
+                        <h3 class="font-bold text-sm"><i class="fa-solid fa-circle-xmark"></i> Permohonan Belum Berjaya</h3>
+                        <p class="mt-1 leading-relaxed">${escapeHtml(crew.rejectionReason || 'Admin belum meluluskan permohonan anda. Anda boleh kemas kini maklumat dan mohon semula.')}</p>
+                        <button onclick="openCrewApplicationForm()" class="w-full mt-3 bg-purple-700 text-white font-bold py-2.5 rounded-xl">Mohon Semula</button>
+                    </div>`;
+            } else {
+                box.innerHTML = `
+                    <div class="bg-gradient-to-br from-purple-50 to-yellow-50 border border-purple-200 p-5 rounded-2xl text-xs shadow-sm">
+                        <div class="w-12 h-12 rounded-2xl bg-purple-800 text-yellow-300 flex items-center justify-center mb-3"><i class="fa-solid fa-user-graduate text-lg"></i></div>
+                        <h3 class="font-bold text-base text-purple-950">Jadi Crew Math Journey</h3>
+                        <p class="text-gray-600 leading-relaxed mt-2">Jana pendapatan sampingan dengan menjawab soalan Matematik Tingkatan 1 hingga Tingkatan 5. Setiap jawapan akan disemak oleh admin sebelum bayaran diluluskan.</p>
+                        <button onclick="openCrewApplicationForm()" class="w-full mt-4 btn-primary font-bold py-3 rounded-xl text-xs">Mohon Jadi Crew Math Journey</button>
+                    </div>`;
+            }
+        };
+
+        window.openCrewApplicationForm = function() {
+            if(!currentUser) return alert('Sila log masuk terlebih dahulu.');
+            const form = document.getElementById('crew-application-form');
+            if(!form) return;
+            const u = userData || {};
+            document.getElementById('crew-fullname').value = u.fullname || '';
+            document.getElementById('crew-phone').value = u.phone || u.phoneNumber || '';
+            document.getElementById('crew-email').value = u.contactEmail || u.email || currentUser.email || '';
+            const crew = u.crew || {};
+            document.getElementById('crew-dob').value = crew.dateOfBirth || '';
+            document.getElementById('crew-education').value = crew.educationBackground || '';
+            document.getElementById('crew-occupation').value = crew.occupation || '';
+            document.getElementById('crew-spm-grade').value = crew.spmMathGrade || '';
+            document.getElementById('crew-teaching-experience').value = crew.teachingExperience || '';
+            document.getElementById('crew-reason').value = crew.reason || '';
+            form.classList.remove('hide');
+            form.scrollIntoView({behavior:'smooth', block:'start'});
+        };
+
+        window.closeCrewApplicationForm = function() {
+            document.getElementById('crew-application-form')?.classList.add('hide');
+        };
+
+        window.submitCrewApplication = async function() {
+            if(!currentUser) return alert('Sila log masuk terlebih dahulu.');
+            const fullName = document.getElementById('crew-fullname').value.trim();
+            const dateOfBirth = document.getElementById('crew-dob').value;
+            const educationBackground = document.getElementById('crew-education').value.trim();
+            const occupation = document.getElementById('crew-occupation').value.trim();
+            const spmMathGrade = document.getElementById('crew-spm-grade').value;
+            const teachingExperience = document.getElementById('crew-teaching-experience').value.trim();
+            const phone = document.getElementById('crew-phone').value.trim();
+            const email = document.getElementById('crew-email').value.trim();
+            const reason = document.getElementById('crew-reason').value.trim();
+            const declaration = document.getElementById('crew-declaration').checked;
+            const age = calculateCrewAge(dateOfBirth);
+
+            if(!fullName || !dateOfBirth || !educationBackground || !occupation || !spmMathGrade || !phone || !email || !reason) return alert('Sila lengkapkan semua maklumat wajib.');
+            if(age < 18 || age > 40) return alert('Permohonan Crew dibuka untuk umur 18 hingga 40 tahun sahaja.');
+            if(!['A+','A','A-','B+','B'].includes(spmMathGrade)) return alert('Syarat minimum Matematik SPM ialah gred B.');
+            if(!declaration) return alert('Sila tandakan pengesahan maklumat sebelum menghantar.');
+            if(!confirm('Hantar permohonan untuk menjadi Crew Math Journey?')) return;
+
+            const application = {
+                uid: currentUser.uid, fullName, dateOfBirth, age, educationBackground, occupation,
+                spmMathGrade, teachingExperience, phone, email, reason,
+                status: 'pending', active: false, appliedAt: Date.now(), reviewedAt: null, reviewedBy: '', rejectionReason: ''
+            };
+            try {
+                await update(ref(db, `users/${currentUser.uid}`), { phone, contactEmail: email, crew: application });
+                await set(ref(db, `crewApplications/${currentUser.uid}`), application);
+                userData = { ...(userData || {}), phone, contactEmail: email, crew: application };
+                closeCrewApplicationForm();
+                renderCrewProfileSection(userData);
+                alert('Permohonan Crew Math Journey berjaya dihantar kepada admin.');
+            } catch(err) {
+                alert('Ralat menghantar permohonan Crew: ' + err.message);
+            }
+        };
+
+
+        window.loadCrewIncomeAndWithdrawal = async function() {
+            if(!currentUser) return;
+            try {
+                const snap = await get(ref(db, `users/${currentUser.uid}`));
+                const u = snap.exists() ? (snap.val() || {}) : {};
+                const crew = u.crew || {};
+                if(crew.status !== 'approved' || crew.active === false) {
+                    alert('Akses Crew anda belum diluluskan atau telah dinyahaktifkan.');
+                    return switchView('profile');
+                }
+                userData = u;
+                const bank = u.crewBank || {};
+                const phone = u.phone || u.phoneNumber || crew.phone || '';
+                const email = u.contactEmail || u.email || crew.email || currentUser.email || '';
+                const setVal = (id,val) => { const el=document.getElementById(id); if(el) el.value=val || ''; };
+                setVal('crew-withdraw-phone', phone);
+                setVal('crew-withdraw-email', email);
+                setVal('crew-bank-name', bank.bankName);
+                setVal('crew-account-name', bank.accountName);
+                setVal('crew-account-number', bank.accountNumber);
+
+                const balanceEls = document.querySelectorAll('#view-crew-income .text-2xl.font-black.text-purple-800');
+                if(balanceEls[1]) balanceEls[1].textContent = formatRM(crew.availableBalance || 0);
+                await loadCrewWithdrawalHistory();
+            } catch(err) {
+                alert('Ralat memuatkan maklumat Crew: ' + err.message);
+            }
+        };
+
+        window.saveCrewWithdrawalDetails = async function() {
+            if(!currentUser) return alert('Sila log masuk terlebih dahulu.');
+            const phone = (document.getElementById('crew-withdraw-phone')?.value || '').trim();
+            const email = (document.getElementById('crew-withdraw-email')?.value || '').trim();
+            const bankName = (document.getElementById('crew-bank-name')?.value || '').trim();
+            const accountName = (document.getElementById('crew-account-name')?.value || '').trim();
+            const accountNumber = (document.getElementById('crew-account-number')?.value || '').replace(/\s+/g,'').trim();
+            if(!phone || !email || !bankName || !accountName || !accountNumber) return alert('Sila lengkapkan nombor telefon, email dan semua maklumat bank.');
+            if(!/^\S+@\S+\.\S+$/.test(email)) return alert('Format email tidak sah.');
+            if(accountNumber.length < 6) return alert('Sila masukkan nombor akaun bank yang sah.');
+            try {
+                await update(ref(db, `users/${currentUser.uid}`), { phone, contactEmail: email });
+                await update(ref(db, `users/${currentUser.uid}/crew`), { phone, email });
+                await set(ref(db, `users/${currentUser.uid}/crewBank`), {
+                    bankName, accountName, accountNumber, updatedAt: Date.now()
+                });
+                userData = { ...(userData || {}), phone, contactEmail: email, crewBank:{bankName,accountName,accountNumber} };
+                alert('Maklumat pembayaran Crew berjaya disimpan.');
+            } catch(err) {
+                alert('Ralat menyimpan maklumat pembayaran: ' + err.message);
+            }
+        };
+
+        window.requestCrewWithdrawal = async function() {
+            if(!currentUser) return alert('Sila log masuk terlebih dahulu.');
+            const amount = Number(document.getElementById('crew-withdraw-amount')?.value || 0);
+            if(!Number.isFinite(amount) || amount <= 0) return alert('Sila masukkan jumlah withdrawal yang sah.');
+            try {
+                const snap = await get(ref(db, `users/${currentUser.uid}`));
+                if(!snap.exists()) return alert('Data pengguna tidak dijumpai.');
+                const u = snap.val() || {};
+                const crew = u.crew || {};
+                const bank = u.crewBank || {};
+                const phone = (u.phone || u.phoneNumber || crew.phone || '').toString().trim();
+                const email = (u.contactEmail || u.email || crew.email || currentUser.email || '').toString().trim();
+                if(crew.status !== 'approved' || crew.active === false) return alert('Akaun Crew anda belum diluluskan atau telah dinyahaktifkan.');
+                if(!phone || !email) return alert('Sila simpan nombor telefon dan email terlebih dahulu.');
+                if(!bank.bankName || !bank.accountName || !bank.accountNumber) return alert('Sila lengkapkan dan simpan maklumat bank terlebih dahulu.');
+                const availableBalance = Number(crew.availableBalance || 0);
+                if(amount > availableBalance) return alert('Baki pendapatan tidak mencukupi.');
+                if(crew.pendingWithdrawal && Number(crew.pendingWithdrawal) > 0) return alert('Anda masih mempunyai permohonan withdrawal yang sedang diproses.');
+                if(!confirm(`Mohon withdrawal sebanyak ${formatRM(amount)}?`)) return;
+
+                const wRef = push(ref(db, 'crewWithdrawalRequests'));
+                const id = wRef.key;
+                const data = {
+                    id, uid: currentUser.uid,
+                    fullName: crew.fullName || u.fullname || '',
+                    email, phone,
+                    bankName: bank.bankName,
+                    accountName: bank.accountName,
+                    accountNumber: bank.accountNumber,
+                    amount,
+                    status: 'pending',
+                    requestedAt: Date.now()
+                };
+                const updates = {};
+                updates[`crewWithdrawalRequests/${id}`] = data;
+                updates[`users/${currentUser.uid}/crew/pendingWithdrawal`] = amount;
+                updates[`users/${currentUser.uid}/crew/lastWithdrawAt`] = Date.now();
+                await update(ref(db), updates);
+                document.getElementById('crew-withdraw-amount').value = '';
+                alert('Permohonan withdrawal Crew berjaya dihantar kepada admin.');
+                await loadCrewIncomeAndWithdrawal();
+            } catch(err) {
+                alert('Ralat membuat permohonan withdrawal: ' + err.message);
+            }
+        };
+
+        window.loadCrewWithdrawalHistory = async function() {
+            const box = document.getElementById('crew-withdraw-history');
+            if(!box || !currentUser) return;
+            box.innerHTML = '<p class="text-[10px] text-gray-400 text-center py-2">Memuatkan rekod...</p>';
+            try {
+                const snap = await get(ref(db, 'crewWithdrawalRequests'));
+                const all = snap.exists() ? (snap.val() || {}) : {};
+                const rows = Object.values(all).filter(x => x && x.uid === currentUser.uid).sort((a,b)=>(b.requestedAt||0)-(a.requestedAt||0));
+                if(!rows.length) {
+                    box.innerHTML = '<p class="text-[10px] text-gray-400 text-center py-2">Belum ada rekod withdrawal.</p>';
+                    return;
+                }
+                box.innerHTML = rows.map(x => {
+                    const status = x.status || 'pending';
+                    const badge = status === 'completed' ? 'bg-emerald-100 text-emerald-700' : status === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-800';
+                    return `<div class="border border-gray-100 rounded-xl p-3 text-[10px] flex justify-between gap-3"><div><p class="font-bold text-slate-800">${formatRM(x.amount)}</p><p class="text-gray-400 mt-1">${x.requestedAt ? new Date(x.requestedAt).toLocaleString('ms-MY') : '-'}</p></div><span class="${badge} px-2 py-1 rounded-full font-bold h-fit">${escapeHtml(status.toUpperCase())}</span></div>`;
+                }).join('');
+            } catch(err) {
+                box.innerHTML = `<p class="text-[10px] text-red-500 text-center py-2">Ralat: ${escapeHtml(err.message)}</p>`;
+            }
+        };
+
+        window.updateAdminCrewManagerUI = async function() {
+            const reqList = document.getElementById('adm-crew-requests-list');
+            const activeList = document.getElementById('adm-active-crew-list');
+            if(!reqList && !activeList) return;
+            try {
+                const [usersSnap, appsSnap] = await Promise.all([get(ref(db,'users')), get(ref(db,'crewApplications'))]);
+                const users = usersSnap.exists() ? usersSnap.val() : {};
+                const apps = appsSnap.exists() ? appsSnap.val() : {};
+
+                if(reqList) {
+                    reqList.innerHTML = '';
+                    const pending = Object.entries(apps).filter(([uid,a]) => (a.status || 'pending') === 'pending');
+                    if(!pending.length) reqList.innerHTML = '<p class="text-[10px] text-purple-700 text-center py-2">Tiada permohonan crew pending.</p>';
+                    pending.sort((a,b)=>(b[1].appliedAt||0)-(a[1].appliedAt||0)).forEach(([uid,a])=>{
+                        const safeUid=uid.replace(/[^a-zA-Z0-9_-]/g,'_');
+                        const card=document.createElement('div');
+                        card.className='bg-white border border-purple-200 rounded-xl p-3 space-y-2 text-slate-800';
+                        card.innerHTML=`
+                            <div class="flex justify-between gap-2"><div><p class="font-bold text-xs">${escapeHtml(a.fullName || users[uid]?.fullname || a.email || uid)}</p><p class="text-[10px] text-gray-400">Umur ${a.age || '-'} • Matematik SPM ${escapeHtml(a.spmMathGrade || '-')}</p></div><span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-[9px] font-bold h-fit">Pending</span></div>
+                            <div class="bg-purple-50 rounded-lg p-2 text-[10px] space-y-1"><p><b>Email:</b> ${escapeHtml(a.email || '-')}</p><p><b>Telefon:</b> ${escapeHtml(a.phone || '-')}</p><p><b>Pendidikan:</b> ${escapeHtml(a.educationBackground || '-')}</p><p><b>Pekerjaan:</b> ${escapeHtml(a.occupation || '-')}</p><p><b>Pengalaman:</b> ${escapeHtml(a.teachingExperience || 'Tiada dinyatakan')}</p><p><b>Sebab:</b> ${escapeHtml(a.reason || '-')}</p></div>
+                            <textarea id="adm-crew-reject-${safeUid}" rows="2" placeholder="Sebab penolakan (jika ditolak)" class="w-full border p-2 rounded-lg text-xs"></textarea>
+                            <div class="grid grid-cols-2 gap-2"><button onclick="approveCrewApplication('${uid}')" class="bg-purple-700 hover:bg-purple-800 text-white font-bold py-2 rounded-lg text-xs">Luluskan</button><button onclick="rejectCrewApplication('${uid}','${safeUid}')" class="bg-red-100 hover:bg-red-200 text-red-700 font-bold py-2 rounded-lg text-xs">Tolak</button></div>`;
+                        reqList.appendChild(card);
+                    });
+                }
+
+                if(activeList) {
+                    activeList.innerHTML='';
+                    const active=Object.entries(users).filter(([uid,u]) => u?.crew?.status === 'approved' && u?.crew?.active !== false);
+                    if(!active.length) activeList.innerHTML='<p class="text-[10px] text-purple-700 text-center py-2">Belum ada crew aktif.</p>';
+                    active.forEach(([uid,u])=>{
+                        const c=u.crew||{}; const card=document.createElement('div');
+                        card.className='bg-white border border-purple-200 rounded-xl p-3 text-slate-800';
+                        card.innerHTML=`<div class="flex items-start justify-between gap-2"><div><p class="font-bold text-xs">${escapeHtml(c.fullName || u.fullname || u.email || uid)}</p><p class="text-[10px] text-gray-500">${escapeHtml(c.email || u.contactEmail || u.email || '-')} • ${escapeHtml(c.phone || u.phone || '-')}</p><p class="text-[10px] text-gray-400 mt-1">Diluluskan: ${c.reviewedAt ? new Date(c.reviewedAt).toLocaleString('ms-MY') : '-'}</p></div><button onclick="suspendCrewAccount('${uid}')" class="bg-red-50 text-red-600 font-bold px-2 py-1 rounded-lg text-[9px]">Nyahaktif</button></div>`;
+                        activeList.appendChild(card);
+                    });
+                }
+            } catch(err) {
+                console.error('Crew manager error:',err);
+                if(reqList) reqList.innerHTML='<p class="text-[10px] text-red-600 text-center py-2">Ralat memuatkan permohonan crew.</p>';
+            }
+        };
+
+        window.approveCrewApplication = async function(uid) {
+            if(!isCurrentUserAdmin()) return alert('Admin sahaja.');
+            if(!confirm('Luluskan pengguna ini sebagai Crew Math Journey?')) return;
+            try {
+                const snap=await get(ref(db,`crewApplications/${uid}`));
+                if(!snap.exists()) return alert('Permohonan tidak dijumpai.');
+                const application=snap.val();
+                const approved={...application,status:'approved',active:true,reviewedAt:Date.now(),reviewedBy:currentUser.uid,rejectionReason:''};
+                await update(ref(db,`users/${uid}/crew`),approved);
+                await set(ref(db,`crewApplications/${uid}`),approved);
+                alert('Crew berjaya diluluskan. Button Jana Income Sekarang akan muncul pada profil pengguna.');
+                updateAdminCrewManagerUI();
+            } catch(err){ alert('Ralat meluluskan crew: '+err.message); }
+        };
+
+        window.rejectCrewApplication = async function(uid,safeUid) {
+            if(!isCurrentUserAdmin()) return alert('Admin sahaja.');
+            const reason=document.getElementById(`adm-crew-reject-${safeUid}`)?.value.trim() || 'Permohonan belum memenuhi keperluan semasa.';
+            if(!confirm('Tolak permohonan Crew ini?')) return;
+            try {
+                const updates={status:'rejected',active:false,reviewedAt:Date.now(),reviewedBy:currentUser.uid,rejectionReason:reason};
+                await update(ref(db,`users/${uid}/crew`),updates);
+                await update(ref(db,`crewApplications/${uid}`),updates);
+                alert('Permohonan Crew telah ditolak.'); updateAdminCrewManagerUI();
+            } catch(err){ alert('Ralat menolak crew: '+err.message); }
+        };
+
+        window.suspendCrewAccount = async function(uid) {
+            if(!isCurrentUserAdmin()) return alert('Admin sahaja.');
+            if(!confirm('Nyahaktifkan akses Crew pengguna ini?')) return;
+            try {
+                await update(ref(db,`users/${uid}/crew`),{status:'suspended',active:false,suspendedAt:Date.now(),suspendedBy:currentUser.uid});
+                await update(ref(db,`crewApplications/${uid}`),{status:'suspended',active:false});
+                alert('Akses Crew telah dinyahaktifkan.'); updateAdminCrewManagerUI();
+            } catch(err){ alert('Ralat nyahaktif crew: '+err.message); }
+        };
+
+
+        function crewTaskStatusLabel(status) {
+            const map = {available:'Tersedia',claimed:'Sedang Disiapkan',submitted:'Menunggu Semakan',revision:'Perlu Dibaiki',approved:'Diluluskan',rejected:'Ditolak',expired:'Tamat'};
+            return map[status] || status || '-';
+        }
+
+        function crewTaskBadge(status) {
+            if(status === 'approved') return 'bg-emerald-100 text-emerald-700';
+            if(status === 'submitted') return 'bg-orange-100 text-orange-700';
+            if(status === 'claimed') return 'bg-blue-100 text-blue-700';
+            if(status === 'revision' || status === 'rejected') return 'bg-red-100 text-red-700';
+            return 'bg-purple-100 text-purple-700';
+        }
+
+        function crewDeadlineText(task) {
+            if(!task.claimDeadline) return `${Number(task.deadlineHours || 24)} jam selepas claim`;
+            const left = Number(task.claimDeadline) - Date.now();
+            if(left <= 0) return 'Tempoh telah tamat';
+            const h = Math.floor(left / 3600000), m = Math.floor((left % 3600000)/60000);
+            return `${h}j ${m}m lagi`;
+        }
+
+        window.createCrewTask = async function() {
+            if(!isCurrentUserAdmin()) return alert('Admin sahaja.');
+            const title=(document.getElementById('adm-crew-task-title')?.value||'').trim();
+            const form=(document.getElementById('adm-crew-task-form')?.value||'').trim();
+            const chapter=(document.getElementById('adm-crew-task-chapter')?.value||'').trim();
+            const difficulty=document.getElementById('adm-crew-task-difficulty')?.value||'Sederhana';
+            const rewardAmount=Number(document.getElementById('adm-crew-task-reward')?.value||0);
+            const deadlineHours=Number(document.getElementById('adm-crew-task-hours')?.value||24);
+            const instructions=(document.getElementById('adm-crew-task-instructions')?.value||'').trim();
+            const file=document.getElementById('adm-crew-task-image')?.files?.[0];
+            if(!title || !form || !chapter || !rewardAmount || rewardAmount <= 0 || !deadlineHours || deadlineHours < 1 || !file) return alert('Sila lengkapkan tajuk, tingkatan, bab, bayaran, tempoh dan gambar soalan.');
+            try {
+                const id=push(ref(db,'crewTasks')).key;
+                const path=`crewTasks/${id}/question_${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`;
+                const storageRef=sRef(storage,path);
+                await uploadBytes(storageRef,file);
+                const questionImageUrl=await getDownloadURL(storageRef);
+                await set(ref(db,`crewTasks/${id}`),{id,title,form,chapter,difficulty,rewardAmount:Number(rewardAmount.toFixed(2)),deadlineHours:Math.round(deadlineHours),instructions,questionImageUrl,status:'available',createdAt:Date.now(),createdBy:currentUser.uid,paymentCredited:false});
+                ['adm-crew-task-title','adm-crew-task-form','adm-crew-task-chapter','adm-crew-task-reward','adm-crew-task-instructions'].forEach(x=>{const el=document.getElementById(x);if(el)el.value='';});
+                document.getElementById('adm-crew-task-hours').value='24'; document.getElementById('adm-crew-task-image').value='';
+                alert('Tugasan Crew berjaya dimuat naik.'); loadAdminCrewTasks();
+            } catch(err){ alert('Ralat upload tugasan: '+err.message); }
+        };
+
+        window.loadCrewTasks = async function() {
+            if(!currentUser) return;
+            const availableBox=document.getElementById('crew-task-list'), myBox=document.getElementById('crew-my-task-list'), historyBox=document.getElementById('crew-income-history');
+            try {
+                const [taskSnap,userSnap]=await Promise.all([get(ref(db,'crewTasks')),get(ref(db,`users/${currentUser.uid}`))]);
+                const tasks=taskSnap.exists()?taskSnap.val():{}; const u=userSnap.exists()?userSnap.val():{}; const crew=u.crew||{};
+                if(crew.status!=='approved' || crew.active===false) return;
+                const rows=Object.entries(tasks).map(([id,t])=>({id,...t}));
+                const available=rows.filter(t=>t.status==='available').sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+                const mine=rows.filter(t=>t.claimedBy===currentUser.uid && ['claimed','submitted','revision'].includes(t.status)).sort((a,b)=>(b.claimedAt||0)-(a.claimedAt||0));
+                const history=rows.filter(t=>t.claimedBy===currentUser.uid && ['approved','rejected'].includes(t.status)).sort((a,b)=>(b.reviewedAt||0)-(a.reviewedAt||0));
+                const setText=(id,val)=>{const el=document.getElementById(id);if(el)el.textContent=val;};
+                setText('crew-active-task-count',available.length); setText('crew-income-balance',formatRM(crew.availableBalance||0)); setText('crew-approved-count',history.filter(t=>t.status==='approved').length); setText('crew-review-count',mine.filter(t=>t.status==='submitted').length);
+                if(availableBox) availableBox.innerHTML=available.length?available.map(t=>`<div class="border border-purple-100 rounded-xl p-3"><div class="flex justify-between gap-3"><div><p class="font-bold text-xs text-slate-900">${escapeHtml(t.title)}</p><p class="text-[10px] text-gray-500 mt-1">${escapeHtml(t.form)} • ${escapeHtml(t.chapter)} • ${escapeHtml(t.difficulty)}</p></div><span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-[10px] font-black h-fit">${formatRM(t.rewardAmount)}</span></div>${t.questionImageUrl?`<img src="${t.questionImageUrl}" class="w-full max-h-52 object-contain bg-gray-50 rounded-lg mt-3 border">`:''}<p class="text-[10px] text-gray-500 mt-2">Tempoh: ${Number(t.deadlineHours||24)} jam</p><p class="text-[10px] text-gray-600 mt-1">${escapeHtml(t.instructions||'Sediakan jalan kerja lengkap dan jelas.')}</p><button onclick="claimCrewTask('${t.id}')" class="w-full bg-purple-700 text-white font-black py-2.5 rounded-xl text-xs mt-3">Ambil Tugasan • ${formatRM(t.rewardAmount)}</button></div>`).join(''):'<p class="text-[10px] text-gray-400 text-center py-4">Belum ada soalan tersedia.</p>';
+                if(myBox) myBox.innerHTML=mine.length?mine.map(t=>`<div class="border border-yellow-200 rounded-xl p-3"><div class="flex justify-between gap-2"><div><p class="font-bold text-xs">${escapeHtml(t.title)}</p><p class="text-[10px] text-gray-500">${escapeHtml(t.form)} • ${escapeHtml(t.chapter)}</p></div><span class="${crewTaskBadge(t.status)} px-2 py-1 rounded-full text-[9px] font-bold h-fit">${crewTaskStatusLabel(t.status)}</span></div><p class="text-[10px] text-gray-500 mt-2"><b>Bayaran:</b> ${formatRM(t.rewardAmount)} • <b>Masa:</b> ${crewDeadlineText(t)}</p>${t.reviewNote?`<p class="text-[10px] bg-red-50 text-red-700 p-2 rounded-lg mt-2"><b>Komen admin:</b> ${escapeHtml(t.reviewNote)}</p>`:''}<textarea id="crew-answer-${t.id}" rows="3" placeholder="Penerangan / langkah penyelesaian" class="w-full border p-2 rounded-lg text-xs mt-3">${escapeHtml(t.answerText||'')}</textarea><input id="crew-answer-file-${t.id}" type="file" accept="image/*" class="w-full text-[10px] border p-2 rounded-lg mt-2"><button onclick="submitCrewTask('${t.id}')" class="w-full bg-yellow-300 text-purple-950 font-black py-2.5 rounded-xl text-xs mt-2">${t.status==='revision'?'Hantar Semula':'Hantar Jawapan'}</button></div>`).join(''):'<p class="text-[10px] text-gray-400 text-center py-4">Belum ada tugasan yang anda claim.</p>';
+                if(historyBox) historyBox.innerHTML=history.length?history.map(t=>`<div class="border border-gray-100 rounded-xl p-3 flex justify-between gap-3"><div><p class="font-bold text-xs">${escapeHtml(t.title)}</p><p class="text-[10px] text-gray-400 mt-1">${t.reviewedAt?new Date(t.reviewedAt).toLocaleString('ms-MY'):'-'}</p>${t.reviewNote?`<p class="text-[10px] text-red-600 mt-1">${escapeHtml(t.reviewNote)}</p>`:''}</div><div class="text-right"><span class="${crewTaskBadge(t.status)} px-2 py-1 rounded-full text-[9px] font-bold">${crewTaskStatusLabel(t.status)}</span><p class="font-black text-emerald-700 text-xs mt-2">${t.status==='approved'?'+ '+formatRM(t.rewardAmount):formatRM(0)}</p></div></div>`).join(''):'<p class="text-[10px] text-gray-400 text-center py-3">Belum ada rekod pendapatan.</p>';
+            } catch(err){ console.error(err); if(availableBox) availableBox.innerHTML=`<p class="text-[10px] text-red-500 text-center">Ralat: ${escapeHtml(err.message)}</p>`; }
+        };
+
+        window.claimCrewTask = async function(taskId) {
+            if(!currentUser) return;
+            try {
+                const taskRef=ref(db,`crewTasks/${taskId}`);
+                const result=await runTransaction(taskRef,t=>{
+                    if(!t || t.status!=='available') return;
+                    const now=Date.now(); return {...t,status:'claimed',claimedBy:currentUser.uid,claimedAt:now,claimDeadline:now+(Number(t.deadlineHours||24)*3600000)};
+                });
+                if(!result.committed) return alert('Tugasan ini telah diambil oleh Crew lain.');
+                alert('Tugasan berjaya diambil. Sila siapkan dalam tempoh yang ditetapkan.'); loadCrewTasks();
+            } catch(err){ alert('Ralat claim tugasan: '+err.message); }
+        };
+
+        window.submitCrewTask = async function(taskId) {
+            if(!currentUser) return;
+            const answerText=(document.getElementById(`crew-answer-${taskId}`)?.value||'').trim(); const file=document.getElementById(`crew-answer-file-${taskId}`)?.files?.[0];
+            if(!answerText || !file) return alert('Sila masukkan penerangan dan pilih gambar jawapan.');
+            try {
+                const snap=await get(ref(db,`crewTasks/${taskId}`)); if(!snap.exists()) return alert('Tugasan tidak dijumpai.'); const task=snap.val();
+                if(task.claimedBy!==currentUser.uid || !['claimed','revision'].includes(task.status)) return alert('Tugasan ini bukan milik anda atau tidak boleh dihantar.');
+                if(task.claimDeadline && Date.now()>task.claimDeadline) return alert('Tempoh tugasan telah tamat. Hubungi admin.');
+                const path=`crewAnswers/${taskId}/${currentUser.uid}_${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`; const sr=sRef(storage,path); await uploadBytes(sr,file); const answerImageUrl=await getDownloadURL(sr);
+                await update(ref(db,`crewTasks/${taskId}`),{status:'submitted',answerText,answerImageUrl,submittedAt:Date.now(),reviewNote:'',lastSubmittedBy:currentUser.uid});
+                alert('Jawapan berjaya dihantar untuk semakan admin.'); loadCrewTasks();
+            } catch(err){ alert('Ralat hantar jawapan: '+err.message); }
+        };
+
+        window.loadAdminCrewTasks = async function() {
+            const box=document.getElementById('adm-crew-task-list'); if(!box || !isCurrentUserAdmin()) return;
+            box.innerHTML='<p class="text-[10px] text-purple-700 text-center py-2">Memuatkan tugasan...</p>';
+            try {
+                const [taskSnap,userSnap]=await Promise.all([get(ref(db,'crewTasks')),get(ref(db,'users'))]); const tasks=taskSnap.exists()?taskSnap.val():{}; const users=userSnap.exists()?userSnap.val():{};
+                const rows=Object.entries(tasks).map(([id,t])=>({id,...t})).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+                if(!rows.length){box.innerHTML='<p class="text-[10px] text-purple-700 text-center py-2">Belum ada tugasan Crew.</p>';return;}
+                box.innerHTML=rows.map(t=>{const crew=users[t.claimedBy]||{};return `<div class="bg-white border border-purple-200 rounded-xl p-3"><div class="flex justify-between gap-2"><div><p class="font-bold text-xs">${escapeHtml(t.title)}</p><p class="text-[10px] text-gray-500">${escapeHtml(t.form)} • ${escapeHtml(t.chapter)} • ${escapeHtml(t.difficulty)} • ${formatRM(t.rewardAmount)}</p></div><span class="${crewTaskBadge(t.status)} px-2 py-1 rounded-full text-[9px] font-bold h-fit">${crewTaskStatusLabel(t.status)}</span></div>${t.questionImageUrl?`<img src="${t.questionImageUrl}" class="w-full max-h-44 object-contain bg-gray-50 rounded-lg mt-2 border">`:''}<p class="text-[10px] text-gray-500 mt-2"><b>Crew:</b> ${escapeHtml(crew.fullname||crew.contactEmail||t.claimedBy||'Belum claim')}</p>${t.answerImageUrl?`<div class="mt-2"><p class="text-[10px] font-bold text-purple-800">Jawapan Crew</p><img src="${t.answerImageUrl}" class="w-full max-h-52 object-contain bg-gray-50 rounded-lg mt-1 border"><p class="text-[10px] text-gray-700 mt-2 whitespace-pre-wrap">${escapeHtml(t.answerText||'')}</p></div>`:''}${t.status==='submitted'?`<textarea id="adm-task-note-${t.id}" rows="2" placeholder="Komen jika perlu pembetulan" class="w-full border p-2 rounded-lg text-xs mt-2"></textarea><div class="grid grid-cols-2 gap-2 mt-2"><button onclick="approveCrewTask('${t.id}')" class="bg-emerald-600 text-white font-bold py-2 rounded-lg text-xs">Lulus & Bayar</button><button onclick="requestCrewTaskRevision('${t.id}')" class="bg-red-100 text-red-700 font-bold py-2 rounded-lg text-xs">Minta Baiki</button></div>`:''}<div class="flex justify-end mt-2"><button onclick="deleteCrewTask('${t.id}')" class="text-[9px] font-bold text-red-500">Padam Tugasan</button></div></div>`}).join('');
+            } catch(err){box.innerHTML=`<p class="text-[10px] text-red-500 text-center">Ralat: ${escapeHtml(err.message)}</p>`;}
+        };
+
+        window.approveCrewTask = async function(taskId) {
+            if(!isCurrentUserAdmin() || !confirm('Luluskan jawapan dan kreditkan bayaran kepada Crew?')) return;
+            try {
+                const taskRef=ref(db,`crewTasks/${taskId}`); let crewUid=null,reward=0;
+                const result=await runTransaction(taskRef,t=>{if(!t || t.status!=='submitted' || t.paymentCredited===true) return; crewUid=t.claimedBy; reward=Number(t.rewardAmount||0); return {...t,status:'approved',paymentCredited:true,reviewedAt:Date.now(),reviewedBy:currentUser.uid,reviewNote:''};});
+                if(!result.committed) return alert('Tugasan telah diproses atau status tidak sah.');
+                await runTransaction(ref(db,`users/${crewUid}/crew/availableBalance`),v=>Number(v||0)+reward);
+                await runTransaction(ref(db,`users/${crewUid}/crew/totalEarned`),v=>Number(v||0)+reward);
+                await runTransaction(ref(db,`users/${crewUid}/crew/approvedTaskCount`),v=>Number(v||0)+1);
+                alert(`Jawapan diluluskan. ${formatRM(reward)} telah dikreditkan.`); loadAdminCrewTasks();
+            } catch(err){alert('Ralat meluluskan jawapan: '+err.message);}
+        };
+
+        window.requestCrewTaskRevision = async function(taskId) {
+            if(!isCurrentUserAdmin()) return; const note=(document.getElementById(`adm-task-note-${taskId}`)?.value||'').trim(); if(!note) return alert('Sila tulis sebab atau pembetulan yang diperlukan.');
+            try{await update(ref(db,`crewTasks/${taskId}`),{status:'revision',reviewNote:note,reviewedAt:Date.now(),reviewedBy:currentUser.uid});alert('Tugasan dihantar semula kepada Crew untuk dibaiki.');loadAdminCrewTasks();}catch(err){alert('Ralat: '+err.message);}
+        };
+
+        window.deleteCrewTask = async function(taskId) {
+            if(!isCurrentUserAdmin() || !confirm('Padam tugasan ini? Rekod database akan dibuang.')) return;
+            try{await remove(ref(db,`crewTasks/${taskId}`));loadAdminCrewTasks();}catch(err){alert('Ralat padam: '+err.message);}
+        };
 
         let testimonialSlideIndex = 0;
         let testimonialAutoTimer = null;
