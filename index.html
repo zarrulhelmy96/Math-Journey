@@ -8485,6 +8485,9 @@
             const crewForm = document.getElementById('crew-application-form'); if(crewForm){ crewForm.classList.remove('crew-force-open'); crewForm.classList.add('hide'); crewForm.style.removeProperty('display'); }
         };
 
+        // Cache tempatan untuk modul Crew. Elak ralat `userData is not defined`.
+        let crewUserDataCache = {};
+
         window.submitCrewApplication = async function() {
             if(!currentUser) return alert('Sila log masuk terlebih dahulu.');
             const fullName = document.getElementById('crew-fullname').value.trim();
@@ -8536,9 +8539,9 @@
                     [`crewApplications/${currentUser.uid}`]: application
                 };
                 await update(ref(db), crewApplicationUpdates);
-                userData = { ...(userData || {}), phone, contactEmail: email, crew: application };
+                crewUserDataCache = { ...crewUserDataCache, phone, contactEmail: email, crew: application };
                 closeCrewApplicationForm();
-                renderCrewProfileSection(userData);
+                renderCrewProfileSection(crewUserDataCache);
                 alert('Permohonan Crew Math Journey berjaya dihantar kepada admin.');
             } catch(err) {
                 alert('Ralat menghantar permohonan Crew: ' + err.message);
@@ -8556,7 +8559,7 @@
                     alert('Akses Crew anda belum diluluskan atau telah dinyahaktifkan.');
                     return switchView('profile');
                 }
-                userData = u;
+                crewUserDataCache = u;
                 const bank = u.crewBank || {};
                 const phone = u.phone || u.phoneNumber || crew.phone || '';
                 const email = u.contactEmail || u.email || crew.email || currentUser.email || '';
@@ -8591,7 +8594,7 @@
                 await set(ref(db, `users/${currentUser.uid}/crewBank`), {
                     bankName, accountName, accountNumber, updatedAt: Date.now()
                 });
-                userData = { ...(userData || {}), phone, contactEmail: email, crewBank:{bankName,accountName,accountNumber} };
+                crewUserDataCache = { ...crewUserDataCache, phone, contactEmail: email, crewBank:{bankName,accountName,accountNumber} };
                 alert('Maklumat pembayaran Crew berjaya disimpan.');
             } catch(err) {
                 alert('Ralat menyimpan maklumat pembayaran: ' + err.message);
