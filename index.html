@@ -8409,7 +8409,7 @@
                     <div class="bg-red-50 border border-red-200 p-4 rounded-2xl text-xs text-red-900 shadow-sm">
                         <h3 class="font-bold text-sm"><i class="fa-solid fa-circle-xmark"></i> Permohonan Belum Berjaya</h3>
                         <p class="mt-1 leading-relaxed">${escapeHtml(crew.rejectionReason || 'Admin belum meluluskan permohonan anda. Anda boleh kemas kini maklumat dan mohon semula.')}</p>
-                        <button onclick="openCrewApplicationForm()" class="w-full mt-3 bg-purple-700 text-white font-bold py-2.5 rounded-xl">Mohon Semula</button>
+                        <button id="btn-reopen-crew-application" type="button" onclick="openCrewApplicationForm(event)" class="w-full mt-3 bg-purple-700 text-white font-bold py-2.5 rounded-xl cursor-pointer relative z-10">Mohon Semula</button>
                     </div>`;
             } else {
                 box.innerHTML = `
@@ -8417,29 +8417,69 @@
                         <div class="w-12 h-12 rounded-2xl bg-purple-800 text-yellow-300 flex items-center justify-center mb-3"><i class="fa-solid fa-user-graduate text-lg"></i></div>
                         <h3 class="font-bold text-base text-purple-950">Jadi Crew Math Journey</h3>
                         <p class="text-gray-600 leading-relaxed mt-2">Jana pendapatan sampingan dengan menjawab soalan Matematik Tingkatan 1 hingga Tingkatan 5. Setiap jawapan akan disemak oleh admin sebelum bayaran diluluskan.</p>
-                        <button onclick="openCrewApplicationForm()" class="w-full mt-4 btn-primary font-bold py-3 rounded-xl text-xs">Mohon Jadi Crew Math Journey</button>
+                        <button id="btn-open-crew-application" type="button" onclick="openCrewApplicationForm(event)" class="w-full mt-4 btn-primary font-bold py-3 rounded-xl text-xs cursor-pointer relative z-10">Mohon Jadi Crew Math Journey</button>
                     </div>`;
             }
         };
 
-        window.openCrewApplicationForm = function() {
-            if(!currentUser) return alert('Sila log masuk terlebih dahulu.');
+        window.openCrewApplicationForm = function(event) {
+            if(event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+
+            const signedInUser = currentUser || (typeof auth !== 'undefined' ? auth.currentUser : null);
+            if(!signedInUser) {
+                alert('Sila log masuk terlebih dahulu.');
+                return false;
+            }
+
             const form = document.getElementById('crew-application-form');
-            if(!form) return;
+            if(!form) {
+                console.error('Borang Crew tidak dijumpai: #crew-application-form');
+                alert('Borang Crew gagal dibuka. Sila refresh halaman dan cuba semula.');
+                return false;
+            }
+
             const u = userData || {};
-            document.getElementById('crew-fullname').value = u.fullname || '';
-            document.getElementById('crew-phone').value = u.phone || u.phoneNumber || '';
-            document.getElementById('crew-email').value = u.contactEmail || u.email || currentUser.email || '';
+            const setField = (id, value = '') => {
+                const el = document.getElementById(id);
+                if(el) el.value = value ?? '';
+            };
+
+            setField('crew-fullname', u.fullname || '');
+            setField('crew-phone', u.phone || u.phoneNumber || '');
+            setField('crew-email', u.contactEmail || u.email || signedInUser.email || '');
             const crew = u.crew || {};
-            document.getElementById('crew-dob').value = crew.dateOfBirth || '';
-            document.getElementById('crew-education').value = crew.educationBackground || '';
-            document.getElementById('crew-occupation').value = crew.occupation || '';
-            document.getElementById('crew-spm-grade').value = crew.spmMathGrade || '';
-            document.getElementById('crew-teaching-experience').value = crew.teachingExperience || '';
-            document.getElementById('crew-reason').value = crew.reason || '';
+            setField('crew-dob', crew.dateOfBirth || '');
+            setField('crew-education', crew.educationBackground || '');
+            setField('crew-occupation', crew.occupation || '');
+            setField('crew-spm-grade', crew.spmMathGrade || '');
+            setField('crew-teaching-experience', crew.teachingExperience || '');
+            setField('crew-reason', crew.reason || '');
+
+            const declaration = document.getElementById('crew-declaration');
+            if(declaration) declaration.checked = false;
+
             form.classList.remove('hide');
-            form.scrollIntoView({behavior:'smooth', block:'start'});
+            form.hidden = false;
+            form.style.display = 'block';
+
+            requestAnimationFrame(() => {
+                form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                const firstInput = document.getElementById('crew-fullname');
+                if(firstInput) firstInput.focus({ preventScroll: true });
+            });
+            return false;
         };
+
+        // Fallback listener: memastikan butang masih berfungsi walaupun inline onclick
+        // disekat atau elemen dirender semula secara dinamik.
+        document.addEventListener('click', function(event) {
+            const trigger = event.target.closest('#btn-open-crew-application, #btn-reopen-crew-application, [data-open-crew-application]');
+            if(!trigger) return;
+            window.openCrewApplicationForm(event);
+        });
 
         window.closeCrewApplicationForm = function() {
             document.getElementById('crew-application-form')?.classList.add('hide');
