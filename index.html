@@ -1549,7 +1549,98 @@
             border-color: rgba(250,204,21,0.66) !important;
         }
 
-</style>
+
+        /* =========================================================
+           COLLAPSIBLE FORM / UPLOAD SECTIONS
+           ========================================================= */
+        .mj-collapsible-card {
+            overflow: hidden;
+        }
+
+        .mj-collapse-toggle {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 13px 14px;
+            border: 1px solid rgba(124, 58, 237, 0.18);
+            border-radius: 14px;
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.08), rgba(250, 204, 21, 0.10));
+            color: #4c1d95;
+            font-size: 12px;
+            font-weight: 800;
+            text-align: left;
+            cursor: pointer;
+            position: relative;
+            z-index: 2;
+            transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+        }
+
+        .mj-collapse-toggle:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 7px 18px rgba(76, 29, 149, 0.10);
+        }
+
+        .mj-collapse-toggle:focus-visible {
+            outline: 3px solid rgba(124, 58, 237, 0.22);
+            outline-offset: 2px;
+        }
+
+        .mj-collapse-toggle-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+        }
+
+        .mj-collapse-toggle-title span {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .mj-collapse-toggle-hint {
+            font-size: 9px;
+            font-weight: 700;
+            color: #7c3aed;
+            opacity: 0.78;
+            flex-shrink: 0;
+        }
+
+        .mj-collapse-chevron {
+            transition: transform 0.22s ease;
+            flex-shrink: 0;
+        }
+
+        .mj-collapsible-card.mj-collapse-open > .mj-collapse-toggle .mj-collapse-chevron {
+            transform: rotate(180deg);
+        }
+
+        .mj-collapse-body {
+            display: grid;
+            grid-template-rows: 0fr;
+            opacity: 0;
+            transition: grid-template-rows 0.25s ease, opacity 0.2s ease, margin-top 0.22s ease;
+            margin-top: 0;
+        }
+
+        .mj-collapse-body-inner {
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .mj-collapsible-card.mj-collapse-open > .mj-collapse-body {
+            grid-template-rows: 1fr;
+            opacity: 1;
+            margin-top: 12px;
+        }
+
+        .mj-collapsible-card.mj-collapse-open > .mj-collapse-body > .mj-collapse-body-inner {
+            overflow: visible;
+        }
+
+    </style>
 </head>
 <body class="text-slate-800 antialiased">
 
@@ -2935,6 +3026,162 @@
             alert('Sistem login sedang dimuatkan. Sila cuba tekan sekali lagi.');
         };
     </script>
+
+
+    <script>
+        /* =========================================================
+           AUTO COLLAPSE FOR DATA ENTRY & IMAGE UPLOAD SECTIONS
+           ========================================================= */
+        (function () {
+            const COLLAPSE_SCOPES = [
+                '#view-profile',
+                '#view-crew-income',
+                '#view-admin',
+                '#view-contact'
+            ];
+
+            const FORM_SELECTOR = 'input:not([type="hidden"]), select, textarea, input[type="file"]';
+
+            function getCardTitle(card) {
+                const heading = card.querySelector('h2, h3, h4');
+                if (heading && heading.textContent.trim()) {
+                    return heading.textContent.replace(/\s+/g, ' ').trim();
+                }
+
+                const label = card.querySelector('label');
+                if (label && label.textContent.trim()) {
+                    return label.textContent.replace(/\s+/g, ' ').trim();
+                }
+
+                return 'Isi Maklumat';
+            }
+
+            function isSuitableCard(element, scope) {
+                if (!(element instanceof HTMLElement)) return false;
+                if (element.classList.contains('mj-collapsible-card')) return false;
+                if (element.closest('.mj-collapse-body')) return false;
+                if (!element.querySelector(FORM_SELECTOR)) return false;
+                if (!element.querySelector('h2, h3, h4')) return false;
+
+                // Elakkan memilih wrapper terlalu besar atau elemen kecil untuk satu input sahaja.
+                if (element === scope) return false;
+                if (element.matches('.grid, .flex')) return false;
+
+                const directChildCount = element.children.length;
+                if (directChildCount < 2) return false;
+
+                return true;
+            }
+
+            function makeCollapsible(card, defaultOpen) {
+                if (!card || card.classList.contains('mj-collapsible-card')) return;
+
+                const title = getCardTitle(card);
+                const originalChildren = Array.from(card.childNodes);
+
+                const toggle = document.createElement('button');
+                toggle.type = 'button';
+                toggle.className = 'mj-collapse-toggle';
+                toggle.setAttribute('aria-expanded', defaultOpen ? 'true' : 'false');
+                toggle.innerHTML = `
+                    <span class="mj-collapse-toggle-title">
+                        <i class="fa-solid fa-sliders"></i>
+                        <span>${title}</span>
+                    </span>
+                    <span class="flex items-center gap-2">
+                        <span class="mj-collapse-toggle-hint">${defaultOpen ? 'Tekan untuk tutup' : 'Tekan untuk buka'}</span>
+                        <i class="fa-solid fa-chevron-down mj-collapse-chevron"></i>
+                    </span>
+                `;
+
+                const body = document.createElement('div');
+                body.className = 'mj-collapse-body';
+
+                const inner = document.createElement('div');
+                inner.className = 'mj-collapse-body-inner';
+
+                originalChildren.forEach(node => inner.appendChild(node));
+                body.appendChild(inner);
+
+                card.appendChild(toggle);
+                card.appendChild(body);
+                card.classList.add('mj-collapsible-card');
+
+                if (defaultOpen) {
+                    card.classList.add('mj-collapse-open');
+                }
+
+                toggle.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    const isOpen = card.classList.toggle('mj-collapse-open');
+                    toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+
+                    const hint = toggle.querySelector('.mj-collapse-toggle-hint');
+                    if (hint) {
+                        hint.textContent = isOpen ? 'Tekan untuk tutup' : 'Tekan untuk buka';
+                    }
+                });
+            }
+
+            function processScope(scope) {
+                if (!scope) return;
+
+                const allDivs = Array.from(scope.querySelectorAll('div'));
+                const candidates = allDivs.filter(el => isSuitableCard(el, scope));
+
+                // Utamakan card paling luar supaya satu bahagian menjadi satu collapse,
+                // bukan setiap input menjadi collapse berasingan.
+                candidates.sort((a, b) => {
+                    const depthA = a.querySelectorAll('*').length;
+                    const depthB = b.querySelectorAll('*').length;
+                    return depthB - depthA;
+                });
+
+                const selected = [];
+                candidates.forEach(card => {
+                    const insideSelected = selected.some(parent => parent.contains(card));
+                    if (!insideSelected) selected.push(card);
+                });
+
+                selected.forEach(card => {
+                    const defaultOpen =
+                        card.id === 'crew-application-form' ||
+                        card.classList.contains('mj-collapse-default-open');
+
+                    makeCollapsible(card, defaultOpen);
+                });
+            }
+
+            function initializeCollapsibleSections() {
+                COLLAPSE_SCOPES.forEach(selector => {
+                    processScope(document.querySelector(selector));
+                });
+            }
+
+            document.addEventListener('DOMContentLoaded', initializeCollapsibleSections);
+
+            // Sokong ruangan Crew/Admin yang dijana semula selepas data Firebase dimuatkan.
+            const observer = new MutationObserver(() => {
+                window.clearTimeout(window.__mjCollapseRefreshTimer);
+                window.__mjCollapseRefreshTimer = window.setTimeout(initializeCollapsibleSections, 120);
+            });
+
+            document.addEventListener('DOMContentLoaded', () => {
+                COLLAPSE_SCOPES.forEach(selector => {
+                    const scope = document.querySelector(selector);
+                    if (scope) {
+                        observer.observe(scope, { childList: true, subtree: true });
+                    }
+                });
+            });
+
+            // Boleh dipanggil semula selepas render dinamik.
+            window.refreshMathJourneyCollapsibleSections = initializeCollapsibleSections;
+        })();
+    </script>
+
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-app.js";
