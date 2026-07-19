@@ -3073,8 +3073,70 @@
             }
         };
 
+        // Password reveal mesti berfungsi serta-merta walaupun Firebase masih loading.
+        window.togglePasswordVisibility = window.togglePasswordVisibility || function(inputId, iconId) {
+            var input = document.getElementById(inputId);
+            var icon = document.getElementById(iconId);
+            if (!input) return;
+
+            var reveal = input.type === 'password';
+            input.type = reveal ? 'text' : 'password';
+
+            if (icon) {
+                icon.classList.toggle('fa-eye', !reveal);
+                icon.classList.toggle('fa-eye-slash', reveal);
+            }
+        };
+
+        // Proxy login: simpan klik pengguna sehingga Firebase module benar-benar sedia.
+        window.__mjFirebaseAuthReady = false;
+        window.__mjAuthClickPending = false;
+
         window.handleAuth = window.handleAuth || function() {
-            alert('Sistem login sedang dimuatkan. Sila cuba tekan sekali lagi.');
+            if (window.__mjFirebaseAuthReady && typeof window.__mjRealHandleAuth === 'function') {
+                return window.__mjRealHandleAuth();
+            }
+
+            if (window.__mjAuthClickPending) return;
+            window.__mjAuthClickPending = true;
+
+            var button = document.getElementById('auth-submit-btn');
+            var originalText = button ? button.innerHTML : '';
+
+            if (button) {
+                button.disabled = true;
+                button.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Memuatkan...';
+            }
+
+            var attempts = 0;
+            var timer = setInterval(function() {
+                attempts += 1;
+
+                if (window.__mjFirebaseAuthReady && typeof window.__mjRealHandleAuth === 'function') {
+                    clearInterval(timer);
+                    window.__mjAuthClickPending = false;
+
+                    if (button) {
+                        button.disabled = false;
+                        button.innerHTML = originalText;
+                    }
+
+                    window.__mjRealHandleAuth();
+                    return;
+                }
+
+                if (attempts >= 60) {
+                    clearInterval(timer);
+                    window.__mjAuthClickPending = false;
+
+                    if (button) {
+                        button.disabled = false;
+                        button.innerHTML = originalText;
+                    }
+
+                    alert('Modul Firebase gagal dimuatkan. Sila semak sambungan internet dan refresh halaman.');
+                }
+            }, 250);
         };
     </script>
 
@@ -4051,7 +4113,7 @@
             }
         };
 
-        window.handleAuth = function() {
+        window.__mjRealHandleAuth = function() {
             const email = document.getElementById('auth-email').value.trim();
             const password = document.getElementById('auth-password').value.trim();
             const confirmPassword = (document.getElementById('auth-confirm-password')?.value || '').trim();
@@ -4189,6 +4251,29 @@
                 });
             }
         };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            ['auth-email', 'auth-password', 'auth-confirm-password'].forEach(function(id) {
+                var field = document.getElementById(id);
+                if (!field || field.dataset.enterBound === '1') return;
+                field.dataset.enterBound = '1';
+                field.addEventListener('keydown', function(event) {
+                    if (event.key === 'Enter') {
+                        event.preventDefault();
+                        window.handleAuth();
+                    }
+                });
+            });
+        });
+
+        // Tandakan auth sedia hanya selepas fungsi login berjaya dipasang.
+        window.__mjFirebaseAuthReady = true;
+
+        // Kekalkan nama global untuk semua button onclick.
+        window.handleAuth = function() {
+            return window.__mjRealHandleAuth();
+        };
+
 
 
         window.handleForgotPassword = function() {
