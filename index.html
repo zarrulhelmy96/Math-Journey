@@ -1640,6 +1640,54 @@
             overflow: visible;
         }
 
+    
+        /* ===== Scrollable vertical lists ===== */
+        #crew-task-list,
+        #crew-my-task-list,
+        #crew-income-history,
+        #crew-withdraw-history,
+        #adm-crew-task-list,
+        #adm-crew-requests-list,
+        #adm-active-crew-list,
+        #adm-affiliate-requests-list,
+        #adm-active-affiliates-list,
+        #adm-referral-pending-list,
+        #adm-withdrawal-requests-list,
+        #adm-voucher-list,
+        #adm-voucher-logs-list,
+        #adm-shop-products-list,
+        #adm-standalone-quiz-list,
+        #aff-withdraw-history,
+        #leaderboard-list,
+        #shop-products-list,
+        #quiz-chapter-list,
+        #flow-subtopic-list,
+        #contoh-list-content,
+        #nota-list-content {
+            max-height: 430px;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            scrollbar-gutter: stable;
+            padding-right: 5px;
+        }
+
+        #crew-task-list::-webkit-scrollbar,
+        #crew-my-task-list::-webkit-scrollbar,
+        #crew-income-history::-webkit-scrollbar,
+        #crew-withdraw-history::-webkit-scrollbar,
+        #adm-crew-task-list::-webkit-scrollbar {
+            width: 7px;
+        }
+
+        #crew-task-list::-webkit-scrollbar-thumb,
+        #crew-my-task-list::-webkit-scrollbar-thumb,
+        #crew-income-history::-webkit-scrollbar-thumb,
+        #crew-withdraw-history::-webkit-scrollbar-thumb,
+        #adm-crew-task-list::-webkit-scrollbar-thumb {
+            background: rgba(109, 40, 217, 0.28);
+            border-radius: 999px;
+        }
+
     </style>
 </head>
 <body class="text-slate-800 antialiased">
@@ -2373,19 +2421,19 @@
                         <option value="">Semua Bab</option>
                     </select>
                 </div>
-                <div id="crew-task-list" class="space-y-3"><p class="text-[10px] text-gray-400 text-center py-4">Memuatkan tugasan...</p></div>
+                <div id="crew-task-list" tabindex="0" class="space-y-3"><p class="text-[10px] text-gray-400 text-center py-4">Memuatkan tugasan...</p></div>
             </div>
 
             <div class="bg-white border border-yellow-200 rounded-2xl p-4 shadow-sm mb-5">
                 <p class="text-[10px] text-yellow-700 font-black uppercase tracking-wider">Tugasan Saya</p>
                 <h3 class="font-bold text-slate-900 mt-1 mb-3">Claim & Penghantaran</h3>
-                <div id="crew-my-task-list" class="space-y-3"><p class="text-[10px] text-gray-400 text-center py-4">Belum ada tugasan yang anda claim.</p></div>
+                <div id="crew-my-task-list" tabindex="0" class="space-y-3"><p class="text-[10px] text-gray-400 text-center py-4">Belum ada tugasan yang anda claim.</p></div>
             </div>
 
             <div class="bg-white border border-emerald-100 rounded-2xl p-4 shadow-sm mb-5">
                 <p class="text-[10px] text-emerald-700 font-black uppercase tracking-wider">Rekod Pendapatan</p>
                 <h3 class="font-bold text-slate-900 mt-1 mb-3">Sejarah Tugasan</h3>
-                <div id="crew-income-history" class="space-y-2"><p class="text-[10px] text-gray-400 text-center py-3">Belum ada rekod pendapatan.</p></div>
+                <div id="crew-income-history" tabindex="0" class="space-y-2"><p class="text-[10px] text-gray-400 text-center py-3">Belum ada rekod pendapatan.</p></div>
             </div>
 
             <div id="crew-withdrawal-section" class="bg-white border border-purple-100 rounded-2xl p-5 shadow-sm space-y-4">
@@ -2409,7 +2457,7 @@
                 </div>
                 <div>
                     <p class="font-bold text-xs text-slate-800 mb-2">Sejarah Withdrawal Crew</p>
-                    <div id="crew-withdraw-history" class="space-y-2"><p class="text-[10px] text-gray-400 text-center py-2">Belum ada rekod withdrawal.</p></div>
+                    <div id="crew-withdraw-history" tabindex="0" class="space-y-2"><p class="text-[10px] text-gray-400 text-center py-2">Belum ada rekod withdrawal.</p></div>
                 </div>
             </div>
         </section>
@@ -2508,7 +2556,7 @@
                 </div>
                 <div class="border-t border-purple-200 pt-4">
                     <div class="flex justify-between items-center mb-2"><p class="font-bold text-purple-800">Senarai Tugasan & Semakan</p><button onclick="loadAdminCrewTasks()" class="text-[10px] font-bold text-purple-700">Refresh</button></div>
-                    <div id="adm-crew-task-list" class="space-y-3"><p class="text-[10px] text-purple-700 text-center py-2">Memuatkan tugasan...</p></div>
+                    <div id="adm-crew-task-list" tabindex="0" class="space-y-3"><p class="text-[10px] text-purple-700 text-center py-2">Memuatkan tugasan...</p></div>
                 </div>
             </div>
 
@@ -9003,17 +9051,21 @@
         function populateCrewTaskFilters(tasks = []) {
             const formSelect = document.getElementById('crew-task-filter-form');
             if(!formSelect) return;
-            const current = formSelect.value;
-            const forms = [...new Set(tasks.map(t => String(t.formKey || t.form || '')).filter(Boolean))].sort();
+
+            const currentForm = formSelect.value;
             formSelect.innerHTML = '<option value="">Semua Tingkatan</option>';
-            forms.forEach(formKey => {
-                const sample = tasks.find(t => String(t.formKey || t.form || '') === formKey);
+
+            Object.keys(appSilibusData || {}).sort((a,b) => Number(a) - Number(b)).forEach(formKey => {
                 const opt = document.createElement('option');
                 opt.value = formKey;
-                opt.textContent = getCrewTaskFormLabel(sample);
+                opt.textContent = `Tingkatan ${formKey}`;
                 formSelect.appendChild(opt);
             });
-            if(current && forms.includes(current)) formSelect.value = current;
+
+            if(currentForm && appSilibusData?.[currentForm]) {
+                formSelect.value = currentForm;
+            }
+
             updateCrewTaskFilterChapterOptions(false);
         }
 
@@ -9021,20 +9073,25 @@
             const formKey = document.getElementById('crew-task-filter-form')?.value || '';
             const chapterSelect = document.getElementById('crew-task-filter-chapter');
             if(!chapterSelect) return;
-            const current = chapterSelect.value;
-            const tasks = window.crewAvailableTaskCache || [];
-            const filtered = formKey ? tasks.filter(t => String(t.formKey || t.form || '') === formKey) : tasks;
-            const chapters = [...new Set(filtered.map(t => String(t.chapterKey || t.chapter || '')).filter(Boolean))].sort();
 
+            const currentChapter = chapterSelect.value;
             chapterSelect.innerHTML = '<option value="">Semua Bab</option>';
-            chapters.forEach(chKey => {
-                const sample = filtered.find(t => String(t.chapterKey || t.chapter || '') === chKey);
-                const opt = document.createElement('option');
-                opt.value = chKey;
-                opt.textContent = getCrewTaskChapterLabel(sample);
-                chapterSelect.appendChild(opt);
-            });
-            if(current && chapters.includes(current)) chapterSelect.value = current;
+
+            if(formKey) {
+                const chapters = appSilibusData?.[formKey] || {};
+
+                Object.keys(chapters).sort().forEach(chapterKey => {
+                    const opt = document.createElement('option');
+                    opt.value = chapterKey;
+                    opt.textContent = chapters[chapterKey]?.nama_bab || chapterKey;
+                    chapterSelect.appendChild(opt);
+                });
+
+                if(currentChapter && chapters[currentChapter]) {
+                    chapterSelect.value = currentChapter;
+                }
+            }
+
             if(shouldRender) renderCrewAvailableTasksFromCache();
         };
 
@@ -9069,7 +9126,7 @@
             if(chapterKey) tasks = tasks.filter(t => String(t.chapterKey || t.chapter || '') === chapterKey);
 
             if(!tasks.length) {
-                box.innerHTML = '<p class="text-[10px] text-gray-400 text-center py-4">Tiada soalan untuk pilihan ini.</p>';
+                box.innerHTML = '<p class="text-[10px] text-gray-400 text-center py-4">Tiada soalan tersedia.</p>';
                 return;
             }
 
@@ -9218,7 +9275,12 @@
                         ${t.reviewNote?`<p class="text-[10px] bg-red-50 text-red-700 p-2 rounded-lg mt-2"><b>Komen admin:</b> ${escapeHtml(t.reviewNote)}</p>`:''}
                         <textarea id="crew-answer-${t.id}" rows="3" placeholder="Penerangan / langkah penyelesaian" class="w-full border p-2 rounded-lg text-xs mt-3">${escapeHtml(t.answerText||'')}</textarea>
                         <input id="crew-answer-file-${t.id}" type="file" accept="image/*" class="w-full text-[10px] border p-2 rounded-lg mt-2">
-                        <button onclick="submitCrewTask('${t.id}')" class="w-full bg-yellow-300 text-purple-950 font-black py-2.5 rounded-xl text-xs mt-2">${t.status==='revision'?'Hantar Semula':'Hantar Jawapan'}</button>
+                        <div class="grid grid-cols-2 gap-2 mt-2">
+                            <button type="button" onclick="cancelCrewTask('${t.id}')" class="w-full bg-red-50 border border-red-200 text-red-700 font-black py-2.5 rounded-xl text-xs">
+                                <i class="fa-solid fa-xmark mr-1"></i> Batal
+                            </button>
+                            <button type="button" onclick="submitCrewTask('${t.id}')" class="w-full bg-yellow-300 text-purple-950 font-black py-2.5 rounded-xl text-xs">${t.status==='revision'?'Hantar Semula':'Hantar Jawapan'}</button>
+                        </div>
                     </div>`;
                 }).join(''):'<p class="text-[10px] text-gray-400 text-center py-4">Belum ada tugasan yang anda claim.</p>';
                 if(historyBox) historyBox.innerHTML=history.length?history.map(t=>`<div class="border border-gray-100 rounded-xl p-3 flex justify-between gap-3"><div><p class="font-bold text-xs">${escapeHtml(t.title)}</p><p class="text-[10px] text-gray-400 mt-1">${t.reviewedAt?new Date(t.reviewedAt).toLocaleString('ms-MY'):'-'}</p>${t.reviewNote?`<p class="text-[10px] text-red-600 mt-1">${escapeHtml(t.reviewNote)}</p>`:''}</div><div class="text-right"><span class="${crewTaskBadge(t.status)} px-2 py-1 rounded-full text-[9px] font-bold">${crewTaskStatusLabel(t.status)}</span><p class="font-black text-emerald-700 text-xs mt-2">${t.status==='approved'?'+ '+formatRM(t.rewardAmount):formatRM(0)}</p></div></div>`).join(''):'<p class="text-[10px] text-gray-400 text-center py-3">Belum ada rekod pendapatan.</p>';
@@ -9314,6 +9376,94 @@
                     alert('Firebase menolak permintaan ini. Sila semak rules crewTasks.');
                 } else {
                     alert('Ralat mengambil tugasan: ' + (err?.message || err));
+                }
+            } finally {
+                if(button && button.tagName === 'BUTTON') {
+                    button.disabled = false;
+                    button.innerHTML = originalText;
+                }
+            }
+        };
+
+        window.cancelCrewTask = async function(taskId) {
+            if(!currentUser) return alert('Sila log masuk dahulu.');
+
+            const confirmed = confirm(
+                'Adakah anda pasti mahu membatalkan tugasan ini? Soalan akan dimasukkan semula ke bahagian Soalan Tersedia untuk Crew lain.'
+            );
+            if(!confirmed) return;
+
+            const button = document.activeElement;
+            const originalText = button && button.tagName === 'BUTTON' ? button.innerHTML : '';
+
+            try {
+                if(button && button.tagName === 'BUTTON') {
+                    button.disabled = true;
+                    button.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Membatalkan...';
+                }
+
+                const taskRef = ref(db, `crewTasks/${taskId}`);
+                const latestSnap = await get(taskRef);
+
+                if(!latestSnap.exists()) {
+                    return alert('Tugasan tidak dijumpai.');
+                }
+
+                const latestTask = latestSnap.val();
+
+                if(latestTask.claimedBy !== currentUser.uid) {
+                    await loadCrewTasks();
+                    return alert('Tugasan ini bukan milik anda.');
+                }
+
+                if(!['claimed','revision'].includes(latestTask.status)) {
+                    await loadCrewTasks();
+                    return alert('Tugasan yang telah dihantar untuk semakan tidak boleh dibatalkan.');
+                }
+
+                const result = await runTransaction(taskRef, currentTask => {
+                    if(currentTask === null) return currentTask;
+
+                    if(
+                        currentTask.claimedBy !== currentUser.uid ||
+                        !['claimed','revision'].includes(currentTask.status)
+                    ) {
+                        return;
+                    }
+
+                    const restoredTask = { ...currentTask };
+
+                    restoredTask.status = 'available';
+                    restoredTask.cancelledAt = Date.now();
+                    restoredTask.lastCancelledBy = currentUser.uid;
+                    restoredTask.cancelCount = Number(currentTask.cancelCount || 0) + 1;
+
+                    delete restoredTask.claimedBy;
+                    delete restoredTask.claimedAt;
+                    delete restoredTask.claimDeadline;
+                    delete restoredTask.answerText;
+                    delete restoredTask.answerImageUrl;
+                    delete restoredTask.submittedAt;
+                    delete restoredTask.reviewNote;
+                    delete restoredTask.lastSubmittedBy;
+
+                    return restoredTask;
+                }, { applyLocally: false });
+
+                if(!result.committed) {
+                    await loadCrewTasks();
+                    return alert('Tugasan tidak dapat dibatalkan kerana statusnya telah berubah.');
+                }
+
+                alert('Tugasan berjaya dibatalkan dan dimasukkan semula ke Soalan Tersedia.');
+                await loadCrewTasks();
+            } catch(err) {
+                console.error('Cancel Crew task error:', err);
+
+                if(err?.code === 'PERMISSION_DENIED') {
+                    alert('Firebase menolak pembatalan tugasan. Sila semak rules crewTasks.');
+                } else {
+                    alert('Ralat membatalkan tugasan: ' + (err?.message || err));
                 }
             } finally {
                 if(button && button.tagName === 'BUTTON') {
