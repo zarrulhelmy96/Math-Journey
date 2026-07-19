@@ -3073,71 +3073,203 @@
             }
         };
 
-        // Password reveal mesti berfungsi serta-merta walaupun Firebase masih loading.
-        window.togglePasswordVisibility = window.togglePasswordVisibility || function(inputId, iconId) {
+        // Reveal password berfungsi tanpa bergantung pada Firebase.
+        window.togglePasswordVisibility = function(inputId, iconId) {
             var input = document.getElementById(inputId);
             var icon = document.getElementById(iconId);
             if (!input) return;
 
-            var reveal = input.type === 'password';
-            input.type = reveal ? 'text' : 'password';
+            var show = input.type === 'password';
+            input.type = show ? 'text' : 'password';
 
             if (icon) {
-                icon.classList.toggle('fa-eye', !reveal);
-                icon.classList.toggle('fa-eye-slash', reveal);
+                icon.classList.toggle('fa-eye', !show);
+                icon.classList.toggle('fa-eye-slash', show);
             }
         };
 
-        // Proxy login: simpan klik pengguna sehingga Firebase module benar-benar sedia.
-        window.__mjFirebaseAuthReady = false;
-        window.__mjAuthClickPending = false;
+        window.__mjRealHandleAuth = null;
+        window.__mjAuthBusy = false;
 
-        window.handleAuth = window.handleAuth || function() {
-            if (window.__mjFirebaseAuthReady && typeof window.__mjRealHandleAuth === 'function') {
+        /*
+         * Login fallback sebenar.
+         * Jika module utama sudah sedia, ia gunakan fungsi asal app.
+         * Jika module utama lambat/gagal dipasang, fungsi ini import Firebase
+         * secara terus supaya button login masih boleh digunakan.
+         */
+        window.handleAuth = async function() {
+            if (window.__mjAuthBusy) return;
+
+            if (typeof window.__mjRealHandleAuth === 'function') {
                 return window.__mjRealHandleAuth();
             }
 
-            if (window.__mjAuthClickPending) return;
-            window.__mjAuthClickPending = true;
-
+            var emailEl = document.getElementById('auth-email');
+            var passwordEl = document.getElementById('auth-password');
+            var confirmEl = document.getElementById('auth-confirm-password');
             var button = document.getElementById('auth-submit-btn');
-            var originalText = button ? button.innerHTML : '';
+
+            var email = (emailEl && emailEl.value || '').trim();
+            var password = (passwordEl && passwordEl.value || '').trim();
+            var confirmPassword = (confirmEl && confirmEl.value || '').trim();
+            var mode = button && button.innerText.trim() === 'Log Masuk' ? 'login' : 'register';
+
+            if (!email || !password) {
+                alert('Sila isi e-mel dan kata laluan.');
+                return;
+            }
+
+            if (mode === 'register') {
+                if (password.length < 6) {
+                    alert('Kata laluan mesti sekurang-kurangnya 6 aksara.');
+                    return;
+                }
+                if (password !== confirmPassword) {
+                    alert('Kata laluan dan pengesahan kata laluan tidak sama.');
+                    return;
+                }
+            }
+
+            window.__mjAuthBusy = true;
+            var originalHtml = button ? button.innerHTML : '';
 
             if (button) {
                 button.disabled = true;
-                button.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Memuatkan...';
+                button.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>' +
+                    (mode === 'login' ? 'Sedang log masuk...' : 'Sedang mendaftar...');
             }
 
-            var attempts = 0;
-            var timer = setInterval(function() {
-                attempts += 1;
+            try {
+                var appModule = await import('https://www.gstatic.com/firebasejs/10.1.0/firebase-app.js');
+                var authModule = await import('https://www.gstatic.com/firebasejs/10.1.0/firebase-auth.js');
 
-                if (window.__mjFirebaseAuthReady && typeof window.__mjRealHandleAuth === 'function') {
-                    clearInterval(timer);
-                    window.__mjAuthClickPending = false;
+                var firebaseConfig = {
+                    apiKey: "AIzaSyCsFCvkBLuLHzUVGokE82jRWshbsTsavVI",
+                    authDomain: "math-journey-2fd87.firebaseapp.com",
+                    databaseURL: "https://math-journey-2fd87-default-rtdb.asia-southeast1.firebasedatabase.app",
+                    projectId: "math-journey-2fd87",
+                    storageBucket: "math-journey-2fd87.firebasestorage.app",
+                    messagingSenderId: "543463983297",
+                    appId: "1:543463983297:web:fb733a9457b5ca355aec40"
+                };
 
-                    if (button) {
-                        button.disabled = false;
-                        button.innerHTML = originalText;
-                    }
+                var app;
+                try {
+                    app = appModule.getApp();
+                } catch (_) {
+                    app = appModule.initializeApp(firebaseConfig);
+                }
 
-                    window.__mjRealHandleAuth();
+                var auth = authModule.getAuth(app);
+
+                if (mode === 'login') {
+                    await authModule.signInWithEmailAndPassword(auth, email, password);
+
+                    // Main app akan mengesan sesi Firebase selepas reload.
+                    location.reload();
                     return;
                 }
 
-                if (attempts >= 60) {
-                    clearInterval(timer);
-                    window.__mjAuthClickPending = false;
+                var credential = await authModule.createUserWithEmailAndPassword(auth, email, password);
 
-                    if (button) {
-                        button.disabled = false;
-                        button.innerHTML = originalText;
-                    }
+                try {
+                    await authModule.sendEmailVerification(credential.user);
+                } catch (_) {}
 
-                    alert('Modul Firebase gagal dimuatkan. Sila semak sambungan internet dan refresh halaman.');
+                await authModule.signOut(auth);
+
+                if (typeof window.toggleAuthMode === 'function' &&
+                    button && button.innerText.trim() !== 'Log Masuk') {
+                    window.toggleAuthMode();
                 }
-            }, 250);
+
+                if (passwordEl) passwordEl.value = '';
+                if (confirmEl) confirmEl.value = '';
+
+                if (typeof window.showActivationGuideModal === 'function') {
+                    window.showActivationGuideModal();
+                } else {
+                    alert('Akaun berjaya didaftarkan. Sila semak email dan bahagian SPAM untuk activation link.');
+                }
+            } catch (err) {
+                var code = err && err.code ? err.code : '';
+                var message = err && err.message ? err.message : String(err);
+
+                if (code === 'auth/invalid-credential' ||
+                    code === 'auth/wrong-password' ||
+                    code === 'auth/user-not-found') {
+                    alert('Email atau kata laluan tidak betul.');
+                } else if (code === 'auth/too-many-requests') {
+                    alert('Terlalu banyak cubaan. Sila tunggu sebentar sebelum cuba semula.');
+                } else if (code === 'auth/network-request-failed') {
+                    alert('Sambungan internet gagal. Sila periksa internet dan cuba semula.');
+                } else if (code === 'auth/email-already-in-use') {
+                    alert('Email ini sudah mempunyai akaun. Sila gunakan Log Masuk atau Terlupa Kata Laluan.');
+                } else {
+                    alert((mode === 'login' ? 'Gagal log masuk: ' : 'Gagal mendaftar: ') + message);
+                }
+            } finally {
+                window.__mjAuthBusy = false;
+                if (button) {
+                    button.disabled = false;
+                    button.innerHTML = originalHtml;
+                }
+            }
         };
+
+        // Pastikan klik icon dan Enter tidak bergantung pada inline handler sahaja.
+        document.addEventListener('DOMContentLoaded', function() {
+            var loginButton = document.getElementById('auth-submit-btn');
+            if (loginButton && loginButton.dataset.authBound !== '1') {
+                loginButton.dataset.authBound = '1';
+                loginButton.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    window.handleAuth();
+                });
+                // Buang inline onclick supaya login tidak dipanggil dua kali.
+                loginButton.removeAttribute('onclick');
+            }
+
+            [
+                ['auth-password', 'auth-password-toggle-icon'],
+                ['auth-confirm-password', 'auth-confirm-password-toggle-icon']
+            ].forEach(function(pair) {
+                var input = document.getElementById(pair[0]);
+                var icon = document.getElementById(pair[1]);
+                var button = icon && icon.closest('button');
+
+                if (button && button.dataset.revealBound !== '1') {
+                    button.dataset.revealBound = '1';
+                    button.removeAttribute('onclick');
+                    button.addEventListener('click', function(event) {
+                        event.preventDefault();
+                        window.togglePasswordVisibility(pair[0], pair[1]);
+                    });
+                }
+
+                if (input && input.dataset.enterBound !== '1') {
+                    input.dataset.enterBound = '1';
+                    input.addEventListener('keydown', function(event) {
+                        if (event.key === 'Enter') {
+                            event.preventDefault();
+                            window.handleAuth();
+                        }
+                    });
+                }
+            });
+
+            var emailInput = document.getElementById('auth-email');
+            if (emailInput && emailInput.dataset.enterBound !== '1') {
+                emailInput.dataset.enterBound = '1';
+                emailInput.addEventListener('keydown', function(event) {
+                    if (event.key === 'Enter') {
+                        event.preventDefault();
+                        window.handleAuth();
+                    }
+                });
+            }
+        });
+
     </script>
 
 
@@ -4251,29 +4383,6 @@
                 });
             }
         };
-
-        document.addEventListener('DOMContentLoaded', function() {
-            ['auth-email', 'auth-password', 'auth-confirm-password'].forEach(function(id) {
-                var field = document.getElementById(id);
-                if (!field || field.dataset.enterBound === '1') return;
-                field.dataset.enterBound = '1';
-                field.addEventListener('keydown', function(event) {
-                    if (event.key === 'Enter') {
-                        event.preventDefault();
-                        window.handleAuth();
-                    }
-                });
-            });
-        });
-
-        // Tandakan auth sedia hanya selepas fungsi login berjaya dipasang.
-        window.__mjFirebaseAuthReady = true;
-
-        // Kekalkan nama global untuk semua button onclick.
-        window.handleAuth = function() {
-            return window.__mjRealHandleAuth();
-        };
-
 
 
         window.handleForgotPassword = function() {
