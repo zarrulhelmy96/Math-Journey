@@ -9420,12 +9420,100 @@
             }
         };
 
+        let crewExpiryCheckTimer = null;
+        let crewExpiryCheckRunning = false;
+
+        async function releaseExpiredCrewTasks(tasks, allowAll = false) {
+            if(!currentUser || crewExpiryCheckRunning) return 0;
+
+            const now = Date.now();
+            const expired = Object.entries(tasks || {}).filter(([taskId, task]) => {
+                if(!task || !['claimed','revision'].includes(task.status)) return false;
+                if(!task.claimDeadline || Number(task.claimDeadline) > now) return false;
+                return allowAll || task.claimedBy === currentUser.uid;
+            });
+
+            if(!expired.length) return 0;
+
+            crewExpiryCheckRunning = true;
+            let releasedCount = 0;
+
+            try {
+                for(const [taskId] of expired) {
+                    const taskRef = ref(db, `crewTasks/${taskId}`);
+
+                    try {
+                        const result = await runTransaction(taskRef, currentTask => {
+                            if(!currentTask) return currentTask;
+
+                            const isExpired =
+                                ['claimed','revision'].includes(currentTask.status) &&
+                                Number(currentTask.claimDeadline || 0) > 0 &&
+                                Number(currentTask.claimDeadline) <= Date.now();
+
+                            const mayRelease =
+                                allowAll || currentTask.claimedBy === currentUser.uid;
+
+                            if(!isExpired || !mayRelease) return;
+
+                            const restoredTask = { ...currentTask };
+                            restoredTask.status = 'available';
+                            restoredTask.expiredAt = Date.now();
+                            restoredTask.lastExpiredClaimedBy = currentTask.claimedBy || '';
+                            restoredTask.expiredCount = Number(currentTask.expiredCount || 0) + 1;
+
+                            delete restoredTask.claimedBy;
+                            delete restoredTask.claimedAt;
+                            delete restoredTask.claimDeadline;
+                            delete restoredTask.answerText;
+                            delete restoredTask.answerImageUrl;
+                            delete restoredTask.submittedAt;
+                            delete restoredTask.reviewNote;
+                            delete restoredTask.lastSubmittedBy;
+
+                            return restoredTask;
+                        }, { applyLocally: false });
+
+                        if(result.committed) releasedCount++;
+                    } catch(err) {
+                        console.warn(`Tidak dapat melepaskan tugasan tamat tempoh ${taskId}:`, err);
+                    }
+                }
+            } finally {
+                crewExpiryCheckRunning = false;
+            }
+
+            return releasedCount;
+        }
+
+        function startCrewExpiryAutoCheck() {
+            if(crewExpiryCheckTimer) return;
+
+            crewExpiryCheckTimer = setInterval(() => {
+                if(
+                    currentUser &&
+                    document.getElementById('view-profile') &&
+                    !document.getElementById('view-profile').classList.contains('hide')
+                ) {
+                    loadCrewTasks();
+                }
+            }, 60000);
+        }
+
         window.loadCrewTasks = async function() {
             if(!currentUser) return;
+            startCrewExpiryAutoCheck();
+
             const availableBox=document.getElementById('crew-task-list'), myBox=document.getElementById('crew-my-task-list'), historyBox=document.getElementById('crew-income-history');
             try {
-                const [taskSnap,userSnap]=await Promise.all([get(ref(db,'crewTasks')),get(ref(db,`users/${currentUser.uid}`))]);
-                const tasks=taskSnap.exists()?taskSnap.val():{}; const u=userSnap.exists()?userSnap.val():{}; const crew=u.crew||{};
+                let [taskSnap,userSnap]=await Promise.all([get(ref(db,'crewTasks')),get(ref(db,`users/${currentUser.uid}`))]);
+                let tasks=taskSnap.exists()?taskSnap.val():{}; const u=userSnap.exists()?userSnap.val():{}; const crew=u.crew||{};
+
+                const releasedExpired = await releaseExpiredCrewTasks(tasks, false);
+                if(releasedExpired > 0) {
+                    taskSnap = await get(ref(db,'crewTasks'));
+                    tasks = taskSnap.exists() ? taskSnap.val() : {};
+                }
                 if(crew.status!=='approved' || crew.active===false) return;
                 const rows=Object.entries(tasks).map(([id,t])=>({id,...t}));
                 const available=rows.filter(t=>t.status==='available').sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
@@ -9680,15 +9768,139 @@
             try {
                 const snap=await get(ref(db,`crewTasks/${taskId}`)); if(!snap.exists()) return alert('Tugasan tidak dijumpai.'); const task=snap.val();
                 if(task.claimedBy!==currentUser.uid || !['claimed','revision'].includes(task.status)) return alert('Tugasan ini bukan milik anda atau tidak boleh dihantar.');
-                if(task.claimDeadline && Date.now()>task.claimDeadline) return alert('Tempoh tugasan telah tamat. Hubungi admin.');
+                if(task.claimDeadline && Date.now()>task.claimDeadline) {
+                    await releaseExpiredCrewTasks({ [taskId]: task }, false);
+                    await loadCrewTasks();
+                    return alert('Tempoh tugasan telah tamat. Soalan telah dimasukkan semula ke dalam Soalan Tersedia.');
+                }
                 const path=`crewAnswers/${taskId}/${currentUser.uid}_${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`; const sr=sRef(storage,path); await uploadBytes(sr,file); const answerImageUrl=await getDownloadURL(sr);
                 await update(ref(db,`crewTasks/${taskId}`),{status:'submitted',answerText,answerImageUrl,submittedAt:Date.now(),reviewNote:'',lastSubmittedBy:currentUser.uid});
                 alert('Jawapan berjaya dihantar untuk semakan admin.'); loadCrewTasks();
             } catch(err){ alert('Ralat hantar jawapan: '+err.message); }
         };
 
+
+        let adminCrewTaskExpiryTimer = null;
+
+        function getAdminCrewTaskExpiryInfo(task) {
+            if(!task || !['claimed','revision'].includes(task.status)) {
+                return { expired:false, text:'-', className:'text-gray-500', remainingMs:0 };
+            }
+
+            const deadline = Number(task.claimDeadline || 0);
+            if(!deadline) {
+                return {
+                    expired:false,
+                    text:`Tiada deadline direkodkan`,
+                    className:'text-amber-700',
+                    remainingMs:0
+                };
+            }
+
+            const remaining = deadline - Date.now();
+            if(remaining <= 0) {
+                const overdue = Math.abs(remaining);
+                const hours = Math.floor(overdue / 3600000);
+                const minutes = Math.floor((overdue % 3600000) / 60000);
+                return {
+                    expired:true,
+                    text:`TAMAT TEMPOH ${hours > 0 ? `${hours} jam ` : ''}${minutes} minit lalu`,
+                    className:'text-red-700',
+                    remainingMs:remaining
+                };
+            }
+
+            const hours = Math.floor(remaining / 3600000);
+            const minutes = Math.floor((remaining % 3600000) / 60000);
+            return {
+                expired:false,
+                text:`Baki ${hours > 0 ? `${hours} jam ` : ''}${minutes} minit`,
+                className: remaining <= 3600000 ? 'text-amber-700' : 'text-emerald-700',
+                remainingMs:remaining
+            };
+        }
+
+        function startAdminCrewTaskExpiryRefresh() {
+            if(adminCrewTaskExpiryTimer) return;
+            adminCrewTaskExpiryTimer = setInterval(() => {
+                const adminView = document.getElementById('view-admin');
+                const taskList = document.getElementById('adm-crew-task-list');
+                if(
+                    currentUser &&
+                    isCurrentUserAdmin() &&
+                    adminView &&
+                    !adminView.classList.contains('hide') &&
+                    taskList
+                ) {
+                    loadAdminCrewTasks();
+                }
+            }, 60000);
+        }
+
+        window.adminReleaseCrewTask = async function(taskId) {
+            if(!isCurrentUserAdmin()) return alert('Akses admin diperlukan.');
+
+            try {
+                const taskRef = ref(db, `crewTasks/${taskId}`);
+                const snap = await get(taskRef);
+                if(!snap.exists()) return alert('Tugasan tidak ditemui.');
+
+                const task = snap.val() || {};
+                if(!['claimed','revision'].includes(task.status)) {
+                    return alert('Tugasan ini tidak sedang di-claim oleh Crew.');
+                }
+
+                const expiryInfo = getAdminCrewTaskExpiryInfo(task);
+                const crewSnap = task.claimedBy
+                    ? await get(ref(db, `users/${task.claimedBy}`))
+                    : null;
+                const crew = crewSnap && crewSnap.exists() ? (crewSnap.val() || {}) : {};
+                const crewName = crew.fullname || crew.contactEmail || task.claimedBy || 'Crew';
+
+                const message = expiryInfo.expired
+                    ? `Tugasan ini sudah tamat tempoh.\n\nTarik balik daripada ${crewName} dan masukkan semula ke Soalan Tersedia?`
+                    : `Tugasan ini masih belum tamat tempoh (${expiryInfo.text}).\n\nTetap tarik balik daripada ${crewName} dan masukkan semula ke Soalan Tersedia?`;
+
+                if(!confirm(message)) return;
+
+                const result = await runTransaction(taskRef, currentTask => {
+                    if(!currentTask || !['claimed','revision'].includes(currentTask.status)) return;
+
+                    const restoredTask = { ...currentTask };
+                    restoredTask.status = 'available';
+                    restoredTask.adminReleasedAt = Date.now();
+                    restoredTask.adminReleasedBy = currentUser.uid;
+                    restoredTask.lastReleasedClaimedBy = currentTask.claimedBy || '';
+                    restoredTask.adminReleaseReason = expiryInfo.expired
+                        ? 'Tamat tempoh dan dilepaskan secara manual oleh admin.'
+                        : 'Dilepaskan secara manual oleh admin sebelum tamat tempoh.';
+
+                    delete restoredTask.claimedBy;
+                    delete restoredTask.claimedAt;
+                    delete restoredTask.claimDeadline;
+                    delete restoredTask.answerText;
+                    delete restoredTask.answerImageUrl;
+                    delete restoredTask.submittedAt;
+                    delete restoredTask.reviewNote;
+                    delete restoredTask.lastSubmittedBy;
+
+                    return restoredTask;
+                }, { applyLocally:false });
+
+                if(!result.committed) {
+                    return alert('Tugasan telah berubah status atau telah diproses oleh pihak lain.');
+                }
+
+                alert('Tugasan berjaya ditarik balik dan dimasukkan semula ke Soalan Tersedia.');
+                await loadAdminCrewTasks();
+            } catch(err) {
+                alert('Ralat tarik balik tugasan: ' + err.message);
+            }
+        };
+
         window.loadAdminCrewTasks = async function() {
             populateAdminCrewTaskFormOptions();
+            startAdminCrewTaskExpiryRefresh();
             const box=document.getElementById('adm-crew-task-list'); if(!box || !isCurrentUserAdmin()) return;
             box.innerHTML='<p class="text-[10px] text-purple-700 text-center py-2">Memuatkan tugasan...</p>';
             try {
@@ -9719,6 +9931,22 @@
                                             ${subGroup.tasks.map(t=>{
                                                 const crew=users[t.claimedBy]||{};
                                                 const newBadge=isCrewTaskNew(t)?'<span class="inline-flex bg-red-500 text-white px-2 py-1 rounded-full text-[9px] font-black mb-2">SOALAN BARU</span>':'';
+                                                const expiryInfo=getAdminCrewTaskExpiryInfo(t);
+                                                const expiryPanel=['claimed','revision'].includes(t.status) ? `
+                                                    <div class="${expiryInfo.expired ? 'bg-red-50 border-red-200' : 'bg-white border-purple-100'} border rounded-lg p-2 mt-2">
+                                                        <div class="flex items-center justify-between gap-2">
+                                                            <div>
+                                                                <p class="text-[9px] text-gray-500 font-bold uppercase">Tempoh Tugasan</p>
+                                                                <p class="text-[10px] font-black ${expiryInfo.className}">${escapeHtml(expiryInfo.text)}</p>
+                                                                <p class="text-[9px] text-gray-500 mt-1">Deadline: ${t.claimDeadline ? new Date(Number(t.claimDeadline)).toLocaleString('ms-MY') : '-'}</p>
+                                                            </div>
+                                                            ${expiryInfo.expired ? '<span class="bg-red-600 text-white px-2 py-1 rounded-full text-[9px] font-black whitespace-nowrap">EXPIRED</span>' : '<span class="bg-emerald-100 text-emerald-800 px-2 py-1 rounded-full text-[9px] font-black whitespace-nowrap">AKTIF</span>'}
+                                                        </div>
+                                                        <button onclick="adminReleaseCrewTask('${t.id}')" class="${expiryInfo.expired ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-amber-100 hover:bg-amber-200 text-amber-900'} w-full font-black py-2.5 rounded-lg text-[10px] mt-2">
+                                                            <i class="fa-solid fa-rotate-left mr-1"></i>
+                                                            ${expiryInfo.expired ? 'Cancel Claim & Masuk Semula Soalan Tersedia' : 'Tarik Balik Daripada Crew'}
+                                                        </button>
+                                                    </div>` : '';
                                                 return `<div class="bg-purple-50/30 border border-purple-100 rounded-xl p-3">
                                                     ${newBadge}
                                                     <div class="flex justify-between gap-2">
@@ -9730,6 +9958,7 @@
                                                     </div>
                                                     ${t.questionImageUrl?`<img src="${t.questionImageUrl}" class="w-full max-h-44 object-contain bg-gray-50 rounded-lg mt-2 border">`:''}
                                                     <p class="text-[10px] text-gray-500 mt-2"><b>Crew:</b> ${escapeHtml(crew.fullname||crew.contactEmail||t.claimedBy||'Belum claim')}</p>
+                                                    ${expiryPanel}
                                                     ${t.answerImageUrl?`<div class="mt-2"><p class="text-[10px] font-bold text-purple-800">Jawapan Crew</p><img src="${t.answerImageUrl}" class="w-full max-h-52 object-contain bg-gray-50 rounded-lg mt-1 border"><p class="text-[10px] text-gray-700 mt-2 whitespace-pre-wrap">${escapeHtml(t.answerText||'')}</p></div>`:''}
                                                     ${t.status==='submitted'?`<textarea id="adm-task-note-${t.id}" rows="2" placeholder="Komen jika perlu pembetulan" class="w-full border p-2 rounded-lg text-xs mt-2"></textarea><div class="grid grid-cols-2 gap-2 mt-2"><button onclick="approveCrewTask('${t.id}')" class="bg-emerald-600 text-white font-bold py-2 rounded-lg text-xs">Lulus & Bayar</button><button onclick="requestCrewTaskRevision('${t.id}')" class="bg-red-100 text-red-700 font-bold py-2 rounded-lg text-xs">Minta Baiki</button></div>`:''}
                                                     <div class="flex justify-end mt-2"><button onclick="deleteCrewTask('${t.id}')" class="text-[9px] font-bold text-red-500">Padam Tugasan</button></div>
