@@ -1647,6 +1647,7 @@
         #crew-income-history,
         #crew-withdraw-history,
         #adm-crew-task-list,
+        #adm-crew-withdrawal-list,
         #adm-crew-requests-list,
         #adm-active-crew-list,
         #adm-affiliate-requests-list,
@@ -1675,7 +1676,8 @@
         #crew-my-task-list::-webkit-scrollbar,
         #crew-income-history::-webkit-scrollbar,
         #crew-withdraw-history::-webkit-scrollbar,
-        #adm-crew-task-list::-webkit-scrollbar {
+        #adm-crew-task-list::-webkit-scrollbar,
+        #adm-crew-withdrawal-list::-webkit-scrollbar {
             width: 7px;
         }
 
@@ -1683,7 +1685,8 @@
         #crew-my-task-list::-webkit-scrollbar-thumb,
         #crew-income-history::-webkit-scrollbar-thumb,
         #crew-withdraw-history::-webkit-scrollbar-thumb,
-        #adm-crew-task-list::-webkit-scrollbar-thumb {
+        #adm-crew-task-list::-webkit-scrollbar-thumb,
+        #adm-crew-withdrawal-list::-webkit-scrollbar-thumb {
             background: rgba(109, 40, 217, 0.28);
             border-radius: 999px;
         }
@@ -2530,6 +2533,25 @@
                 <div class="border-t border-purple-200 pt-3">
                     <p class="font-bold text-purple-800 mb-2">Crew Aktif</p>
                     <div id="adm-active-crew-list" class="space-y-2"><p class="text-[10px] text-purple-700 text-center py-2">Memuatkan crew aktif...</p></div>
+                </div>
+                <div class="border-t border-purple-200 pt-4">
+                    <div class="flex items-center justify-between gap-3 mb-2">
+                        <div>
+                            <p class="font-bold text-purple-900">Permohonan Withdrawal Crew</p>
+                            <p class="text-[10px] text-purple-700 mt-1">Semak maklumat bank, kemudian approve selepas bayaran dibuat atau batalkan permohonan.</p>
+                        </div>
+                        <button onclick="loadAdminCrewWithdrawalRequests()" class="text-[10px] font-bold text-purple-700 whitespace-nowrap">
+                            <i class="fa-solid fa-rotate mr-1"></i>Refresh
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2 mb-3">
+                        <button onclick="setAdminCrewWithdrawalFilter('pending')" id="adm-crew-withdraw-filter-pending" class="bg-purple-700 text-white py-2 rounded-lg text-[10px] font-bold">Pending</button>
+                        <button onclick="setAdminCrewWithdrawalFilter('completed')" id="adm-crew-withdraw-filter-completed" class="bg-white border border-purple-200 text-purple-800 py-2 rounded-lg text-[10px] font-bold">Selesai</button>
+                        <button onclick="setAdminCrewWithdrawalFilter('rejected')" id="adm-crew-withdraw-filter-rejected" class="bg-white border border-purple-200 text-purple-800 py-2 rounded-lg text-[10px] font-bold">Dibatalkan</button>
+                    </div>
+                    <div id="adm-crew-withdrawal-list" tabindex="0" class="space-y-3">
+                        <p class="text-[10px] text-purple-700 text-center py-2">Memuatkan withdrawal Crew...</p>
+                    </div>
                 </div>
                 <div class="border-t border-purple-200 pt-4 space-y-3">
                     <div><p class="font-bold text-purple-900">Upload Soalan Berbayar</p><p class="text-[10px] text-purple-700 mt-1">Tetapkan nilai bayaran sendiri untuk setiap soalan.</p></div>
@@ -3829,6 +3851,7 @@
                 updateAdminVoucherManagerUI();
                 if (isAdminAccount) {
                     updateAdminCrewManagerUI();
+                    loadAdminCrewWithdrawalRequests();
                     updateAdminAffiliateManagerUI();
                     updateAdminQuizChapterOptions();
                     updateAdminQuizSubtopicOptions();
@@ -3874,6 +3897,7 @@
             if(viewId === 'admin' && isCurrentUserAdmin()) {
                 updateAdminCrewManagerUI();
                 loadAdminCrewTasks();
+                loadAdminCrewWithdrawalRequests();
                 updateAdminAffiliateManagerUI();
                 updateAdminVoucherManagerUI();
                 updateAdminQuizChapterOptions();
@@ -8868,6 +8892,182 @@
                 }).join('');
             } catch(err) {
                 box.innerHTML = `<p class="text-[10px] text-red-500 text-center py-2">Ralat: ${escapeHtml(err.message)}</p>`;
+            }
+        };
+
+
+        let adminCrewWithdrawalFilter = 'pending';
+        let adminCrewWithdrawalCache = [];
+
+        function getCrewWithdrawalStatusLabel(status) {
+            if(status === 'completed') return 'SELESAI';
+            if(status === 'rejected') return 'DIBATALKAN';
+            return 'PENDING';
+        }
+
+        function updateAdminCrewWithdrawalFilterButtons() {
+            ['pending','completed','rejected'].forEach(status => {
+                const btn = document.getElementById(`adm-crew-withdraw-filter-${status}`);
+                if(!btn) return;
+                const active = adminCrewWithdrawalFilter === status;
+                btn.className = active
+                    ? 'bg-purple-700 text-white py-2 rounded-lg text-[10px] font-bold'
+                    : 'bg-white border border-purple-200 text-purple-800 py-2 rounded-lg text-[10px] font-bold';
+            });
+        }
+
+        window.setAdminCrewWithdrawalFilter = function(status) {
+            adminCrewWithdrawalFilter = ['pending','completed','rejected'].includes(status) ? status : 'pending';
+            updateAdminCrewWithdrawalFilterButtons();
+            renderAdminCrewWithdrawalRequests();
+        };
+
+        window.loadAdminCrewWithdrawalRequests = async function() {
+            const box = document.getElementById('adm-crew-withdrawal-list');
+            if(!box) return;
+            box.innerHTML = '<p class="text-[10px] text-purple-700 text-center py-2">Memuatkan withdrawal Crew...</p>';
+            try {
+                const snap = await get(ref(db, 'crewWithdrawalRequests'));
+                const all = snap.exists() ? (snap.val() || {}) : {};
+                adminCrewWithdrawalCache = Object.entries(all)
+                    .map(([id, value]) => ({ id, ...(value || {}) }))
+                    .sort((a,b) => Number(b.requestedAt || 0) - Number(a.requestedAt || 0));
+                updateAdminCrewWithdrawalFilterButtons();
+                renderAdminCrewWithdrawalRequests();
+            } catch(err) {
+                box.innerHTML = `<p class="text-[10px] text-red-600 text-center py-2">Ralat: ${escapeHtml(err.message)}</p>`;
+            }
+        };
+
+        window.renderAdminCrewWithdrawalRequests = function() {
+            const box = document.getElementById('adm-crew-withdrawal-list');
+            if(!box) return;
+            const rows = adminCrewWithdrawalCache.filter(item => (item.status || 'pending') === adminCrewWithdrawalFilter);
+
+            if(!rows.length) {
+                const text = adminCrewWithdrawalFilter === 'pending'
+                    ? 'Tiada permohonan withdrawal Crew pending.'
+                    : adminCrewWithdrawalFilter === 'completed'
+                        ? 'Belum ada withdrawal Crew yang selesai.'
+                        : 'Belum ada withdrawal Crew yang dibatalkan.';
+                box.innerHTML = `<p class="text-[10px] text-purple-700 text-center py-3">${text}</p>`;
+                return;
+            }
+
+            box.innerHTML = rows.map(w => {
+                const status = w.status || 'pending';
+                const badgeClass = status === 'completed'
+                    ? 'bg-emerald-100 text-emerald-800'
+                    : status === 'rejected'
+                        ? 'bg-red-100 text-red-700'
+                        : 'bg-yellow-100 text-yellow-800';
+                const requested = w.requestedAt ? new Date(w.requestedAt).toLocaleString('ms-MY') : '-';
+                const completed = w.completedAt ? new Date(w.completedAt).toLocaleString('ms-MY') : '';
+                const rejected = w.rejectedAt ? new Date(w.rejectedAt).toLocaleString('ms-MY') : '';
+                const actionButtons = status === 'pending' ? `
+                    <div class="grid grid-cols-2 gap-2 pt-2">
+                        <button onclick="approveCrewWithdrawal('${escapeHtml(w.id)}')" class="bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-lg text-[10px] font-black">
+                            <i class="fa-solid fa-check mr-1"></i>Approve / Dibayar
+                        </button>
+                        <button onclick="rejectCrewWithdrawal('${escapeHtml(w.id)}')" class="bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-lg text-[10px] font-black">
+                            <i class="fa-solid fa-xmark mr-1"></i>Batalkan
+                        </button>
+                    </div>` : '';
+
+                return `
+                    <div class="bg-white border border-purple-200 rounded-xl p-3 text-slate-800 space-y-2">
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <p class="font-black text-sm text-purple-950">${escapeHtml(w.fullName || 'Crew')}</p>
+                                <p class="text-[10px] text-gray-500 mt-1">${escapeHtml(w.email || '-')} · ${escapeHtml(w.phone || '-')}</p>
+                            </div>
+                            <span class="${badgeClass} px-2 py-1 rounded-full text-[9px] font-black whitespace-nowrap">${getCrewWithdrawalStatusLabel(status)}</span>
+                        </div>
+                        <div class="bg-purple-50 border border-purple-100 rounded-lg p-3 grid grid-cols-2 gap-2 text-[10px]">
+                            <div><p class="text-gray-500">Jumlah</p><p class="font-black text-purple-900 text-sm">${formatRM(Number(w.amount || 0))}</p></div>
+                            <div><p class="text-gray-500">Tarikh request</p><p class="font-bold">${requested}</p></div>
+                            <div><p class="text-gray-500">Bank</p><p class="font-bold">${escapeHtml(w.bankName || '-')}</p></div>
+                            <div><p class="text-gray-500">Nama akaun</p><p class="font-bold">${escapeHtml(w.accountName || '-')}</p></div>
+                            <div class="col-span-2"><p class="text-gray-500">Nombor akaun</p><p class="font-black tracking-wide">${escapeHtml(w.accountNumber || '-')}</p></div>
+                        </div>
+                        ${w.rejectReason ? `<p class="text-[10px] text-red-700 bg-red-50 border border-red-100 rounded-lg p-2"><b>Sebab batal:</b> ${escapeHtml(w.rejectReason)}</p>` : ''}
+                        ${completed ? `<p class="text-[10px] text-emerald-700">Selesai: ${completed}</p>` : ''}
+                        ${rejected ? `<p class="text-[10px] text-red-600">Dibatalkan: ${rejected}</p>` : ''}
+                        ${actionButtons}
+                    </div>`;
+            }).join('');
+        };
+
+        window.approveCrewWithdrawal = async function(requestId) {
+            if(!currentUser) return alert('Sesi admin tidak ditemui.');
+            const request = adminCrewWithdrawalCache.find(item => item.id === requestId);
+            if(!request) return alert('Permohonan withdrawal tidak ditemui.');
+            if((request.status || 'pending') !== 'pending') return alert('Permohonan ini bukan lagi berstatus pending.');
+
+            const amount = Number(request.amount || 0);
+            if(!Number.isFinite(amount) || amount <= 0) return alert('Jumlah withdrawal tidak sah.');
+            if(!confirm(`Sahkan ${formatRM(amount)} sudah dibayar kepada ${request.fullName || 'Crew'}?`)) return;
+
+            try {
+                const userCrewRef = ref(db, `users/${request.uid}/crew`);
+                const crewSnap = await get(userCrewRef);
+                if(!crewSnap.exists()) return alert('Data Crew tidak ditemui.');
+                const crew = crewSnap.val() || {};
+                const available = Number(crew.availableBalance || 0);
+                const pending = Number(crew.pendingWithdrawal || 0);
+
+                if(available < amount) {
+                    return alert(`Baki Crew tidak mencukupi. Baki semasa: ${formatRM(available)}.`);
+                }
+
+                const now = Date.now();
+                const updates = {};
+                updates[`users/${request.uid}/crew/availableBalance`] = Math.max(0, available - amount);
+                updates[`users/${request.uid}/crew/pendingWithdrawal`] = Math.max(0, pending - amount);
+                updates[`users/${request.uid}/crew/totalWithdrawn`] = Number(crew.totalWithdrawn || 0) + amount;
+                updates[`crewWithdrawalRequests/${requestId}/status`] = 'completed';
+                updates[`crewWithdrawalRequests/${requestId}/completedAt`] = now;
+                updates[`crewWithdrawalRequests/${requestId}/completedBy`] = currentUser.uid;
+                await update(ref(db), updates);
+
+                alert('Withdrawal Crew berjaya diluluskan dan ditanda sebagai dibayar.');
+                await loadAdminCrewWithdrawalRequests();
+                await updateAdminCrewManagerUI();
+            } catch(err) {
+                alert('Ralat approve withdrawal Crew: ' + err.message);
+            }
+        };
+
+        window.rejectCrewWithdrawal = async function(requestId) {
+            if(!currentUser) return alert('Sesi admin tidak ditemui.');
+            const request = adminCrewWithdrawalCache.find(item => item.id === requestId);
+            if(!request) return alert('Permohonan withdrawal tidak ditemui.');
+            if((request.status || 'pending') !== 'pending') return alert('Permohonan ini bukan lagi berstatus pending.');
+
+            const reason = prompt('Masukkan sebab pembatalan withdrawal:', 'Semakan admin');
+            if(reason === null) return;
+            const cleanReason = reason.trim() || 'Dibatalkan oleh admin.';
+            if(!confirm(`Batalkan permohonan ${formatRM(Number(request.amount || 0))} ini?`)) return;
+
+            try {
+                const crewSnap = await get(ref(db, `users/${request.uid}/crew`));
+                const crew = crewSnap.exists() ? (crewSnap.val() || {}) : {};
+                const amount = Number(request.amount || 0);
+                const pending = Number(crew.pendingWithdrawal || 0);
+                const now = Date.now();
+                const updates = {};
+                updates[`users/${request.uid}/crew/pendingWithdrawal`] = Math.max(0, pending - amount);
+                updates[`crewWithdrawalRequests/${requestId}/status`] = 'rejected';
+                updates[`crewWithdrawalRequests/${requestId}/rejectReason`] = cleanReason;
+                updates[`crewWithdrawalRequests/${requestId}/rejectedAt`] = now;
+                updates[`crewWithdrawalRequests/${requestId}/rejectedBy`] = currentUser.uid;
+                await update(ref(db), updates);
+
+                alert('Permohonan withdrawal Crew telah dibatalkan. Balance Crew tidak ditolak.');
+                await loadAdminCrewWithdrawalRequests();
+                await updateAdminCrewManagerUI();
+            } catch(err) {
+                alert('Ralat batalkan withdrawal Crew: ' + err.message);
             }
         };
 
