@@ -2751,11 +2751,13 @@
                     </div>
                     <div id="paste-preview-adm-standalone-quiz-image-file" class="mt-2 grid grid-cols-3 gap-2"></div>
                 </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <input type="text" id="adm-standalone-quiz-a" onfocus="setMathKeyboardTarget(this)" oninput="updateQuizEquationPreview()" placeholder="Pilihan A" class="w-full border p-2.5 rounded-lg bg-white outline-none text-base font-semibold">
-                    <input type="text" id="adm-standalone-quiz-b" onfocus="setMathKeyboardTarget(this)" oninput="updateQuizEquationPreview()" placeholder="Pilihan B" class="w-full border p-2.5 rounded-lg bg-white outline-none text-base font-semibold">
-                    <input type="text" id="adm-standalone-quiz-c" onfocus="setMathKeyboardTarget(this)" oninput="updateQuizEquationPreview()" placeholder="Pilihan C" class="w-full border p-2.5 rounded-lg bg-white outline-none text-base font-semibold">
-                    <input type="text" id="adm-standalone-quiz-d" onfocus="setMathKeyboardTarget(this)" oninput="updateQuizEquationPreview()" placeholder="Pilihan D" class="w-full border p-2.5 rounded-lg bg-white outline-none text-base font-semibold">
+                <div class="bg-purple-50 border border-purple-100 rounded-xl p-3">
+                    <p class="text-[11px] font-extrabold text-purple-800">
+                        <i class="fa-solid fa-circle-info mr-1"></i> Pilihan jawapan A, B, C dan D
+                    </p>
+                    <p class="text-[10px] text-purple-700 mt-1 leading-relaxed">
+                        Masukkan semua pilihan jawapan terus di dalam gambar soalan. Pelajar hanya akan melihat empat button A, B, C dan D.
+                    </p>
                 </div>
 
                 <div class="bg-white border border-pink-100 rounded-xl p-3 space-y-2">
@@ -2763,7 +2765,7 @@
                         <p class="text-[11px] font-extrabold text-slate-800">
                             <i class="fa-solid fa-calculator text-soft-pink"></i> Scientific Math Keyboard
                         </p>
-                        <p class="text-[10px] text-gray-500">Klik kotak jawapan, kemudian tekan simbol.</p>
+                        <p class="text-[10px] text-gray-500">Klik kotak soalan, kemudian tekan simbol.</p>
                     </div>
                     <div class="grid grid-cols-8 gap-1.5">
                         <button type="button" onclick="insertQuizMathSymbol('+')" class="math-symbol-btn">+</button>
@@ -2845,50 +2847,10 @@
                     </div>
 
                     <div id="quiz-equation-preview-box" class="bg-white border border-emerald-100 rounded-xl p-3 space-y-2 text-xs">
-                        <p class="text-gray-400 text-center py-3">Taip soalan atau pilihan jawapan untuk lihat preview.</p>
+                        <p class="text-gray-400 text-center py-3">Taip soalan untuk lihat preview.</p>
                     </div>
                 </div>
 
-                <div class="bg-blue-50 border border-blue-100 rounded-xl p-3 space-y-3">
-                    <div>
-                        <label class="block font-bold text-blue-800 mb-1">Gambar Untuk Pilihan Jawapan A/B/C/D</label>
-                        <p class="text-[10px] text-blue-700 leading-relaxed">Optional. Admin boleh letak gambar kecil untuk setiap pilihan jawapan. Di bahagian user, gambar ini akan dipaparkan dalam saiz kecil supaya tidak terlalu besar.</p>
-                    </div>
-                    <div class="grid grid-cols-2 gap-2">
-                        <div class="bg-white border border-blue-100 rounded-lg p-2">
-                            <label class="block text-[10px] font-bold text-gray-600 mb-1">Gambar Pilihan A</label>
-                            <input type="file" id="adm-standalone-quiz-option-a-image-file" accept="image/jpeg, image/png, image/webp" class="w-full text-[10px]">
-                            <div id="paste-zone-adm-standalone-quiz-option-a-image-file" tabindex="0" onpaste="handleQuizPasteImage(event, 'adm-standalone-quiz-option-a-image-file')" class="mt-2 border border-dashed border-blue-200 bg-blue-50 rounded-lg p-2 text-center text-[10px] text-blue-700 cursor-text outline-none focus:ring-2 focus:ring-blue-300">
-                                Paste gambar Pilihan A
-                            </div>
-                            <div id="paste-preview-adm-standalone-quiz-option-a-image-file" class="mt-2 grid grid-cols-2 gap-1"></div>
-                        </div>
-                        <div class="bg-white border border-blue-100 rounded-lg p-2">
-                            <label class="block text-[10px] font-bold text-gray-600 mb-1">Gambar Pilihan B</label>
-                            <input type="file" id="adm-standalone-quiz-option-b-image-file" accept="image/jpeg, image/png, image/webp" class="w-full text-[10px]">
-                            <div id="paste-zone-adm-standalone-quiz-option-b-image-file" tabindex="0" onpaste="handleQuizPasteImage(event, 'adm-standalone-quiz-option-b-image-file')" class="mt-2 border border-dashed border-blue-200 bg-blue-50 rounded-lg p-2 text-center text-[10px] text-blue-700 cursor-text outline-none focus:ring-2 focus:ring-blue-300">
-                                Paste gambar Pilihan B
-                            </div>
-                            <div id="paste-preview-adm-standalone-quiz-option-b-image-file" class="mt-2 grid grid-cols-2 gap-1"></div>
-                        </div>
-                        <div class="bg-white border border-blue-100 rounded-lg p-2">
-                            <label class="block text-[10px] font-bold text-gray-600 mb-1">Gambar Pilihan C</label>
-                            <input type="file" id="adm-standalone-quiz-option-c-image-file" accept="image/jpeg, image/png, image/webp" class="w-full text-[10px]">
-                            <div id="paste-zone-adm-standalone-quiz-option-c-image-file" tabindex="0" onpaste="handleQuizPasteImage(event, 'adm-standalone-quiz-option-c-image-file')" class="mt-2 border border-dashed border-blue-200 bg-blue-50 rounded-lg p-2 text-center text-[10px] text-blue-700 cursor-text outline-none focus:ring-2 focus:ring-blue-300">
-                                Paste gambar Pilihan C
-                            </div>
-                            <div id="paste-preview-adm-standalone-quiz-option-c-image-file" class="mt-2 grid grid-cols-2 gap-1"></div>
-                        </div>
-                        <div class="bg-white border border-blue-100 rounded-lg p-2">
-                            <label class="block text-[10px] font-bold text-gray-600 mb-1">Gambar Pilihan D</label>
-                            <input type="file" id="adm-standalone-quiz-option-d-image-file" accept="image/jpeg, image/png, image/webp" class="w-full text-[10px]">
-                            <div id="paste-zone-adm-standalone-quiz-option-d-image-file" tabindex="0" onpaste="handleQuizPasteImage(event, 'adm-standalone-quiz-option-d-image-file')" class="mt-2 border border-dashed border-blue-200 bg-blue-50 rounded-lg p-2 text-center text-[10px] text-blue-700 cursor-text outline-none focus:ring-2 focus:ring-blue-300">
-                                Paste gambar Pilihan D
-                            </div>
-                            <div id="paste-preview-adm-standalone-quiz-option-d-image-file" class="mt-2 grid grid-cols-2 gap-1"></div>
-                        </div>
-                    </div>
-                </div>
                 <div class="grid grid-cols-2 gap-2">
                     <div>
                         <label class="block font-semibold text-gray-700 mb-1">Jawapan Betul (A/B/C/D)</label>
@@ -3529,7 +3491,7 @@
         window.insertQuizFraction = function() {
             const target = window.currentMathKeyboardTarget;
             if(!target || !['INPUT', 'TEXTAREA'].includes(target.tagName)) {
-                alert('Klik dulu kotak soalan atau pilihan jawapan A/B/C/D, kemudian tekan Pecahan.');
+                alert('Klik dulu kotak soalan, kemudian tekan Pecahan.');
                 return;
             }
 
@@ -3564,27 +3526,6 @@
             if(!box) return;
 
             const soalan = (document.getElementById('adm-standalone-quiz-soalan')?.value || '').trim();
-            const a = (document.getElementById('adm-standalone-quiz-a')?.value || '').trim();
-            const b = (document.getElementById('adm-standalone-quiz-b')?.value || '').trim();
-            const c = (document.getElementById('adm-standalone-quiz-c')?.value || '').trim();
-            const d = (document.getElementById('adm-standalone-quiz-d')?.value || '').trim();
-
-            if(!soalan && !a && !b && !c && !d) {
-                box.innerHTML = '<p class="text-gray-400 text-center py-3">Taip soalan atau pilihan jawapan untuk lihat preview.</p>';
-                return;
-            }
-
-            const optionPreview = [
-                ['A', a],
-                ['B', b],
-                ['C', c],
-                ['D', d]
-            ].filter(([label, value]) => value).map(([label, value]) => `
-                <div class="bg-slate-50 border border-gray-100 rounded-lg p-2">
-                    <span class="font-extrabold text-slate-700 mr-1">${label}.</span>
-                    <span class="text-slate-900 font-semibold">${renderQuizMathText(value)}</span>
-                </div>
-            `).join('');
 
             box.innerHTML = `
                 ${soalan ? `
@@ -3592,13 +3533,17 @@
                         <p class="text-[10px] font-bold text-emerald-700 uppercase mb-1">Preview Soalan</p>
                         <p class="text-base font-bold text-slate-900 leading-relaxed">${renderQuizMathText(soalan)}</p>
                     </div>
-                ` : ''}
-                ${optionPreview ? `
-                    <div>
-                        <p class="text-[10px] font-bold text-emerald-700 uppercase mb-1">Preview Pilihan Jawapan</p>
-                        <div class="grid grid-cols-1 gap-2">${optionPreview}</div>
+                ` : '<p class="text-gray-400 text-center py-2">Taip soalan untuk lihat preview.</p>'}
+                <div>
+                    <p class="text-[10px] font-bold text-emerald-700 uppercase mb-1">Preview Button Jawapan</p>
+                    <div class="grid grid-cols-2 gap-2">
+                        ${['A','B','C','D'].map(opt => `
+                            <div class="min-h-[52px] flex items-center justify-center bg-slate-50 border border-gray-200 rounded-xl text-lg font-extrabold text-slate-800">
+                                ${opt}
+                            </div>
+                        `).join('')}
                     </div>
-                ` : ''}
+                </div>
             `;
         };
 
@@ -4884,18 +4829,13 @@
                         <p class="text-slate-900 font-bold text-base mt-3 leading-relaxed">${renderQuizMathText(q.soalan || '')}</p>
                         ${renderQuizQuestionImageGallery(q.imageUrls, '')}
                     </div>
-                    <div class="grid grid-cols-1 gap-2 pt-1">
+                    <div class="grid grid-cols-2 gap-3 pt-1">
             `;
 
             ['A','B','C','D'].forEach(opt => {
-                const optText = q[opt.toLowerCase()] || '';
-                const optionImageMap = q.optionImageUrls || q.optionImages || {};
-                const optImagesRaw = optionImageMap[opt] || optionImageMap[opt.toLowerCase()] || [];
-                const optImages = Array.isArray(optImagesRaw) ? optImagesRaw.filter(Boolean) : [];
-                if(!optText && optImages.length === 0) return;
-
                 let style = 'border-gray-200 bg-white text-slate-700 hover:bg-slate-50';
                 let icon = '';
+
                 if(answered) {
                     if(opt === q.jawapan) {
                         style = 'border-green-500 bg-green-50 text-green-700 font-bold';
@@ -4911,19 +4851,10 @@
                     icon = '<i class="fa-solid fa-circle-dot text-blue-600"></i>';
                 }
 
-                const optionImageHtml = optImages.map((url, imgIndex) => `
-                    <img src="${url}" class="mt-2 w-full max-h-28 object-contain rounded-lg border border-gray-100 bg-white p-1" alt="Gambar pilihan ${opt} ${imgIndex + 1}">
-                `).join('');
-
                 html += `
-                    <button ${answered ? 'disabled' : ''} onclick="selectSubtopicQuizChoice('${opt}')" class="w-full text-left p-4 rounded-xl border ${style} transition text-base">
-                        <div class="flex items-start justify-between gap-3">
-                            <div class="flex-1 min-w-0">
-                                <p class="text-base md:text-lg leading-relaxed"><strong class="mr-1">${opt}.</strong> ${optText ? renderQuizMathText(optText) : `Pilihan ${opt}`}</p>
-                                ${optionImageHtml}
-                            </div>
-                            <span class="shrink-0 pt-0.5">${icon}</span>
-                        </div>
+                    <button type="button" ${answered ? 'disabled' : ''} onclick="selectSubtopicQuizChoice('${opt}')" class="min-h-[76px] w-full p-4 rounded-xl border ${style} transition flex items-center justify-center">
+                        <span class="text-2xl font-extrabold">${opt}</span>
+                        ${icon ? `<span class="ml-2">${icon}</span>` : ''}
                     </button>
                 `;
             });
@@ -6007,20 +5938,10 @@
                         <p class="text-slate-900 font-bold text-base mt-3 leading-relaxed">${renderQuizMathText(q.soalan || '')}</p>
                         ${renderImageGallery(q.imageUrls, '')}
                     </div>
-                    <div class="grid grid-cols-1 gap-2 pt-1">
+                    <div class="grid grid-cols-2 gap-3 pt-1">
             `;
 
             ['A','B','C','D'].forEach(opt => {
-                const optText = q[opt.toLowerCase()] || '';
-                const optionImageMap = q.optionImageUrls || q.optionImages || {};
-                const optImagesRaw = optionImageMap[opt] || optionImageMap[opt.toLowerCase()] || [];
-                const optImages = Array.isArray(optImagesRaw) ? optImagesRaw.filter(Boolean) : [];
-                if(!optText && optImages.length === 0) return;
-
-                const optionImageHtml = optImages.map((url, imgIndex) => `
-                    <img src="${url}" class="mt-2 w-full max-h-28 object-contain rounded-lg border border-gray-100 bg-white p-1" alt="Gambar pilihan ${opt} ${imgIndex + 1}">
-                `).join('');
-
                 let style = 'border-gray-200 bg-white text-slate-700 hover:bg-slate-50';
                 let icon = '';
 
@@ -6040,14 +5961,9 @@
                 }
 
                 html += `
-                    <button ${answered ? 'disabled' : ''} onclick="answerStandaloneQuiz('${opt}')" class="w-full text-left p-4 rounded-xl border ${style} transition text-base">
-                        <div class="flex items-start justify-between gap-3">
-                            <div class="flex-1 min-w-0">
-                                <p class="text-base md:text-lg leading-relaxed"><strong class="mr-1">${opt}.</strong> ${optText ? renderQuizMathText(optText) : `Pilihan ${opt}`}</p>
-                                ${optionImageHtml}
-                            </div>
-                            <span class="shrink-0 pt-0.5">${icon}</span>
-                        </div>
+                    <button type="button" ${answered ? 'disabled' : ''} onclick="answerStandaloneQuiz('${opt}')" class="min-h-[76px] w-full p-4 rounded-xl border ${style} transition flex items-center justify-center">
+                        <span class="text-2xl font-extrabold">${opt}</span>
+                        ${icon ? `<span class="ml-2">${icon}</span>` : ''}
                     </button>
                 `;
             });
@@ -6700,10 +6616,6 @@
         function getCurrentQuizFormDraft() {
             return {
                 soalan: document.getElementById('adm-standalone-quiz-soalan')?.value || '',
-                a: document.getElementById('adm-standalone-quiz-a')?.value || '',
-                b: document.getElementById('adm-standalone-quiz-b')?.value || '',
-                c: document.getElementById('adm-standalone-quiz-c')?.value || '',
-                d: document.getElementById('adm-standalone-quiz-d')?.value || '',
                 jawapan: document.getElementById('adm-standalone-quiz-jawapan')?.value || '',
                 marks: document.getElementById('adm-standalone-quiz-marks')?.value || '1'
             };
@@ -6716,10 +6628,6 @@
 
         window.fillQuizWizardFromDraft = function(draft = {}) {
             setQuizWizardValue('adm-standalone-quiz-soalan', draft.soalan);
-            setQuizWizardValue('adm-standalone-quiz-a', draft.a);
-            setQuizWizardValue('adm-standalone-quiz-b', draft.b);
-            setQuizWizardValue('adm-standalone-quiz-c', draft.c);
-            setQuizWizardValue('adm-standalone-quiz-d', draft.d);
             setQuizWizardValue('adm-standalone-quiz-jawapan', draft.jawapan);
             setQuizWizardValue('adm-standalone-quiz-marks', draft.marks || '1');
             clearQuizPastedImages();
@@ -6728,7 +6636,7 @@
         };
 
         window.resetQuizWizardForm = function() {
-            ['adm-standalone-quiz-soalan','adm-standalone-quiz-image-file','adm-standalone-quiz-a','adm-standalone-quiz-b','adm-standalone-quiz-c','adm-standalone-quiz-d','adm-standalone-quiz-option-a-image-file','adm-standalone-quiz-option-b-image-file','adm-standalone-quiz-option-c-image-file','adm-standalone-quiz-option-d-image-file','adm-standalone-quiz-jawapan','adm-standalone-quiz-answer-image-file'].forEach(id => {
+            ['adm-standalone-quiz-soalan','adm-standalone-quiz-image-file','adm-standalone-quiz-jawapan','adm-standalone-quiz-answer-image-file'].forEach(id => {
                 const el = document.getElementById(id);
                 if(el) el.value = '';
             });
@@ -6758,13 +6666,9 @@
                 const chEl = document.getElementById('adm-quiz-chapter');
                 const subEl = document.getElementById('adm-quiz-subtopic');
                 const soalanEl = document.getElementById('adm-standalone-quiz-soalan');
-                const aEl = document.getElementById('adm-standalone-quiz-a');
-                const bEl = document.getElementById('adm-standalone-quiz-b');
-                const cEl = document.getElementById('adm-standalone-quiz-c');
-                const dEl = document.getElementById('adm-standalone-quiz-d');
                 const jawapanEl = document.getElementById('adm-standalone-quiz-jawapan');
 
-                if(!formEl || !chEl || !subEl || !soalanEl || !aEl || !bEl || !cEl || !dEl || !jawapanEl) {
+                if(!formEl || !chEl || !subEl || !soalanEl || !jawapanEl) {
                     return alert('Ralat: Ada input Quiz Manager yang tidak dijumpai. Sila refresh page dan cuba semula.');
                 }
 
@@ -6775,40 +6679,34 @@
                 const subtopicName = subEl.selectedOptions?.[0]?.textContent || '';
                 const marks = Math.max(1, Number(document.getElementById('adm-standalone-quiz-marks')?.value || getQuizLevelMark(quizLevel) || 1));
                 const soalan = soalanEl.value.trim();
-                const a = aEl.value.trim();
-                const b = bEl.value.trim();
-                const c = cEl.value.trim();
-                const d = dEl.value.trim();
                 const jawapan = jawapanEl.value.trim().toUpperCase();
                 const draftBeforeUpload = getCurrentQuizFormDraft();
 
-                const hasOptionAImage = ((document.getElementById('adm-standalone-quiz-option-a-image-file')?.files?.length || 0) + getPastedQuizImageFiles('adm-standalone-quiz-option-a-image-file').length) > 0;
-                const hasOptionBImage = ((document.getElementById('adm-standalone-quiz-option-b-image-file')?.files?.length || 0) + getPastedQuizImageFiles('adm-standalone-quiz-option-b-image-file').length) > 0;
-                const hasOptionCImage = ((document.getElementById('adm-standalone-quiz-option-c-image-file')?.files?.length || 0) + getPastedQuizImageFiles('adm-standalone-quiz-option-c-image-file').length) > 0;
-                const hasOptionDImage = ((document.getElementById('adm-standalone-quiz-option-d-image-file')?.files?.length || 0) + getPastedQuizImageFiles('adm-standalone-quiz-option-d-image-file').length) > 0;
+                const questionFileCount =
+                    (document.getElementById('adm-standalone-quiz-image-file')?.files?.length || 0) +
+                    getPastedQuizImageFiles('adm-standalone-quiz-image-file').length;
 
                 if(!formNum || !chKey) return alert('Sila pilih Tingkatan dan Bab.');
                 if(!subKey) return alert('Sila pilih Subtopik untuk soalan quiz.');
-                if(!soalan) return alert('Sila taip soalan quiz.');
-                if(!a && !hasOptionAImage) return alert('Sila isi teks atau upload gambar untuk pilihan A.');
-                if(!b && !hasOptionBImage) return alert('Sila isi teks atau upload gambar untuk pilihan B.');
-                if(!c && !hasOptionCImage) return alert('Sila isi teks atau upload gambar untuk pilihan C.');
-                if(!d && !hasOptionDImage) return alert('Sila isi teks atau upload gambar untuk pilihan D.');
+                if(!soalan && questionFileCount === 0) return alert('Sila taip soalan atau upload gambar soalan.');
                 if(!['A','B','C','D'].includes(jawapan)) return alert('Jawapan betul mesti A, B, C atau D.');
 
                 const imageUrls = await uploadMultipleFilesHelper('adm-standalone-quiz-image-file', 'standalone_quiz_questions');
                 const answerImageUrls = await uploadMultipleFilesHelper('adm-standalone-quiz-answer-image-file', 'standalone_quiz_answers');
-                const optionImageUrls = {
-                    A: await uploadMultipleFilesHelper('adm-standalone-quiz-option-a-image-file', 'standalone_quiz_option_answers/A'),
-                    B: await uploadMultipleFilesHelper('adm-standalone-quiz-option-b-image-file', 'standalone_quiz_option_answers/B'),
-                    C: await uploadMultipleFilesHelper('adm-standalone-quiz-option-c-image-file', 'standalone_quiz_option_answers/C'),
-                    D: await uploadMultipleFilesHelper('adm-standalone-quiz-option-d-image-file', 'standalone_quiz_option_answers/D')
-                };
                 const sortOrder = await getNextStandaloneQuizSortOrder(formNum, chKey, quizLevel);
                 const newRef = push(ref(db, `quizzes/${formNum}/${chKey}/${quizLevel}`));
+
                 await set(newRef, {
-                    soalan, imageUrls, a, b, c, d, jawapan, answerImageUrls, optionImageUrls,
-                    formNum, chapterKey: chKey,
+                    soalan,
+                    imageUrls,
+                    a: 'A',
+                    b: 'B',
+                    c: 'C',
+                    d: 'D',
+                    jawapan,
+                    answerImageUrls,
+                    formNum,
+                    chapterKey: chKey,
                     chapterName: getChapterDisplayName(formNum, chKey),
                     subKey,
                     subtopicKey: subKey,
@@ -6820,6 +6718,7 @@
                     createdAt: Date.now(),
                     createdBy: currentUser?.uid || ''
                 });
+
                 window.lastSavedQuizDraft = draftBeforeUpload;
                 try {
                     localStorage.setItem('mathJourneyLastQuizDraft', JSON.stringify(draftBeforeUpload));
@@ -6886,11 +6785,7 @@
                     const shortQuestion = safeQuestion.length > 75 ? safeQuestion.substring(0, 75) + '...' : safeQuestion;
                     const questionImageCount = Array.isArray(q.imageUrls) ? q.imageUrls.length : 0;
                     const answerImageCount = Array.isArray(q.answerImageUrls) ? q.answerImageUrls.length : 0;
-                    const optionImageMap = q.optionImageUrls || q.optionImages || {};
-                    const optionImageCount = ['A','B','C','D'].reduce((sum, opt) => {
-                        const imgs = optionImageMap[opt] || optionImageMap[opt.toLowerCase()] || [];
-                        return sum + (Array.isArray(imgs) ? imgs.length : 0);
-                    }, 0);
+                    const optionImageCount = 0;
                     const sourceBadge = sourceMode === 'legacy'
                         ? '<span class="bg-amber-100 text-amber-700 font-bold px-1.5 py-0.5 rounded">Legacy</span>'
                         : `<span class="font-bold">${getQuizLevelLabel(level)}</span>`;
@@ -7760,10 +7655,6 @@
 
             const ids = [
                 'adm-standalone-quiz-image-file',
-                'adm-standalone-quiz-option-a-image-file',
-                'adm-standalone-quiz-option-b-image-file',
-                'adm-standalone-quiz-option-c-image-file',
-                'adm-standalone-quiz-option-d-image-file',
                 'adm-standalone-quiz-answer-image-file'
             ];
 
@@ -9062,16 +8953,76 @@
         };
 
         window.claimCrewTask = async function(taskId) {
-            if(!currentUser) return;
+            if(!currentUser) return alert('Sila log masuk dahulu.');
+
+            const button = document.activeElement;
+            const originalText = button && button.tagName === 'BUTTON' ? button.innerHTML : '';
+
             try {
-                const taskRef=ref(db,`crewTasks/${taskId}`);
-                const result=await runTransaction(taskRef,t=>{
-                    if(!t || t.status!=='available') return;
-                    const now=Date.now(); return {...t,status:'claimed',claimedBy:currentUser.uid,claimedAt:now,claimDeadline:now+(Number(t.deadlineHours||24)*3600000)};
-                });
-                if(!result.committed) return alert('Tugasan ini telah diambil oleh Crew lain.');
-                alert('Tugasan berjaya diambil. Sila siapkan dalam tempoh yang ditetapkan.'); loadCrewTasks();
-            } catch(err){ alert('Ralat claim tugasan: '+err.message); }
+                if(button && button.tagName === 'BUTTON') {
+                    button.disabled = true;
+                    button.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Sedang ambil...';
+                }
+
+                const taskRef = ref(db, `crewTasks/${taskId}`);
+
+                // Panaskan cache dahulu. Tanpa langkah ini, transaksi Firebase kadang-kadang
+                // menerima nilai null pada cubaan pertama lalu dianggap tidak berjaya,
+                // walaupun tugasan sebenarnya masih berstatus "available".
+                const latestSnap = await get(taskRef);
+
+                if(!latestSnap.exists()) {
+                    return alert('Tugasan ini tidak lagi wujud.');
+                }
+
+                const latestTask = latestSnap.val();
+
+                if(latestTask.status !== 'available') {
+                    await loadCrewTasks();
+                    return alert('Tugasan ini baru sahaja diambil oleh Crew lain.');
+                }
+
+                const result = await runTransaction(taskRef, currentTask => {
+                    // Jangan terus abort apabila cache sementara belum lengkap.
+                    if(currentTask === null) return currentTask;
+
+                    if(currentTask.status !== 'available') {
+                        return;
+                    }
+
+                    const now = Date.now();
+
+                    return {
+                        ...currentTask,
+                        status: 'claimed',
+                        claimedBy: currentUser.uid,
+                        claimedAt: now,
+                        claimDeadline: now + (Number(currentTask.deadlineHours || 24) * 3600000)
+                    };
+                }, { applyLocally: false });
+
+                if(!result.committed) {
+                    await loadCrewTasks();
+                    return alert('Tugasan ini baru sahaja diambil oleh Crew lain.');
+                }
+
+                alert('Tugasan berjaya diambil. Sila siapkan dalam tempoh yang ditetapkan.');
+                await loadCrewTasks();
+
+            } catch(err) {
+                console.error('Claim Crew task error:', err);
+
+                if(err && err.code === 'PERMISSION_DENIED') {
+                    alert('Firebase menolak permintaan ini. Sila semak rules crewTasks.');
+                } else {
+                    alert('Ralat mengambil tugasan: ' + (err?.message || err));
+                }
+            } finally {
+                if(button && button.tagName === 'BUTTON') {
+                    button.disabled = false;
+                    button.innerHTML = originalText;
+                }
+            }
         };
 
         window.submitCrewTask = async function(taskId) {
