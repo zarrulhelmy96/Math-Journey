@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Math Journey - Belajar Matematik Langkah demi Langkah</title>
+    <meta name="math-journey-build" content="login-repaired-v3-2026-07-20">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -3162,10 +3163,17 @@
 
                 var auth = authModule.getAuth(app);
 
-                if (mode === 'login') {
-                    await authModule.signInWithEmailAndPassword(auth, email, password);
+                try {
+                    await authModule.setPersistence(auth, authModule.browserLocalPersistence);
+                } catch (persistenceError) {
+                    console.warn('Fallback persistence setup skipped:', persistenceError.message);
+                }
 
-                    // Main app akan mengesan sesi Firebase selepas reload.
+                if (mode === 'login') {
+                    const fallbackCredential = await authModule.signInWithEmailAndPassword(auth, email, password);
+                    await fallbackCredential.user.getIdToken(true);
+
+                    // Main app akan mengesan sesi Firebase yang telah disimpan selepas reload.
                     location.reload();
                     return;
                 }
@@ -3430,7 +3438,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail, sendEmailVerification, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail, sendEmailVerification, updatePassword, EmailAuthProvider, reauthenticateWithCredential, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-auth.js";
         import { getDatabase, ref, set, get, child, push, remove, update, runTransaction, onValue } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-database.js";
         import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-storage.js";
 
@@ -3446,6 +3454,11 @@
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
+        // Pastikan sesi login kekal selepas refresh/deploy dan tidak hilang lalu kembali ke landing page.
+        const authPersistenceReady = setPersistence(auth, browserLocalPersistence)
+            .catch((error) => {
+                console.warn('Firebase local persistence unavailable; continuing with default persistence:', error.message);
+            });
         const db = getDatabase(app);
         const storage = getStorage(app);
 
@@ -3882,59 +3895,14 @@
         }
 
         async function startSingleDeviceSession(user) {
-            if (!user) return false;
-
+            // AUTO-LOGOUT SATU DEVICE DIMATIKAN.
+            // Ciri lama ini boleh tersalah anggap sesi sendiri sebagai device lain dan menendang pengguna keluar.
+            // Login dan akses app tidak lagi bergantung pada activeSession atau Firebase Rules tambahan.
             stopActiveSessionWatcher();
             singleLoginLogoutInProgress = false;
-
-            currentActiveSessionId = generateActiveSessionId(user);
-            sessionStorage.setItem(ACTIVE_SESSION_STORAGE_KEY, currentActiveSessionId);
-
-            // Session tracking ialah ciri tambahan sahaja. Ia tidak boleh menggagalkan login.
-            try {
-                await update(ref(db, `users/${user.uid}/activeSession`), {
-                    sessionId: currentActiveSessionId,
-                    status: 'active',
-                    lastLogin: Date.now(),
-                    browser: (navigator.userAgent || '').substring(0, 140)
-                });
-            } catch (error) {
-                console.warn('Active session write skipped; login diteruskan:', error.message);
-                currentActiveSessionId = null;
-                sessionStorage.removeItem(ACTIVE_SESSION_STORAGE_KEY);
-                return false;
-            }
-
-            try {
-                activeSessionUnsubscribe = onValue(
-                    ref(db, `users/${user.uid}/activeSession/sessionId`),
-                    async (snap) => {
-                        const serverSessionId = snap.val();
-
-                        if (
-                            !singleLoginLogoutInProgress &&
-                            serverSessionId &&
-                            currentActiveSessionId &&
-                            serverSessionId !== currentActiveSessionId
-                        ) {
-                            singleLoginLogoutInProgress = true;
-                            stopActiveSessionWatcher();
-                            sessionStorage.removeItem(ACTIVE_SESSION_STORAGE_KEY);
-
-                            alert("Akaun ini telah login di device/browser lain. Sesi ini akan log keluar.");
-                            try { await signOut(auth); } catch(e) {}
-                            switchView('login');
-                        }
-                    },
-                    (error) => {
-                        console.warn('Active session watcher error:', error.message);
-                    }
-                );
-                return true;
-            } catch (error) {
-                console.warn('Active session watcher skipped; login diteruskan:', error.message);
-                return false;
-            }
+            currentActiveSessionId = null;
+            sessionStorage.removeItem(ACTIVE_SESSION_STORAGE_KEY);
+            return false;
         }
 
         async function clearActiveSessionBeforeLogout() {
@@ -3958,38 +3926,42 @@
             sessionStorage.removeItem(ACTIVE_SESSION_STORAGE_KEY);
         }
 
+        let firebaseAuthStateResolved = false;
+
         onAuthStateChanged(auth, async (user) => {
+            firebaseAuthStateResolved = true;
+
             if (user) {
                 currentUser = user;
 
-                // Muatkan dashboard dahulu. Kegagalan ciri sampingan tidak boleh sign out pengguna.
+                // PENTING: buka app serta-merta. Jangan tunggu database, leaderboard, rules atau session tracking.
+                // Jika mana-mana data tambahan gagal, pengguna tetap kekal login di dalam app.
+                switchView('dashboard');
+
                 try {
                     await checkUserPremiumAndLoadDashboard();
                 } catch (err) {
-                    console.error('Dashboard load error:', err);
-                }
-
-                // Single-device session bersifat optional. Jika Firebase Rules belum menyokongnya,
-                // pengguna masih kekal login dan boleh menggunakan aplikasi.
-                try {
-                    await startSingleDeviceSession(user);
-                } catch (err) {
-                    console.warn('Single-device session disabled for this login:', err.message);
+                    console.error('Dashboard data load error; user remains logged in:', err);
                 }
             } else {
                 stopActiveSessionWatcher();
                 currentActiveSessionId = null;
                 sessionStorage.removeItem(ACTIVE_SESSION_STORAGE_KEY);
-
                 currentUser = null;
                 isPremiumUser = false;
+
+                const loginView = document.getElementById('view-login');
+                const loginIsAlreadyOpen = loginView && !loginView.classList.contains('hide');
                 const urlReferralCode = getReferralCodeFromUrl();
+
                 if (urlReferralCode) {
                     localStorage.setItem(REFERRAL_STORAGE_KEY, urlReferralCode);
                     openRegisterWithReferral(urlReferralCode);
-                } else {
+                } else if (!loginIsAlreadyOpen) {
+                    // Jangan timpa skrin login dengan landing ketika pengguna sedang cuba login.
                     switchView('landing');
                 }
+
                 document.getElementById('app-nav').classList.add('hide');
                 document.getElementById('app-footer').classList.add('hide');
             }
@@ -4079,10 +4051,8 @@
                 updateAdminChapterDropdown();
                 if (!document.getElementById('view-quiz').classList.contains('hide')) loadQuizChaptersForUser();
 
-                if(document.getElementById('view-dashboard').classList.contains('hide') && 
-                   document.getElementById('view-landing').classList.contains('hide') === false) {
-                    switchView('dashboard');
-                }
+                // Firebase user masih sah: kekalkan pengguna di dalam app walaupun halaman sebelumnya login/landing.
+                if (currentUser) switchView('dashboard');
             } catch (err) {
                 alert("Ralat memuatkan data pengguna: " + err.message);
             }
@@ -4290,6 +4260,7 @@
                 }
 
                 try {
+                    await authPersistenceReady;
                     const uc = await signInWithEmailAndPassword(auth, email, password);
                     const user = uc.user;
                     let loginProfileData = {};
@@ -4304,16 +4275,23 @@
                     const isAdminLogin = await checkAdminStatus(user, loginProfileData);
                     const isExistingPremiumAccount = loginProfileData?.premium === true || loginProfileData?.hasAccess === true;
 
-                    // Admin dan akaun premium lama tidak dikunci keluar hanya kerana status verification lama.
+                    // Akaun lama yang belum verified tetap dibenarkan masuk.
+                    // Verification hanya peringatan, bukan sebab untuk menendang pengguna keluar.
                     if(!user.emailVerified && !isAdminLogin && !isExistingPremiumAccount) {
-                        try { await sendEmailVerification(user); } catch(e) {}
-                        await signOut(auth);
-                        alert("E-mel anda belum disahkan. Sila semak Gmail/inbox dan bahagian SPAM. Jika activation link tidak berwarna biru, sila tekan NOT SPAM. Verification email telah cuba dihantar semula.");
-                        switchView('login');
-                        return;
+                        const verificationNoticeKey = `mjVerificationNotice_${user.uid}`;
+                        if (!sessionStorage.getItem(verificationNoticeKey)) {
+                            sessionStorage.setItem(verificationNoticeKey, '1');
+                            try { await sendEmailVerification(user); } catch(e) {}
+                            alert("Login berjaya. E-mel anda belum disahkan, tetapi anda masih boleh masuk ke app. Sila semak Gmail/inbox dan SPAM untuk activation link.");
+                        }
                     }
 
+                    currentUser = user;
                     switchView('dashboard');
+                    // Muat data selepas dashboard dibuka; kegagalan database tidak boleh menggagalkan login.
+                    checkUserPremiumAndLoadDashboard().catch((loadError) => {
+                        console.warn('Post-login dashboard data load skipped:', loadError.message);
+                    });
                 } catch (err) {
                     const code = err?.code || '';
                     if (code === 'auth/invalid-credential' || code === 'auth/wrong-password' || code === 'auth/user-not-found') {
@@ -9081,22 +9059,6 @@
                 alert('Ralat menyimpan maklumat pembayaran: ' + err.message);
             }
         };
-
-        function getMalaysiaDateKey(timestamp = Date.now()) {
-            try {
-                const parts = new Intl.DateTimeFormat('en-CA', {
-                    timeZone: 'Asia/Kuala_Lumpur',
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit'
-                }).formatToParts(new Date(timestamp));
-                const map = Object.fromEntries(parts.map(part => [part.type, part.value]));
-                return `${map.year}-${map.month}-${map.day}`;
-            } catch(err) {
-                const d = new Date(timestamp);
-                return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-            }
-        }
 
         window.requestCrewWithdrawal = async function() {
             if(!currentUser) return alert('Sila log masuk terlebih dahulu.');
