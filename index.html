@@ -10926,62 +10926,6 @@
                 window.syncQuizManagerWithStructureSelection();
             }
         };
-    </script>
-
-    <script>
-    (function () {
-        function forceOpenCrewForm(event) {
-            if (event) {
-                event.preventDefault();
-                event.stopPropagation();
-                if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
-            }
-
-            var form = document.getElementById('crew-application-form');
-            if (!form) {
-                alert('Borang Crew tidak dijumpai. Sila refresh halaman dan cuba semula.');
-                return false;
-            }
-
-            form.classList.remove('hide');
-            form.classList.add('crew-force-open');
-            form.hidden = false;
-            form.style.setProperty('display', 'block', 'important');
-            form.style.setProperty('visibility', 'visible', 'important');
-            form.style.setProperty('opacity', '1', 'important');
-
-            window.setTimeout(function () {
-                try {
-                    form.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                } catch (error) {
-                    location.hash = 'crew-application-form';
-                }
-                var firstInput = document.getElementById('crew-fullname');
-                if (firstInput) firstInput.focus();
-            }, 30);
-
-            return false;
-        }
-
-        window.forceOpenCrewApplication = forceOpenCrewForm;
-
-        // Capture phase: catches the click before overlays or other handlers cancel it.
-        document.addEventListener('click', function (event) {
-            var target = event.target && event.target.closest
-                ? event.target.closest('#btn-open-crew-application, #btn-reopen-crew-application, [data-open-crew-application]')
-                : null;
-            if (!target) return;
-            forceOpenCrewForm(event);
-        }, true);
-
-        // Keyboard accessibility fallback.
-        document.addEventListener('keydown', function (event) {
-            if (event.key !== 'Enter' && event.key !== ' ') return;
-            var target = event.target;
-            if (!target || !target.matches || !target.matches('#btn-open-crew-application, #btn-reopen-crew-application, [data-open-crew-application]')) return;
-            forceOpenCrewForm(event);
-        }, true);
-    })();
 
         // ===== Math Journey Draft -> Preview -> Publish =====
         function mjDraftOwnerPath() {
@@ -11039,13 +10983,30 @@
             try {
                 const info = getCurrentSubtopicInfo();
                 if(!info.chKey || !info.subKey) return alert('Pilih Tingkatan, Bab dan Subtopik dahulu.');
+                const soalanEl = document.getElementById('adm-contoh-soalan');
+                const langkahEl = document.getElementById('adm-contoh-langkah');
+                const imageEl = document.getElementById('adm-contoh-image-file');
+                if(!soalanEl || !imageEl) return alert('Borang Contoh Soalan tidak dijumpai. Refresh halaman dan cuba semula.');
+
                 const selectedKey = document.getElementById('adm-content-list-select')?.value || '';
                 const existingRaw = selectedKey ? info.kandunganList?.[selectedKey] : null;
                 const existingItem = existingRaw ? normalizeContentItem(existingRaw, selectedKey) : null;
+                const oldUrls = existingItem?.type === 'contoh' ? (existingItem?.contoh?.imageUrls || []) : [];
                 const newUrls = await uploadMultipleFilesHelper('adm-contoh-image-file', 'draft_contoh_images');
-                const payload = buildContentPayload('contoh', existingItem, newUrls);
-                if(!payload.contoh?.soalan && !(payload.contoh?.imageUrls || []).length) return alert('Isi soalan atau upload gambar contoh dahulu.');
-                if(!payload.sortOrder) payload.sortOrder = selectedKey ? (existingItem?.sortOrder || 1) : getNextSortOrder(info.kandunganList || {});
+                const imageUrls = [...new Set([...(Array.isArray(oldUrls) ? oldUrls : []), ...newUrls])];
+                const payload = {
+                    type: 'contoh',
+                    timestamp: existingItem?.timestamp || existingItem?.createdAt || Date.now(),
+                    createdAt: existingItem?.createdAt || existingItem?.timestamp || Date.now(),
+                    updatedAt: Date.now(),
+                    sortOrder: selectedKey ? (existingItem?.sortOrder || 1) : getNextSortOrder(info.kandunganList || {}),
+                    contoh: {
+                        soalan: (soalanEl.value || '').trim(),
+                        langkah: (langkahEl?.value || '').trim(),
+                        imageUrls
+                    }
+                };
+                if(!payload.contoh.soalan && imageUrls.length === 0) return alert('Isi soalan atau upload gambar contoh dahulu.');
                 const targetKey = selectedKey || push(ref(db, `silibus/${info.formNum}/${info.chKey}/subtopik/${info.subKey}/kandungan_list`)).key;
                 await mjSaveDraftRecord({kind:'contoh', formNum:info.formNum, chKey:info.chKey, subKey:info.subKey, targetPath:`silibus/${info.formNum}/${info.chKey}/subtopik/${info.subKey}/kandungan_list/${targetKey}`, payload, title:mjDraftTitle('contoh',payload)});
             } catch(err) { alert('Ralat simpan draft contoh: ' + err.message); }
@@ -11057,7 +11018,7 @@
                 const chKey = document.getElementById('adm-quiz-chapter')?.value;
                 const subEl = document.getElementById('adm-quiz-subtopic');
                 const subKey = subEl?.value || '';
-                const level = getAdminQuizLevel();
+                const level = 'easy';
                 const soalan = (document.getElementById('adm-standalone-quiz-soalan')?.value || '').trim();
                 const jawapan = (document.getElementById('adm-standalone-quiz-jawapan')?.value || '').trim().toUpperCase();
                 if(!formNum || !chKey || !subKey) return alert('Pilih Tingkatan, Bab dan Subtopik quiz dahulu.');
@@ -11070,7 +11031,7 @@
                     soalan, imageUrls, a:'A', b:'B', c:'C', d:'D', jawapan, answerImageUrls,
                     formNum, chapterKey:chKey, chapterName:getChapterDisplayName(formNum,chKey),
                     subKey, subtopicKey:subKey, subtopicName:subEl?.selectedOptions?.[0]?.textContent || '',
-                    level, levelLabel:getQuizLevelLabel(level),
+                    level, levelLabel:'Easy',
                     marks:Math.max(1, Number(document.getElementById('adm-standalone-quiz-marks')?.value || 1)),
                     sortOrder:await getNextStandaloneQuizSortOrder(formNum,chKey,level),
                     createdAt:Date.now(), createdBy:currentUser?.uid || ''
@@ -11164,6 +11125,64 @@
             try { await remove(ref(db, `${mjDraftOwnerPath()}/${id}`)); await loadAdminDraftCenter(); }
             catch(err) { alert('Ralat buang draft: ' + err.message); }
         };
+
+
+    </script>
+
+    <script>
+    (function () {
+        function forceOpenCrewForm(event) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+                if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
+            }
+
+            var form = document.getElementById('crew-application-form');
+            if (!form) {
+                alert('Borang Crew tidak dijumpai. Sila refresh halaman dan cuba semula.');
+                return false;
+            }
+
+            form.classList.remove('hide');
+            form.classList.add('crew-force-open');
+            form.hidden = false;
+            form.style.setProperty('display', 'block', 'important');
+            form.style.setProperty('visibility', 'visible', 'important');
+            form.style.setProperty('opacity', '1', 'important');
+
+            window.setTimeout(function () {
+                try {
+                    form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                } catch (error) {
+                    location.hash = 'crew-application-form';
+                }
+                var firstInput = document.getElementById('crew-fullname');
+                if (firstInput) firstInput.focus();
+            }, 30);
+
+            return false;
+        }
+
+        window.forceOpenCrewApplication = forceOpenCrewForm;
+
+        // Capture phase: catches the click before overlays or other handlers cancel it.
+        document.addEventListener('click', function (event) {
+            var target = event.target && event.target.closest
+                ? event.target.closest('#btn-open-crew-application, #btn-reopen-crew-application, [data-open-crew-application]')
+                : null;
+            if (!target) return;
+            forceOpenCrewForm(event);
+        }, true);
+
+        // Keyboard accessibility fallback.
+        document.addEventListener('keydown', function (event) {
+            if (event.key !== 'Enter' && event.key !== ' ') return;
+            var target = event.target;
+            if (!target || !target.matches || !target.matches('#btn-open-crew-application, #btn-reopen-crew-application, [data-open-crew-application]')) return;
+            forceOpenCrewForm(event);
+        }, true);
+    })();
 
     </script>
 
