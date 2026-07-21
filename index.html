@@ -2177,6 +2177,7 @@
                 </div>
 
                 <div id="nota-list-content" class="p-5 space-y-3 hide"></div>
+                <div id="nota-viewer-content" class="p-5 hide"></div>
                 <div id="contoh-list-content" class="p-5 space-y-3 hide"></div>
                 <div id="flow-quiz-content" class="p-5 space-y-3 hide"></div>
                 <div id="contoh-viewer-content" class="p-5 hide"></div>
@@ -3864,6 +3865,9 @@
         // Variable global baharu
         let notaItems = [];
         let notaIndex = 0;
+        let selectedNotaIndex = 0;
+        let notaStepImages = [];
+        let notaStepIndex = 0;
         let contohItems = [];
         let contohIndex = 0;
         let selectedContohIndex = 0;
@@ -4935,8 +4939,10 @@
             const contohDiv = document.getElementById('contoh-list-content');
             const quizDiv = document.getElementById('flow-quiz-content');
             const viewerDiv = document.getElementById('contoh-viewer-content');
+            const notaViewerDiv = document.getElementById('nota-viewer-content');
 
             if(viewerDiv) viewerDiv.classList.add('hide');
+            if(notaViewerDiv) notaViewerDiv.classList.add('hide');
             if(notaDiv) notaDiv.classList.add('hide');
             if(contohDiv) contohDiv.classList.add('hide');
             if(quizDiv) quizDiv.classList.add('hide');
@@ -4955,15 +4961,19 @@
 
         function renderStudentNotaList() {
             const listDiv = document.getElementById('nota-list-content');
+            const viewerDiv = document.getElementById('nota-viewer-content');
             if(!listDiv) return;
+            if(viewerDiv) viewerDiv.classList.add('hide');
+            listDiv.classList.remove('hide');
+
             const subtopicData = getCurrentStudentSubtopicData();
             if(!subtopicData) {
                 listDiv.innerHTML = `<p class="text-xs text-gray-400 text-center py-6">Sila pilih subtopik terlebih dahulu.</p>`;
                 return;
             }
 
-            const items = sortExpandedItems(expandKandunganItems(getKandunganListFromSubtopic(subtopicData))).filter(i => i.type === 'nota');
-            if(items.length === 0) {
+            notaItems = sortExpandedItems(expandKandunganItems(getKandunganListFromSubtopic(subtopicData))).filter(i => i.type === 'nota');
+            if(notaItems.length === 0) {
                 listDiv.innerHTML = `<div class="text-center py-10 px-4 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
                     <div class="text-3xl mb-2">📝</div>
                     <p class="text-sm font-bold text-slate-700">Belum ada nota.</p>
@@ -4972,22 +4982,104 @@
                 return;
             }
 
-            listDiv.innerHTML = items.map((item, index) => {
+            const subtopicName = subtopicData.nama_subtopik || 'Subtopik';
+            let html = `
+                <div class="mb-3">
+                    <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">${escapeHtml(subtopicName)}</p>
+                    <h3 class="font-bold text-slate-900 text-base">Senarai Nota</h3>
+                </div>
+            `;
+
+            notaItems.forEach((item, index) => {
                 const n = item.nota || {};
                 const images = getImageUrlsForDisplay(n);
-                return `
-                    <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm text-xs space-y-3">
-                        <div>
+                const title = (n.maksud || n.formula || n.tips || `Nota ${index + 1}`).toString().trim();
+                html += `
+                    <button onclick="openNotaViewer(${index})" class="w-full bg-white border border-gray-100 p-4 rounded-2xl text-left shadow-sm hover:border-blue-300 transition flex justify-between items-center">
+                        <div class="pr-3 min-w-0">
                             <span class="bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-1 rounded-full">NOTA ${index + 1}</span>
+                            <h4 class="font-bold text-sm text-slate-900 mt-2 leading-relaxed line-clamp-2">${escapeHtml(title)}</h4>
+                            <p class="text-[11px] text-gray-400 mt-1">${images.length} gambar nota</p>
                         </div>
-                        ${n.maksud ? `<div><p class="font-bold text-slate-900 mb-1">Maksud</p><p class="text-gray-600 bg-gray-50 p-2.5 rounded-xl leading-relaxed whitespace-pre-line">${escapeHtml(n.maksud)}</p></div>` : ''}
-                        ${n.formula ? `<div><p class="font-bold text-slate-900 mb-1">Formula</p><p class="text-gray-600 bg-gray-50 p-2.5 rounded-xl leading-relaxed whitespace-pre-line">${renderQuizMathText(n.formula)}</p></div>` : ''}
-                        ${n.tips ? `<div><p class="font-bold text-slate-900 mb-1">Tips</p><p class="text-gray-600 bg-gray-50 p-2.5 rounded-xl leading-relaxed whitespace-pre-line">${escapeHtml(n.tips)}</p></div>` : ''}
-                        ${renderImageGallery(images, '')}
-                    </div>
+                        <i class="fa-solid fa-chevron-right text-xs text-gray-400"></i>
+                    </button>
                 `;
-            }).join('');
+            });
+
+            listDiv.innerHTML = html;
         }
+
+        window.openNotaViewer = function(index) {
+            selectedNotaIndex = index;
+            notaStepIndex = 0;
+            const item = notaItems[index] || {};
+            notaStepImages = getImageUrlsForDisplay(item.nota || {});
+            renderNotaStepViewer();
+        };
+
+        function renderNotaStepViewer() {
+            const listDiv = document.getElementById('nota-list-content');
+            const viewerDiv = document.getElementById('nota-viewer-content');
+            if(!viewerDiv) return;
+
+            const item = notaItems[selectedNotaIndex] || {};
+            const n = item.nota || {};
+            const hasImages = notaStepImages.length > 0;
+            const isFirst = notaStepIndex === 0;
+            const isLast = !hasImages || notaStepIndex === notaStepImages.length - 1;
+            const imgUrl = hasImages ? notaStepImages[notaStepIndex] : '';
+
+            if(listDiv) listDiv.classList.add('hide');
+            viewerDiv.classList.remove('hide');
+
+            viewerDiv.innerHTML = `
+                <button onclick="backToNotaList()" class="text-gray-500 text-sm mb-4"><i class="fa-solid fa-arrow-left"></i> Kembali ke senarai nota</button>
+                <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm space-y-4 text-xs">
+                    <div>
+                        <p class="text-[11px] font-bold text-blue-700 uppercase tracking-wider">Nota ${selectedNotaIndex + 1}</p>
+                    </div>
+                    ${n.maksud ? `<div><p class="font-bold text-slate-900 mb-1">Maksud</p><p class="text-gray-600 bg-gray-50 p-2.5 rounded-xl leading-relaxed whitespace-pre-line">${escapeHtml(n.maksud)}</p></div>` : ''}
+                    ${n.formula ? `<div><p class="font-bold text-slate-900 mb-1">Formula</p><p class="text-gray-600 bg-gray-50 p-2.5 rounded-xl leading-relaxed whitespace-pre-line">${renderQuizMathText(n.formula)}</p></div>` : ''}
+                    ${n.kesilapan ? `<div><p class="font-bold text-red-600 mb-1">Kesilapan Lazim</p><p class="text-red-700 bg-red-50 p-2.5 rounded-xl leading-relaxed whitespace-pre-line">${escapeHtml(n.kesilapan)}</p></div>` : ''}
+                    ${n.tips ? `<div><p class="font-bold text-emerald-700 mb-1">Tips</p><p class="text-emerald-700 bg-emerald-50 p-2.5 rounded-xl leading-relaxed whitespace-pre-line">${escapeHtml(n.tips)}</p></div>` : ''}
+                    ${hasImages ? `
+                        <div class="bg-slate-50 border border-gray-100 rounded-2xl p-2">
+                            <img src="${imgUrl}" class="w-full h-auto object-contain rounded-xl bg-white" alt="Gambar nota ${notaStepIndex + 1}">
+                        </div>
+                        <div class="text-center text-[11px] font-bold text-gray-400">Gambar ${notaStepIndex + 1} daripada ${notaStepImages.length}</div>
+                    ` : `<p class="text-center text-gray-400 bg-gray-50 rounded-xl py-5">Nota ini tidak mempunyai gambar.</p>`}
+                </div>
+                <div class="grid grid-cols-2 gap-3 mt-5">
+                    <button onclick="navigateNotaStep('back')" ${isFirst ? 'disabled' : ''} class="${isFirst ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-red-500 hover:bg-red-600 text-white'} font-bold py-3 rounded-xl transition">← Back</button>
+                    <button onclick="navigateNotaStep('next')" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl transition">${isLast ? 'Selesai' : 'Next →'}</button>
+                </div>
+            `;
+            window.scrollTo(0,0);
+        }
+
+        window.navigateNotaStep = function(direction) {
+            if(direction === 'back') {
+                if(notaStepIndex > 0) {
+                    notaStepIndex--;
+                    renderNotaStepViewer();
+                }
+                return;
+            }
+            if(notaStepIndex < notaStepImages.length - 1) {
+                notaStepIndex++;
+                renderNotaStepViewer();
+            } else {
+                backToNotaList();
+            }
+        };
+
+        window.backToNotaList = function() {
+            const listDiv = document.getElementById('nota-list-content');
+            const viewerDiv = document.getElementById('nota-viewer-content');
+            if(viewerDiv) viewerDiv.classList.add('hide');
+            if(listDiv) listDiv.classList.remove('hide');
+            window.scrollTo(0,0);
+        };
 
         function getSelectedStudentSubtopicKey() {
             return selectedStudentSubtopicKey || document.getElementById('flow-subtopic-select')?.value || '';
