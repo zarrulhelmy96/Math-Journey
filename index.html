@@ -2705,6 +2705,17 @@
                 <button onclick="uploadNotaFromAdmin()" class="w-full bg-green-700 hover:bg-green-800 text-white font-bold py-3 rounded-xl text-sm flex items-center justify-center space-x-1 shadow-md">
                     <i class="fa-solid fa-cloud-arrow-up"></i> <span>Upload Nota</span>
                 </button>
+
+                <div class="bg-white/90 p-3 rounded-xl border border-green-200 space-y-2 mt-3">
+                    <p class="font-bold text-[11px] text-green-800"><i class="fa-solid fa-list-check"></i> Urus Nota Dalam Subtopik Ini</p>
+                    <select id="adm-nota-list-select" onchange="renderSelectedNotaImageOrder()" class="w-full border p-2 rounded bg-white outline-none">
+                        <option value="">-- Pilih Nota --</option>
+                    </select>
+                    <button onclick="deleteSelectedNota()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold p-2 rounded-lg flex items-center justify-center space-x-1">
+                        <i class="fa-solid fa-trash-can"></i> <span>Padam Nota Terpilih</span>
+                    </button>
+                    <div id="adm-nota-image-order-panel" class="hide bg-white border border-green-200 rounded-xl p-3 space-y-2"></div>
+                </div>
             </div>
 
             <div class="bg-white border border-gray-200 p-4 rounded-xl space-y-3 mb-6 text-xs shadow-sm">
@@ -7778,6 +7789,47 @@
             loadSubtopicContentList();
         };
 
+        window.loadAdminNotaList = function() {
+            const formNum = document.getElementById('adm-form')?.value;
+            const chKey = document.getElementById('adm-chapter-select')?.value;
+            const subKey = document.getElementById('adm-subtopic-select')?.value;
+            const selectEl = document.getElementById('adm-nota-list-select');
+            if(!selectEl) return;
+
+            const previous = selectEl.value || '';
+            selectEl.innerHTML = '<option value="">-- Pilih Nota --</option>';
+            const subtopicData = appSilibusData?.[formNum]?.[chKey]?.subtopik?.[subKey];
+            if(!chKey || !subKey || !subtopicData) {
+                renderSelectedNotaImageOrder();
+                return;
+            }
+
+            const kandunganList = getKandunganListFromSubtopic(subtopicData);
+            const noteKeys = getOrderedContentKeys(kandunganList || {}).filter(key => {
+                const item = normalizeContentItem(kandunganList[key] || {}, key);
+                return (item.type || guessContentType(item)) === 'nota';
+            });
+
+            if(noteKeys.length === 0) {
+                selectEl.innerHTML = '<option value="">-- Belum ada nota --</option>';
+                renderSelectedNotaImageOrder();
+                return;
+            }
+
+            noteKeys.forEach((key, index) => {
+                const item = normalizeContentItem(kandunganList[key] || {}, key);
+                const nota = item.nota || {};
+                const title = (nota.maksud || nota.formula || nota.tips || `Nota ${index + 1}`).toString().trim();
+                const opt = document.createElement('option');
+                opt.value = key;
+                opt.innerText = `${index + 1}. ${title.substring(0, 65)}`;
+                selectEl.appendChild(opt);
+            });
+
+            if(previous && noteKeys.includes(previous)) selectEl.value = previous;
+            renderSelectedNotaImageOrder();
+        };
+
         window.loadSubtopicContentList = function() {
             const formNum = document.getElementById('adm-form').value;
             const chKey = document.getElementById('adm-chapter-select').value;
@@ -7785,6 +7837,7 @@
             const selectList = document.getElementById('adm-content-list-select');
 
             if (!selectList) return;
+            if (typeof window.loadAdminNotaList === 'function') window.loadAdminNotaList();
             const previouslySelected = selectList.value || currentEditingContentKey || "";
             selectList.innerHTML = '<option value="">-- Tiada Contoh Soalan Dipilih --</option>';
 
@@ -8241,6 +8294,95 @@
             setContentEditMode(contentKey);
             alert("Mode edit dibuka. Gambar lama akan dikekalkan. Jika upload gambar baru, gambar baru akan ditambah bersama gambar lama.");
             document.getElementById('adm-content-type').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        };
+
+        window.renderSelectedNotaImageOrder = function() {
+            const panel = document.getElementById('adm-nota-image-order-panel');
+            const selectEl = document.getElementById('adm-nota-list-select');
+            if(!panel || !selectEl) return;
+            const contentKey = selectEl.value;
+            panel.classList.add('hide');
+            panel.innerHTML = '';
+
+            const info = getCurrentSubtopicInfo();
+            if(!info.chKey || !info.subKey || !contentKey) return;
+            const rawItem = info.kandunganList?.[contentKey];
+            if(!rawItem) return;
+            const item = normalizeContentItem(rawItem, contentKey);
+            const urls = getImageUrlsForEdit(item.nota || {});
+
+            panel.classList.remove('hide');
+            if(urls.length === 0) {
+                panel.innerHTML = '<p class="text-[10px] text-gray-500 text-center py-2">Nota ini belum mempunyai gambar untuk disusun.</p>';
+                return;
+            }
+
+            panel.innerHTML = `
+                <div class="border-b border-green-100 pb-2">
+                    <p class="font-bold text-green-900 text-xs"><i class="fa-solid fa-arrow-down-up-across-line"></i> Susun Gambar Nota</p>
+                    <p class="text-[10px] text-gray-500">Tekan Up atau Down. Susunan pelajar akan berubah terus.</p>
+                </div>
+                <div class="space-y-2 pt-1">
+                    ${urls.map((url, index) => `
+                        <div class="flex items-center gap-2 bg-green-50/70 border border-green-100 rounded-lg p-2">
+                            <img src="${url}" class="w-14 h-14 object-cover rounded border bg-white" alt="Gambar nota ${index + 1}">
+                            <div class="flex-1 min-w-0">
+                                <p class="font-bold text-slate-800 text-[11px]">Gambar ${index + 1}</p>
+                                <p class="text-[10px] text-gray-500 truncate">${escapeHtml(url)}</p>
+                            </div>
+                            <div class="flex flex-col gap-1">
+                                <button onclick="moveSelectedNotaImage(${index}, 'up')" ${index === 0 ? 'disabled' : ''} class="${index === 0 ? 'bg-gray-100 text-gray-300' : 'bg-slate-800 text-white'} px-2 py-1 rounded text-[10px] font-bold">Up</button>
+                                <button onclick="moveSelectedNotaImage(${index}, 'down')" ${index === urls.length - 1 ? 'disabled' : ''} class="${index === urls.length - 1 ? 'bg-gray-100 text-gray-300' : 'bg-slate-800 text-white'} px-2 py-1 rounded text-[10px] font-bold">Down</button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>`;
+        };
+
+        window.moveSelectedNotaImage = async function(index, direction) {
+            const info = getCurrentSubtopicInfo();
+            const contentKey = document.getElementById('adm-nota-list-select')?.value;
+            if(!info.chKey || !info.subKey || !contentKey) return alert('Sila pilih nota dahulu.');
+
+            try {
+                const itemRef = ref(db, `silibus/${info.formNum}/${info.chKey}/subtopik/${info.subKey}/kandungan_list/${contentKey}`);
+                const snap = await get(itemRef);
+                if(!snap.exists()) return alert('Nota tidak ditemui.');
+                const item = normalizeContentItem(snap.val() || {}, contentKey);
+                const urls = getImageUrlsForEdit(item.nota || {});
+                const targetIndex = direction === 'up' ? index - 1 : index + 1;
+                if(targetIndex < 0 || targetIndex >= urls.length) return;
+                [urls[index], urls[targetIndex]] = [urls[targetIndex], urls[index]];
+                await update(itemRef, { 'nota/imageUrls': urls, updatedAt: Date.now() });
+
+                const snapshot = await get(ref(db, 'silibus'));
+                appSilibusData = snapshot.exists() ? snapshot.val() : {};
+                loadAdminNotaList();
+                document.getElementById('adm-nota-list-select').value = contentKey;
+                renderSelectedNotaImageOrder();
+                if(currentLevel && currentChapterKey && currentFlowTab) switchFlowSubTab(currentFlowTab);
+            } catch(err) {
+                alert('Ralat susun gambar nota: ' + err.message);
+            }
+        };
+
+        window.deleteSelectedNota = async function() {
+            const info = getCurrentSubtopicInfo();
+            const contentKey = document.getElementById('adm-nota-list-select')?.value;
+            if(!info.chKey || !info.subKey || !contentKey) return alert('Sila pilih nota yang mahu dipadam.');
+            if(!confirm('Adakah anda pasti mahu memadam nota ini? Tindakan ini tidak boleh dibatalkan.')) return;
+
+            try {
+                await remove(ref(db, `silibus/${info.formNum}/${info.chKey}/subtopik/${info.subKey}/kandungan_list/${contentKey}`));
+                const snapshot = await get(ref(db, 'silibus'));
+                appSilibusData = snapshot.exists() ? snapshot.val() : {};
+                loadAdminNotaList();
+                loadSubtopicContentList();
+                if(currentLevel && currentChapterKey && currentFlowTab) switchFlowSubTab(currentFlowTab);
+                alert('Nota berjaya dipadam.');
+            } catch(err) {
+                alert('Ralat padam nota: ' + err.message);
+            }
         };
 
         window.renderSelectedContentImageOrder = function() {
