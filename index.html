@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Math Journey - Belajar Matematik Langkah demi Langkah</title>
-    <meta name="math-journey-build" content="single-device-horizontal-scroll-repaired-v5-2026-07-21">
+    <meta name="math-journey-build" content="single-device-visible-horizontal-slider-v6-2026-07-22">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -690,6 +690,36 @@
             z-index: 2;
             padding-left: 6px;
             background: inherit;
+        }
+        .mj-admin-horizontal-controls {
+            display: grid;
+            grid-template-columns: auto minmax(120px, 1fr) auto;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+            padding: 8px;
+            border: 1px solid #ddd6fe;
+            border-radius: 12px;
+            background: #faf5ff;
+        }
+        .mj-admin-horizontal-controls button {
+            min-width: 42px;
+            padding: 7px 9px !important;
+            border-radius: 9px !important;
+            background: #6d28d9 !important;
+            color: #fff !important;
+            font-size: 11px !important;
+            font-weight: 800 !important;
+        }
+        .mj-admin-horizontal-slider {
+            display: block !important;
+            width: 100% !important;
+            min-width: 120px !important;
+            height: 22px;
+            margin: 0 !important;
+            padding: 0 !important;
+            accent-color: #6d28d9;
+            cursor: ew-resize;
         }
     
 
@@ -7502,7 +7532,7 @@
                         </div>
                         <button onclick="closeStandaloneQuizImageOrderPanel()" class="text-gray-400 hover:text-red-500 text-xs font-bold">Tutup</button>
                     </div>
-                    <div class="mj-admin-order-scroll">
+                    <div id="adm-quiz-order-scroll" class="mj-admin-order-scroll">
                         <div class="space-y-2 mj-admin-order-list">
                         ${urls.map((url, index) => `
                             <div class="flex items-center gap-2 bg-blue-50/60 border border-blue-100 rounded-lg p-2 mj-admin-order-row">
@@ -7519,10 +7549,42 @@
                         `).join('')}
                         </div>
                     </div>
+                    <div class="mj-admin-horizontal-controls">
+                        <button type="button" onclick="mjAdminScrollStep('adm-quiz-order-scroll', -1)">← Kiri</button>
+                        <input id="adm-quiz-order-slider" class="mj-admin-horizontal-slider" type="range" min="0" max="1" value="0" aria-label="Slider mendatar susun gambar quiz">
+                        <button type="button" onclick="mjAdminScrollStep('adm-quiz-order-scroll', 1)">Kanan →</button>
+                    </div>
                 `;
+                mjBindAdminHorizontalSlider('adm-quiz-order-scroll', 'adm-quiz-order-slider');
             } catch(err) {
                 panel.innerHTML = `<p class="text-[10px] text-red-600 text-center py-2">Ralat susun gambar: ${escapeHtml(err.message)}</p>`;
             }
+        };
+
+        window.mjBindAdminHorizontalSlider = function(scrollId, sliderId) {
+            requestAnimationFrame(() => {
+                const scroller = document.getElementById(scrollId);
+                const slider = document.getElementById(sliderId);
+                if(!scroller || !slider) return;
+
+                const syncRange = () => {
+                    const maxScroll = Math.max(0, scroller.scrollWidth - scroller.clientWidth);
+                    slider.max = String(Math.max(1, Math.round(maxScroll)));
+                    slider.value = String(Math.min(maxScroll, Math.round(scroller.scrollLeft)));
+                    slider.disabled = maxScroll <= 0;
+                };
+
+                slider.oninput = () => { scroller.scrollLeft = Number(slider.value || 0); };
+                scroller.onscroll = () => { slider.value = String(Math.round(scroller.scrollLeft)); };
+                syncRange();
+                setTimeout(syncRange, 120);
+            });
+        };
+
+        window.mjAdminScrollStep = function(scrollId, direction) {
+            const scroller = document.getElementById(scrollId);
+            if(!scroller) return;
+            scroller.scrollBy({ left: direction * Math.max(180, scroller.clientWidth * 0.65), behavior: 'smooth' });
         };
 
         window.closeStandaloneQuizImageOrderPanel = function() {
@@ -8644,7 +8706,7 @@
                     <p class="font-bold text-green-900 text-xs"><i class="fa-solid fa-arrow-down-up-across-line"></i> Susun Gambar Nota</p>
                     <p class="text-[10px] text-gray-500">Tekan Up atau Down. Susunan pelajar akan berubah terus.</p>
                 </div>
-                <div class="mj-admin-order-scroll pt-1">
+                <div id="adm-nota-order-scroll" class="mj-admin-order-scroll pt-1">
                     <div class="space-y-2 mj-admin-order-list">
                     ${urls.map((url, index) => `
                         <div class="flex items-center gap-2 bg-green-50/70 border border-green-100 rounded-lg p-2 mj-admin-order-row">
@@ -8660,7 +8722,13 @@
                         </div>
                     `).join('')}
                     </div>
+                </div>
+                <div class="mj-admin-horizontal-controls">
+                    <button type="button" onclick="mjAdminScrollStep('adm-nota-order-scroll', -1)">← Kiri</button>
+                    <input id="adm-nota-order-slider" class="mj-admin-horizontal-slider" type="range" min="0" max="1" value="0" aria-label="Slider mendatar susun gambar nota">
+                    <button type="button" onclick="mjAdminScrollStep('adm-nota-order-scroll', 1)">Kanan →</button>
                 </div>`;
+            mjBindAdminHorizontalSlider('adm-nota-order-scroll', 'adm-nota-order-slider');
         };
 
         window.moveSelectedNotaImage = async function(index, direction) {
@@ -8739,7 +8807,7 @@
                         <p class="text-[10px] text-gray-500">Ini ubah order gambar dalam contoh soalan yang dipilih.</p>
                     </div>
                 </div>
-                <div class="mj-admin-order-scroll pt-1">
+                <div id="adm-content-order-scroll" class="mj-admin-order-scroll pt-1">
                     <div class="space-y-2 mj-admin-order-list">
                     ${urls.map((url, index) => `
                         <div class="flex items-center gap-2 bg-indigo-50/60 border border-indigo-100 rounded-lg p-2 mj-admin-order-row">
@@ -8756,7 +8824,13 @@
                     `).join('')}
                     </div>
                 </div>
+                <div class="mj-admin-horizontal-controls">
+                    <button type="button" onclick="mjAdminScrollStep('adm-content-order-scroll', -1)">← Kiri</button>
+                    <input id="adm-content-order-slider" class="mj-admin-horizontal-slider" type="range" min="0" max="1" value="0" aria-label="Slider mendatar susun gambar contoh soalan">
+                    <button type="button" onclick="mjAdminScrollStep('adm-content-order-scroll', 1)">Kanan →</button>
+                </div>
             `;
+            mjBindAdminHorizontalSlider('adm-content-order-scroll', 'adm-content-order-slider');
         };
 
         window.moveSelectedContentImage = async function(index, direction) {
