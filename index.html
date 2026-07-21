@@ -1817,7 +1817,94 @@
         }
         .mj-admin-horizontal-controls { position: relative; z-index: 30; }
 
-    </style>
+    
+
+        /* FINAL FIX: responsive image-order rows; controls always visible, no fake slider */
+        #adm-standalone-quiz-image-order-panel,
+        #adm-nota-image-order-panel,
+        #adm-content-image-order-panel {
+            overflow: hidden !important;
+            max-width: 100% !important;
+        }
+        .mj-admin-order-scroll {
+            width: 100% !important;
+            max-width: 100% !important;
+            overflow-x: hidden !important;
+            overflow-y: visible !important;
+            padding: 2px 0 6px !important;
+        }
+        .mj-admin-order-list {
+            display: block !important;
+            width: 100% !important;
+            min-width: 0 !important;
+            max-width: 100% !important;
+            transform: none !important;
+        }
+        .mj-admin-order-row {
+            display: grid !important;
+            grid-template-columns: 72px minmax(0, 1fr) 58px !important;
+            align-items: center !important;
+            gap: 10px !important;
+            width: 100% !important;
+            min-width: 0 !important;
+            max-width: 100% !important;
+            box-sizing: border-box !important;
+            overflow: hidden !important;
+        }
+        .mj-admin-order-row > img {
+            width: 72px !important;
+            height: 72px !important;
+            max-width: 72px !important;
+        }
+        .mj-admin-order-text {
+            min-width: 0 !important;
+            width: 100% !important;
+            overflow: hidden !important;
+        }
+        .mj-admin-order-text p:last-child {
+            display: block !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            white-space: nowrap !important;
+        }
+        .mj-admin-order-actions {
+            position: static !important;
+            right: auto !important;
+            z-index: auto !important;
+            width: 58px !important;
+            min-width: 58px !important;
+            padding-left: 0 !important;
+            background: transparent !important;
+            justify-self: end !important;
+        }
+        .mj-admin-order-actions button {
+            width: 58px !important;
+            min-width: 58px !important;
+            padding: 7px 4px !important;
+        }
+        .mj-admin-horizontal-controls {
+            display: none !important;
+        }
+        @media (max-width: 420px) {
+            .mj-admin-order-row {
+                grid-template-columns: 58px minmax(0, 1fr) 52px !important;
+                gap: 7px !important;
+                padding: 7px !important;
+            }
+            .mj-admin-order-row > img {
+                width: 58px !important;
+                height: 58px !important;
+                max-width: 58px !important;
+            }
+            .mj-admin-order-actions,
+            .mj-admin-order-actions button {
+                width: 52px !important;
+                min-width: 52px !important;
+            }
+        }
+</style>
 </head>
 <body class="text-slate-800 antialiased">
 
@@ -11154,5 +11241,39 @@
     })();
     </script>
 
+
+<script>
+(function(){
+  function normalizeAdminOrderPanels(root){
+    (root || document).querySelectorAll('.mj-admin-order-scroll').forEach(function(viewport){
+      viewport.style.removeProperty('position');
+      viewport.style.setProperty('overflow-x','hidden','important');
+      var list=viewport.querySelector('.mj-admin-order-list');
+      if(list){
+        list.style.setProperty('transform','none','important');
+        list.style.setProperty('width','100%','important');
+        list.style.setProperty('min-width','0','important');
+      }
+      viewport.querySelectorAll('.mj-admin-order-row').forEach(function(row){
+        row.style.setProperty('width','100%','important');
+        row.style.setProperty('min-width','0','important');
+        row.style.setProperty('max-width','100%','important');
+      });
+    });
+  }
+  window.mjBindAdminHorizontalSlider=function(){
+    requestAnimationFrame(function(){ normalizeAdminOrderPanels(document); });
+  };
+  var observer=new MutationObserver(function(mutations){
+    var should=false;
+    mutations.forEach(function(m){ if(m.addedNodes && m.addedNodes.length) should=true; });
+    if(should) requestAnimationFrame(function(){ normalizeAdminOrderPanels(document); });
+  });
+  document.addEventListener('DOMContentLoaded',function(){
+    normalizeAdminOrderPanels(document);
+    observer.observe(document.body,{childList:true,subtree:true});
+  });
+})();
+</script>
 </body>
 </html>
