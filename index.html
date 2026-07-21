@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Math Journey - Belajar Matematik Langkah demi Langkah</title>
-    <meta name="math-journey-build" content="single-device-visible-horizontal-slider-v6-2026-07-22">
+    <meta name="math-journey-build" content="quiz-move-subtopic-image-order-repaired-v4-2026-07-21">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -641,43 +641,28 @@
         #adm-standalone-quiz-image-order-panel,
         #adm-nota-image-order-panel,
         #adm-content-image-order-panel {
-            display: block;
-            width: 100%;
             max-width: 100%;
-            min-width: 0;
             overflow: hidden;
         }
-        #adm-standalone-quiz-image-order-panel.hide,
-        #adm-nota-image-order-panel.hide,
-        #adm-content-image-order-panel.hide { display: none !important; }
         .mj-admin-order-scroll {
-            display: block;
             width: 100%;
             max-width: 100%;
-            min-width: 0;
-            overflow-x: scroll !important;
-            overflow-y: hidden;
+            overflow-x: auto;
+            overflow-y: visible;
             -webkit-overflow-scrolling: touch;
-            scrollbar-gutter: stable both-edges;
-            padding: 2px 0 12px;
-            touch-action: pan-x pan-y;
+            scrollbar-gutter: stable;
+            padding-bottom: 6px;
         }
-        .mj-admin-order-scroll::-webkit-scrollbar { height: 12px; }
-        .mj-admin-order-scroll::-webkit-scrollbar-track { background: #e2e8f0; border-radius: 999px; }
-        .mj-admin-order-scroll::-webkit-scrollbar-thumb { background: #6d28d9; border: 2px solid #e2e8f0; border-radius: 999px; }
+        .mj-admin-order-scroll::-webkit-scrollbar { height: 8px; }
+        .mj-admin-order-scroll::-webkit-scrollbar-track { background: #eef2f7; border-radius: 999px; }
+        .mj-admin-order-scroll::-webkit-scrollbar-thumb { background: #7c3aed; border-radius: 999px; }
         .mj-admin-order-list {
-            width: max-content;
-            min-width: 620px;
-            padding-right: 4px;
+            min-width: 0;
+            width: 100%;
         }
         .mj-admin-order-row {
-            width: 620px;
-            min-width: 620px;
-            max-width: 620px;
-        }
-        @media (min-width: 760px) {
-            .mj-admin-order-list { min-width: 760px; }
-            .mj-admin-order-row { width: 760px; min-width: 760px; max-width: 760px; }
+            width: 100%;
+            min-width: 0;
         }
         .mj-admin-order-row > .mj-admin-order-text {
             min-width: 0;
@@ -690,36 +675,6 @@
             z-index: 2;
             padding-left: 6px;
             background: inherit;
-        }
-        .mj-admin-horizontal-controls {
-            display: grid;
-            grid-template-columns: auto minmax(120px, 1fr) auto;
-            align-items: center;
-            gap: 8px;
-            margin-top: 8px;
-            padding: 8px;
-            border: 1px solid #ddd6fe;
-            border-radius: 12px;
-            background: #faf5ff;
-        }
-        .mj-admin-horizontal-controls button {
-            min-width: 42px;
-            padding: 7px 9px !important;
-            border-radius: 9px !important;
-            background: #6d28d9 !important;
-            color: #fff !important;
-            font-size: 11px !important;
-            font-weight: 800 !important;
-        }
-        .mj-admin-horizontal-slider {
-            display: block !important;
-            width: 100% !important;
-            min-width: 120px !important;
-            height: 22px;
-            margin: 0 !important;
-            padding: 0 !important;
-            accent-color: #6d28d9;
-            cursor: ew-resize;
         }
     
 
@@ -1803,108 +1758,7 @@
             border-radius: 999px;
         }
 
-    
-        /* Final admin slider fix: visible, draggable thumb + transform viewport */
-        .mj-admin-order-scroll { overflow-x: hidden !important; }
-        .mj-admin-horizontal-slider {
-            appearance: auto !important;
-            -webkit-appearance: auto !important;
-            pointer-events: auto !important;
-            touch-action: none !important;
-            opacity: 1 !important;
-            position: relative !important;
-            z-index: 20 !important;
-        }
-        .mj-admin-horizontal-controls { position: relative; z-index: 30; }
-
-    
-
-        /* FINAL FIX: responsive image-order rows; controls always visible, no fake slider */
-        #adm-standalone-quiz-image-order-panel,
-        #adm-nota-image-order-panel,
-        #adm-content-image-order-panel {
-            overflow: hidden !important;
-            max-width: 100% !important;
-        }
-        .mj-admin-order-scroll {
-            width: 100% !important;
-            max-width: 100% !important;
-            overflow-x: hidden !important;
-            overflow-y: visible !important;
-            padding: 2px 0 6px !important;
-        }
-        .mj-admin-order-list {
-            display: block !important;
-            width: 100% !important;
-            min-width: 0 !important;
-            max-width: 100% !important;
-            transform: none !important;
-        }
-        .mj-admin-order-row {
-            display: grid !important;
-            grid-template-columns: 72px minmax(0, 1fr) 58px !important;
-            align-items: center !important;
-            gap: 10px !important;
-            width: 100% !important;
-            min-width: 0 !important;
-            max-width: 100% !important;
-            box-sizing: border-box !important;
-            overflow: hidden !important;
-        }
-        .mj-admin-order-row > img {
-            width: 72px !important;
-            height: 72px !important;
-            max-width: 72px !important;
-        }
-        .mj-admin-order-text {
-            min-width: 0 !important;
-            width: 100% !important;
-            overflow: hidden !important;
-        }
-        .mj-admin-order-text p:last-child {
-            display: block !important;
-            width: 100% !important;
-            max-width: 100% !important;
-            overflow: hidden !important;
-            text-overflow: ellipsis !important;
-            white-space: nowrap !important;
-        }
-        .mj-admin-order-actions {
-            position: static !important;
-            right: auto !important;
-            z-index: auto !important;
-            width: 58px !important;
-            min-width: 58px !important;
-            padding-left: 0 !important;
-            background: transparent !important;
-            justify-self: end !important;
-        }
-        .mj-admin-order-actions button {
-            width: 58px !important;
-            min-width: 58px !important;
-            padding: 7px 4px !important;
-        }
-        .mj-admin-horizontal-controls {
-            display: none !important;
-        }
-        @media (max-width: 420px) {
-            .mj-admin-order-row {
-                grid-template-columns: 58px minmax(0, 1fr) 52px !important;
-                gap: 7px !important;
-                padding: 7px !important;
-            }
-            .mj-admin-order-row > img {
-                width: 58px !important;
-                height: 58px !important;
-                max-width: 58px !important;
-            }
-            .mj-admin-order-actions,
-            .mj-admin-order-actions button {
-                width: 52px !important;
-                min-width: 52px !important;
-            }
-        }
-</style>
+    </style>
 </head>
 <body class="text-slate-800 antialiased">
 
@@ -4102,28 +3956,16 @@
         window.standaloneQuizContext = null;
         window.standaloneQuizIsFinishing = false;
 
-        // Single-device login control
-        // Satu akaun hanya boleh mempunyai satu device/browser aktif pada satu masa.
+        // Single-login session control
+        // Tujuan: satu akaun hanya aktif pada satu device/browser pada satu masa.
         const ACTIVE_SESSION_STORAGE_KEY = 'mathJourneyActiveSessionId';
-        const DEVICE_ID_STORAGE_KEY = 'mathJourneyDeviceId';
-        let currentActiveSessionId = localStorage.getItem(ACTIVE_SESSION_STORAGE_KEY) || null;
+        let currentActiveSessionId = sessionStorage.getItem(ACTIVE_SESSION_STORAGE_KEY) || null;
         let activeSessionUnsubscribe = null;
         let singleLoginLogoutInProgress = false;
-        let singleLoginUserUid = null;
-
-        function getOrCreateDeviceId() {
-            let deviceId = localStorage.getItem(DEVICE_ID_STORAGE_KEY);
-            if (!deviceId) {
-                const randomPart = (crypto?.randomUUID?.() || `${Date.now()}_${Math.random().toString(36).slice(2)}`);
-                deviceId = `mj_device_${randomPart}`;
-                localStorage.setItem(DEVICE_ID_STORAGE_KEY, deviceId);
-            }
-            return deviceId;
-        }
 
         function generateActiveSessionId(user) {
-            // ID kekal sama untuk tab-tab pada browser/device yang sama.
-            return `${user.uid}_${getOrCreateDeviceId()}`;
+            const randomPart = Math.random().toString(36).substring(2, 12);
+            return `${user.uid}_${Date.now()}_${randomPart}`;
         }
 
         function stopActiveSessionWatcher() {
@@ -4131,52 +3973,17 @@
                 try { activeSessionUnsubscribe(); } catch(e) {}
             }
             activeSessionUnsubscribe = null;
-            singleLoginUserUid = null;
         }
 
         async function startSingleDeviceSession(user) {
-            if (!user) return false;
-
-            const thisSessionId = generateActiveSessionId(user);
-            if (singleLoginUserUid === user.uid && currentActiveSessionId === thisSessionId && activeSessionUnsubscribe) {
-                return true;
-            }
-
+            // AUTO-LOGOUT SATU DEVICE DIMATIKAN.
+            // Ciri lama ini boleh tersalah anggap sesi sendiri sebagai device lain dan menendang pengguna keluar.
+            // Login dan akses app tidak lagi bergantung pada activeSession atau Firebase Rules tambahan.
             stopActiveSessionWatcher();
             singleLoginLogoutInProgress = false;
-            singleLoginUserUid = user.uid;
-            currentActiveSessionId = thisSessionId;
-            localStorage.setItem(ACTIVE_SESSION_STORAGE_KEY, thisSessionId);
-
-            const activeSessionRef = ref(db, `users/${user.uid}/activeSession`);
-            await set(activeSessionRef, {
-                sessionId: thisSessionId,
-                deviceId: getOrCreateDeviceId(),
-                status: 'active',
-                loginAt: Date.now(),
-                lastSeen: Date.now(),
-                userAgent: navigator.userAgent.slice(0, 180)
-            });
-
-            activeSessionUnsubscribe = onValue(activeSessionRef, async (snapshot) => {
-                if (singleLoginLogoutInProgress || !auth.currentUser || auth.currentUser.uid !== user.uid) return;
-                const activeData = snapshot.exists() ? (snapshot.val() || {}) : {};
-                const serverSessionId = activeData.sessionId || null;
-
-                if (serverSessionId && serverSessionId !== thisSessionId) {
-                    singleLoginLogoutInProgress = true;
-                    stopActiveSessionWatcher();
-                    currentActiveSessionId = null;
-                    localStorage.removeItem(ACTIVE_SESSION_STORAGE_KEY);
-                    alert('Akaun ini telah log masuk pada device lain. Sesi pada device ini telah ditamatkan.');
-                    try { await signOut(auth); } catch(e) { console.warn('Auto logout failed:', e.message); }
-                    switchView('login');
-                }
-            }, (error) => {
-                console.error('Single-device session watcher error:', error);
-            });
-
-            return true;
+            currentActiveSessionId = null;
+            sessionStorage.removeItem(ACTIVE_SESSION_STORAGE_KEY);
+            return false;
         }
 
         async function clearActiveSessionBeforeLogout() {
@@ -4197,7 +4004,7 @@
 
             stopActiveSessionWatcher();
             currentActiveSessionId = null;
-            localStorage.removeItem(ACTIVE_SESSION_STORAGE_KEY);
+            sessionStorage.removeItem(ACTIVE_SESSION_STORAGE_KEY);
         }
 
         let firebaseAuthStateResolved = false;
@@ -4208,16 +4015,8 @@
             if (user) {
                 currentUser = user;
 
-                try {
-                    await startSingleDeviceSession(user);
-                } catch (sessionError) {
-                    console.error('Single-device session could not be created:', sessionError);
-                    alert('Sistem keselamatan satu-device tidak dapat disahkan. Sila periksa sambungan internet atau Firebase Rules, kemudian cuba log masuk semula.');
-                    try { await signOut(auth); } catch(e) {}
-                    switchView('login');
-                    return;
-                }
-
+                // PENTING: buka app serta-merta. Jangan tunggu database, leaderboard, rules atau session tracking.
+                // Jika mana-mana data tambahan gagal, pengguna tetap kekal login di dalam app.
                 switchView('dashboard');
 
                 try {
@@ -4228,7 +4027,7 @@
             } else {
                 stopActiveSessionWatcher();
                 currentActiveSessionId = null;
-                localStorage.removeItem(ACTIVE_SESSION_STORAGE_KEY);
+                sessionStorage.removeItem(ACTIVE_SESSION_STORAGE_KEY);
                 currentUser = null;
                 isPremiumUser = false;
 
@@ -4569,9 +4368,8 @@
                     }
 
                     currentUser = user;
-                    await startSingleDeviceSession(user);
                     switchView('dashboard');
-                    // Muat data selepas sesi satu-device disahkan.
+                    // Muat data selepas dashboard dibuka; kegagalan database tidak boleh menggagalkan login.
                     checkUserPremiumAndLoadDashboard().catch((loadError) => {
                         console.warn('Post-login dashboard data load skipped:', loadError.message);
                     });
@@ -7633,7 +7431,7 @@
                         </div>
                         <button onclick="closeStandaloneQuizImageOrderPanel()" class="text-gray-400 hover:text-red-500 text-xs font-bold">Tutup</button>
                     </div>
-                    <div id="adm-quiz-order-scroll" class="mj-admin-order-scroll">
+                    <div class="mj-admin-order-scroll">
                         <div class="space-y-2 mj-admin-order-list">
                         ${urls.map((url, index) => `
                             <div class="flex items-center gap-2 bg-blue-50/60 border border-blue-100 rounded-lg p-2 mj-admin-order-row">
@@ -7650,97 +7448,10 @@
                         `).join('')}
                         </div>
                     </div>
-                    <div class="mj-admin-horizontal-controls">
-                        <button type="button" onclick="mjAdminScrollStep('adm-quiz-order-scroll', -1)">← Kiri</button>
-                        <input id="adm-quiz-order-slider" class="mj-admin-horizontal-slider" type="range" min="0" max="1" value="0" aria-label="Slider mendatar susun gambar quiz">
-                        <button type="button" onclick="mjAdminScrollStep('adm-quiz-order-scroll', 1)">Kanan →</button>
-                    </div>
                 `;
-                mjBindAdminHorizontalSlider('adm-quiz-order-scroll', 'adm-quiz-order-slider');
             } catch(err) {
                 panel.innerHTML = `<p class="text-[10px] text-red-600 text-center py-2">Ralat susun gambar: ${escapeHtml(err.message)}</p>`;
             }
-        };
-
-        window.mjBindAdminHorizontalSlider = function(scrollId, sliderId) {
-            requestAnimationFrame(() => {
-                const viewport = document.getElementById(scrollId);
-                const slider = document.getElementById(sliderId);
-                if(!viewport || !slider) return;
-
-                const list = viewport.querySelector('.mj-admin-order-list');
-                if(!list) return;
-
-                // Gunakan transform, bukan scrollLeft. Ini lebih stabil dan tidak bergantung
-                // pada scrollbar browser yang kadang-kadang tersembunyi atau gagal dikira.
-                viewport.style.overflowX = 'hidden';
-                viewport.style.position = 'relative';
-                list.style.willChange = 'transform';
-                list.style.transition = 'transform 0.08s linear';
-
-                const measure = () => {
-                    const viewportWidth = Math.max(1, viewport.getBoundingClientRect().width);
-                    const targetWidth = Math.max(920, viewportWidth + 420);
-                    list.style.width = targetWidth + 'px';
-                    list.style.minWidth = targetWidth + 'px';
-
-                    list.querySelectorAll('.mj-admin-order-row').forEach(row => {
-                        row.style.width = targetWidth + 'px';
-                        row.style.minWidth = targetWidth + 'px';
-                        row.style.maxWidth = targetWidth + 'px';
-                    });
-
-                    const maxShift = Math.max(1, Math.round(targetWidth - viewportWidth));
-                    slider.min = '0';
-                    slider.max = String(maxShift);
-                    slider.step = '1';
-                    slider.disabled = false;
-                    if(Number(slider.value) > maxShift) slider.value = String(maxShift);
-                    applyPosition();
-                };
-
-                const applyPosition = () => {
-                    const maxShift = Number(slider.max) || 1;
-                    const x = Math.max(0, Math.min(maxShift, Number(slider.value) || 0));
-                    list.style.transform = `translate3d(${-x}px, 0, 0)`;
-                    slider.setAttribute('aria-valuenow', String(x));
-                };
-
-                slider.oninput = applyPosition;
-                slider.onchange = applyPosition;
-                slider.onpointermove = function(event) {
-                    if(event.buttons === 1) applyPosition();
-                };
-                slider.onkeydown = function() {
-                    requestAnimationFrame(applyPosition);
-                };
-
-                viewport._mjSlider = slider;
-                viewport._mjSliderApply = applyPosition;
-                viewport._mjSliderMeasure = measure;
-
-                measure();
-                setTimeout(measure, 120);
-                setTimeout(measure, 500);
-
-                if(window.ResizeObserver) {
-                    if(viewport._mjSliderResizeObserver) viewport._mjSliderResizeObserver.disconnect();
-                    const observer = new ResizeObserver(measure);
-                    observer.observe(viewport);
-                    viewport._mjSliderResizeObserver = observer;
-                }
-            });
-        };
-
-        window.mjAdminScrollStep = function(scrollId, direction) {
-            const viewport = document.getElementById(scrollId);
-            if(!viewport || !viewport._mjSlider) return;
-            const slider = viewport._mjSlider;
-            const current = Number(slider.value) || 0;
-            const max = Number(slider.max) || 1;
-            const step = Math.max(140, Math.round((viewport.clientWidth || 300) * 0.55));
-            slider.value = String(Math.max(0, Math.min(max, current + (direction * step))));
-            if(viewport._mjSliderApply) viewport._mjSliderApply();
         };
 
         window.closeStandaloneQuizImageOrderPanel = function() {
@@ -8862,7 +8573,7 @@
                     <p class="font-bold text-green-900 text-xs"><i class="fa-solid fa-arrow-down-up-across-line"></i> Susun Gambar Nota</p>
                     <p class="text-[10px] text-gray-500">Tekan Up atau Down. Susunan pelajar akan berubah terus.</p>
                 </div>
-                <div id="adm-nota-order-scroll" class="mj-admin-order-scroll pt-1">
+                <div class="mj-admin-order-scroll pt-1">
                     <div class="space-y-2 mj-admin-order-list">
                     ${urls.map((url, index) => `
                         <div class="flex items-center gap-2 bg-green-50/70 border border-green-100 rounded-lg p-2 mj-admin-order-row">
@@ -8878,13 +8589,7 @@
                         </div>
                     `).join('')}
                     </div>
-                </div>
-                <div class="mj-admin-horizontal-controls">
-                    <button type="button" onclick="mjAdminScrollStep('adm-nota-order-scroll', -1)">← Kiri</button>
-                    <input id="adm-nota-order-slider" class="mj-admin-horizontal-slider" type="range" min="0" max="1" value="0" aria-label="Slider mendatar susun gambar nota">
-                    <button type="button" onclick="mjAdminScrollStep('adm-nota-order-scroll', 1)">Kanan →</button>
                 </div>`;
-            mjBindAdminHorizontalSlider('adm-nota-order-scroll', 'adm-nota-order-slider');
         };
 
         window.moveSelectedNotaImage = async function(index, direction) {
@@ -8963,7 +8668,7 @@
                         <p class="text-[10px] text-gray-500">Ini ubah order gambar dalam contoh soalan yang dipilih.</p>
                     </div>
                 </div>
-                <div id="adm-content-order-scroll" class="mj-admin-order-scroll pt-1">
+                <div class="mj-admin-order-scroll pt-1">
                     <div class="space-y-2 mj-admin-order-list">
                     ${urls.map((url, index) => `
                         <div class="flex items-center gap-2 bg-indigo-50/60 border border-indigo-100 rounded-lg p-2 mj-admin-order-row">
@@ -8980,13 +8685,7 @@
                     `).join('')}
                     </div>
                 </div>
-                <div class="mj-admin-horizontal-controls">
-                    <button type="button" onclick="mjAdminScrollStep('adm-content-order-scroll', -1)">← Kiri</button>
-                    <input id="adm-content-order-slider" class="mj-admin-horizontal-slider" type="range" min="0" max="1" value="0" aria-label="Slider mendatar susun gambar contoh soalan">
-                    <button type="button" onclick="mjAdminScrollStep('adm-content-order-scroll', 1)">Kanan →</button>
-                </div>
             `;
-            mjBindAdminHorizontalSlider('adm-content-order-scroll', 'adm-content-order-slider');
         };
 
         window.moveSelectedContentImage = async function(index, direction) {
@@ -11241,39 +10940,5 @@
     })();
     </script>
 
-
-<script>
-(function(){
-  function normalizeAdminOrderPanels(root){
-    (root || document).querySelectorAll('.mj-admin-order-scroll').forEach(function(viewport){
-      viewport.style.removeProperty('position');
-      viewport.style.setProperty('overflow-x','hidden','important');
-      var list=viewport.querySelector('.mj-admin-order-list');
-      if(list){
-        list.style.setProperty('transform','none','important');
-        list.style.setProperty('width','100%','important');
-        list.style.setProperty('min-width','0','important');
-      }
-      viewport.querySelectorAll('.mj-admin-order-row').forEach(function(row){
-        row.style.setProperty('width','100%','important');
-        row.style.setProperty('min-width','0','important');
-        row.style.setProperty('max-width','100%','important');
-      });
-    });
-  }
-  window.mjBindAdminHorizontalSlider=function(){
-    requestAnimationFrame(function(){ normalizeAdminOrderPanels(document); });
-  };
-  var observer=new MutationObserver(function(mutations){
-    var should=false;
-    mutations.forEach(function(m){ if(m.addedNodes && m.addedNodes.length) should=true; });
-    if(should) requestAnimationFrame(function(){ normalizeAdminOrderPanels(document); });
-  });
-  document.addEventListener('DOMContentLoaded',function(){
-    normalizeAdminOrderPanels(document);
-    observer.observe(document.body,{childList:true,subtree:true});
-  });
-})();
-</script>
 </body>
 </html>
