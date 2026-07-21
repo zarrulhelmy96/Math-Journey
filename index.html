@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Math Journey - Belajar Matematik Langkah demi Langkah</title>
-    <meta name="math-journey-build" content="quiz-move-subtopic-image-order-repaired-v4-2026-07-21">
+    <meta name="math-journey-build" content="single-device-horizontal-scroll-repaired-v5-2026-07-21">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -641,28 +641,43 @@
         #adm-standalone-quiz-image-order-panel,
         #adm-nota-image-order-panel,
         #adm-content-image-order-panel {
+            display: block;
+            width: 100%;
             max-width: 100%;
+            min-width: 0;
             overflow: hidden;
         }
+        #adm-standalone-quiz-image-order-panel.hide,
+        #adm-nota-image-order-panel.hide,
+        #adm-content-image-order-panel.hide { display: none !important; }
         .mj-admin-order-scroll {
+            display: block;
             width: 100%;
             max-width: 100%;
-            overflow-x: auto;
-            overflow-y: visible;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-gutter: stable;
-            padding-bottom: 6px;
-        }
-        .mj-admin-order-scroll::-webkit-scrollbar { height: 8px; }
-        .mj-admin-order-scroll::-webkit-scrollbar-track { background: #eef2f7; border-radius: 999px; }
-        .mj-admin-order-scroll::-webkit-scrollbar-thumb { background: #7c3aed; border-radius: 999px; }
-        .mj-admin-order-list {
             min-width: 0;
-            width: 100%;
+            overflow-x: scroll !important;
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-gutter: stable both-edges;
+            padding: 2px 0 12px;
+            touch-action: pan-x pan-y;
+        }
+        .mj-admin-order-scroll::-webkit-scrollbar { height: 12px; }
+        .mj-admin-order-scroll::-webkit-scrollbar-track { background: #e2e8f0; border-radius: 999px; }
+        .mj-admin-order-scroll::-webkit-scrollbar-thumb { background: #6d28d9; border: 2px solid #e2e8f0; border-radius: 999px; }
+        .mj-admin-order-list {
+            width: max-content;
+            min-width: 620px;
+            padding-right: 4px;
         }
         .mj-admin-order-row {
-            width: 100%;
-            min-width: 0;
+            width: 620px;
+            min-width: 620px;
+            max-width: 620px;
+        }
+        @media (min-width: 760px) {
+            .mj-admin-order-list { min-width: 760px; }
+            .mj-admin-order-row { width: 760px; min-width: 760px; max-width: 760px; }
         }
         .mj-admin-order-row > .mj-admin-order-text {
             min-width: 0;
@@ -3956,16 +3971,28 @@
         window.standaloneQuizContext = null;
         window.standaloneQuizIsFinishing = false;
 
-        // Single-login session control
-        // Tujuan: satu akaun hanya aktif pada satu device/browser pada satu masa.
+        // Single-device login control
+        // Satu akaun hanya boleh mempunyai satu device/browser aktif pada satu masa.
         const ACTIVE_SESSION_STORAGE_KEY = 'mathJourneyActiveSessionId';
-        let currentActiveSessionId = sessionStorage.getItem(ACTIVE_SESSION_STORAGE_KEY) || null;
+        const DEVICE_ID_STORAGE_KEY = 'mathJourneyDeviceId';
+        let currentActiveSessionId = localStorage.getItem(ACTIVE_SESSION_STORAGE_KEY) || null;
         let activeSessionUnsubscribe = null;
         let singleLoginLogoutInProgress = false;
+        let singleLoginUserUid = null;
+
+        function getOrCreateDeviceId() {
+            let deviceId = localStorage.getItem(DEVICE_ID_STORAGE_KEY);
+            if (!deviceId) {
+                const randomPart = (crypto?.randomUUID?.() || `${Date.now()}_${Math.random().toString(36).slice(2)}`);
+                deviceId = `mj_device_${randomPart}`;
+                localStorage.setItem(DEVICE_ID_STORAGE_KEY, deviceId);
+            }
+            return deviceId;
+        }
 
         function generateActiveSessionId(user) {
-            const randomPart = Math.random().toString(36).substring(2, 12);
-            return `${user.uid}_${Date.now()}_${randomPart}`;
+            // ID kekal sama untuk tab-tab pada browser/device yang sama.
+            return `${user.uid}_${getOrCreateDeviceId()}`;
         }
 
         function stopActiveSessionWatcher() {
@@ -3973,17 +4000,52 @@
                 try { activeSessionUnsubscribe(); } catch(e) {}
             }
             activeSessionUnsubscribe = null;
+            singleLoginUserUid = null;
         }
 
         async function startSingleDeviceSession(user) {
-            // AUTO-LOGOUT SATU DEVICE DIMATIKAN.
-            // Ciri lama ini boleh tersalah anggap sesi sendiri sebagai device lain dan menendang pengguna keluar.
-            // Login dan akses app tidak lagi bergantung pada activeSession atau Firebase Rules tambahan.
+            if (!user) return false;
+
+            const thisSessionId = generateActiveSessionId(user);
+            if (singleLoginUserUid === user.uid && currentActiveSessionId === thisSessionId && activeSessionUnsubscribe) {
+                return true;
+            }
+
             stopActiveSessionWatcher();
             singleLoginLogoutInProgress = false;
-            currentActiveSessionId = null;
-            sessionStorage.removeItem(ACTIVE_SESSION_STORAGE_KEY);
-            return false;
+            singleLoginUserUid = user.uid;
+            currentActiveSessionId = thisSessionId;
+            localStorage.setItem(ACTIVE_SESSION_STORAGE_KEY, thisSessionId);
+
+            const activeSessionRef = ref(db, `users/${user.uid}/activeSession`);
+            await set(activeSessionRef, {
+                sessionId: thisSessionId,
+                deviceId: getOrCreateDeviceId(),
+                status: 'active',
+                loginAt: Date.now(),
+                lastSeen: Date.now(),
+                userAgent: navigator.userAgent.slice(0, 180)
+            });
+
+            activeSessionUnsubscribe = onValue(activeSessionRef, async (snapshot) => {
+                if (singleLoginLogoutInProgress || !auth.currentUser || auth.currentUser.uid !== user.uid) return;
+                const activeData = snapshot.exists() ? (snapshot.val() || {}) : {};
+                const serverSessionId = activeData.sessionId || null;
+
+                if (serverSessionId && serverSessionId !== thisSessionId) {
+                    singleLoginLogoutInProgress = true;
+                    stopActiveSessionWatcher();
+                    currentActiveSessionId = null;
+                    localStorage.removeItem(ACTIVE_SESSION_STORAGE_KEY);
+                    alert('Akaun ini telah log masuk pada device lain. Sesi pada device ini telah ditamatkan.');
+                    try { await signOut(auth); } catch(e) { console.warn('Auto logout failed:', e.message); }
+                    switchView('login');
+                }
+            }, (error) => {
+                console.error('Single-device session watcher error:', error);
+            });
+
+            return true;
         }
 
         async function clearActiveSessionBeforeLogout() {
@@ -4004,7 +4066,7 @@
 
             stopActiveSessionWatcher();
             currentActiveSessionId = null;
-            sessionStorage.removeItem(ACTIVE_SESSION_STORAGE_KEY);
+            localStorage.removeItem(ACTIVE_SESSION_STORAGE_KEY);
         }
 
         let firebaseAuthStateResolved = false;
@@ -4015,8 +4077,16 @@
             if (user) {
                 currentUser = user;
 
-                // PENTING: buka app serta-merta. Jangan tunggu database, leaderboard, rules atau session tracking.
-                // Jika mana-mana data tambahan gagal, pengguna tetap kekal login di dalam app.
+                try {
+                    await startSingleDeviceSession(user);
+                } catch (sessionError) {
+                    console.error('Single-device session could not be created:', sessionError);
+                    alert('Sistem keselamatan satu-device tidak dapat disahkan. Sila periksa sambungan internet atau Firebase Rules, kemudian cuba log masuk semula.');
+                    try { await signOut(auth); } catch(e) {}
+                    switchView('login');
+                    return;
+                }
+
                 switchView('dashboard');
 
                 try {
@@ -4027,7 +4097,7 @@
             } else {
                 stopActiveSessionWatcher();
                 currentActiveSessionId = null;
-                sessionStorage.removeItem(ACTIVE_SESSION_STORAGE_KEY);
+                localStorage.removeItem(ACTIVE_SESSION_STORAGE_KEY);
                 currentUser = null;
                 isPremiumUser = false;
 
@@ -4368,8 +4438,9 @@
                     }
 
                     currentUser = user;
+                    await startSingleDeviceSession(user);
                     switchView('dashboard');
-                    // Muat data selepas dashboard dibuka; kegagalan database tidak boleh menggagalkan login.
+                    // Muat data selepas sesi satu-device disahkan.
                     checkUserPremiumAndLoadDashboard().catch((loadError) => {
                         console.warn('Post-login dashboard data load skipped:', loadError.message);
                     });
