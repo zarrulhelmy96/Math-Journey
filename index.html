@@ -7568,16 +7568,47 @@
                 if(!scroller || !slider) return;
 
                 const syncRange = () => {
+                    const list = scroller.querySelector('.mj-admin-order-list');
+                    const rows = scroller.querySelectorAll('.mj-admin-order-row');
+
+                    // Pastikan memang wujud ruang mendatar untuk slider bergerak.
+                    // Lebar kandungan sentiasa lebih besar daripada panel semasa.
+                    const forcedContentWidth = Math.max(1100, scroller.clientWidth + 520);
+                    if(list) {
+                        list.style.width = forcedContentWidth + 'px';
+                        list.style.minWidth = forcedContentWidth + 'px';
+                    }
+                    rows.forEach(row => {
+                        row.style.width = forcedContentWidth + 'px';
+                        row.style.minWidth = forcedContentWidth + 'px';
+                        row.style.maxWidth = forcedContentWidth + 'px';
+                    });
+
                     const maxScroll = Math.max(0, scroller.scrollWidth - scroller.clientWidth);
-                    slider.max = String(Math.max(1, Math.round(maxScroll)));
+                    slider.min = '0';
+                    slider.max = String(Math.max(1, Math.floor(maxScroll)));
+                    slider.step = '1';
                     slider.value = String(Math.min(maxScroll, Math.round(scroller.scrollLeft)));
-                    slider.disabled = maxScroll <= 0;
+                    slider.disabled = false;
                 };
 
-                slider.oninput = () => { scroller.scrollLeft = Number(slider.value || 0); };
-                scroller.onscroll = () => { slider.value = String(Math.round(scroller.scrollLeft)); };
+                slider.oninput = function() {
+                    const nextLeft = Number(this.value) || 0;
+                    scroller.scrollTo({ left: nextLeft, behavior: 'auto' });
+                };
+                slider.onchange = slider.oninput;
+                scroller.onscroll = () => {
+                    slider.value = String(Math.round(scroller.scrollLeft));
+                };
+
                 syncRange();
-                setTimeout(syncRange, 120);
+                setTimeout(syncRange, 80);
+                setTimeout(syncRange, 300);
+                if(window.ResizeObserver) {
+                    const observer = new ResizeObserver(syncRange);
+                    observer.observe(scroller);
+                    scroller._mjSliderResizeObserver = observer;
+                }
             });
         };
 
