@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Math Journey - Belajar Matematik Langkah demi Langkah</title>
-    <meta name="math-journey-build" content="quiz-move-subtopic-image-order-repaired-v4-2026-07-21">
+    <meta name="math-journey-build" content="draft-preview-publish-v1-2026-07-22">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -3074,6 +3074,31 @@
                 </div>
             </div>
 
+
+            <div id="mj-draft-center" class="bg-violet-50 border border-violet-300 p-4 rounded-xl space-y-3 mb-6 text-xs shadow-sm">
+                <div class="flex items-start justify-between gap-3 border-b border-violet-200 pb-3">
+                    <div>
+                        <h3 class="font-bold text-sm text-violet-950"><i class="fa-solid fa-layer-group"></i> Draft → Preview → Publish</h3>
+                        <p class="text-[10px] text-violet-700 mt-1 leading-relaxed">Draft hanya boleh dilihat oleh admin. User masih menggunakan kandungan published yang lama sehingga admin tekan Publish.</p>
+                    </div>
+                    <button type="button" onclick="loadAdminDraftCenter()" class="bg-white border border-violet-200 text-violet-700 font-bold px-3 py-2 rounded-lg text-[10px]"><i class="fa-solid fa-rotate"></i> Refresh</button>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <button type="button" onclick="saveCurrentNotaAsDraft()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl"><i class="fa-solid fa-file-pen"></i> Simpan Nota Sebagai Draft</button>
+                    <button type="button" onclick="saveCurrentContohAsDraft()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl"><i class="fa-solid fa-file-pen"></i> Simpan Contoh Sebagai Draft</button>
+                    <button type="button" onclick="saveCurrentQuizAsDraft()" class="bg-blue-700 hover:bg-blue-800 text-white font-bold py-2.5 rounded-xl"><i class="fa-solid fa-file-pen"></i> Simpan Quiz Sebagai Draft</button>
+                </div>
+                <div class="bg-white border border-violet-100 rounded-xl p-3">
+                    <div class="flex items-center justify-between mb-2">
+                        <p class="font-bold text-violet-900 text-[11px]"><i class="fa-solid fa-box-archive"></i> Draft Belum Dipublish</p>
+                        <span id="mj-draft-count" class="bg-violet-100 text-violet-700 px-2 py-1 rounded-full text-[9px] font-bold">0 draft</span>
+                    </div>
+                    <div id="mj-admin-draft-list" class="space-y-2 max-h-[420px] overflow-y-auto pr-1">
+                        <p class="text-[10px] text-gray-400 text-center py-4">Tekan Refresh untuk memuatkan draft.</p>
+                    </div>
+                </div>
+            </div>
+
         </section>
 
     </main>
@@ -3098,6 +3123,24 @@
         </div>
     </footer>
 
+
+
+    <div id="mj-draft-preview-modal" class="fixed inset-0 z-[120] bg-black/60 hide items-center justify-center p-4">
+        <div class="bg-white w-full max-w-lg max-h-[88vh] overflow-y-auto rounded-2xl shadow-2xl border border-violet-200">
+            <div class="sticky top-0 bg-white border-b p-4 flex items-center justify-between z-10">
+                <div>
+                    <p class="font-black text-violet-950 text-sm"><i class="fa-solid fa-eye"></i> Preview Draft</p>
+                    <p class="text-[10px] text-gray-500">Paparan ini belum kelihatan kepada user.</p>
+                </div>
+                <button type="button" onclick="closeDraftPreview()" class="w-9 h-9 rounded-full bg-gray-100 text-gray-600 font-bold">×</button>
+            </div>
+            <div id="mj-draft-preview-body" class="p-4 space-y-3 text-sm"></div>
+            <div class="sticky bottom-0 bg-white border-t p-3 grid grid-cols-2 gap-2">
+                <button type="button" onclick="closeDraftPreview()" class="border border-gray-200 text-gray-700 font-bold py-2.5 rounded-xl">Tutup</button>
+                <button id="mj-preview-publish-btn" type="button" class="bg-violet-700 text-white font-bold py-2.5 rounded-xl">Publish Sekarang</button>
+            </div>
+        </div>
+    </div>
 
     <script>
         // Fallback navigation so landing buttons still work even before Firebase module finishes loading.
@@ -4164,6 +4207,7 @@
             }
 
             if(viewId === 'admin' && isCurrentUserAdmin()) {
+                setTimeout(() => { if(typeof window.loadAdminDraftCenter === 'function') window.loadAdminDraftCenter(); }, 100);
                 updateAdminCrewManagerUI();
                 loadAdminCrewTasks();
                 loadAdminCrewWithdrawalRequests();
@@ -10938,6 +10982,189 @@
             forceOpenCrewForm(event);
         }, true);
     })();
+
+        // ===== Math Journey Draft -> Preview -> Publish =====
+        function mjDraftOwnerPath() {
+            if(!currentUser?.uid) throw new Error('Sila login sebagai admin dahulu.');
+            if(!isCurrentUserAdmin()) throw new Error('Akses admin diperlukan.');
+            return `adminDrafts/${currentUser.uid}`;
+        }
+
+        function mjDraftTitle(kind, payload = {}) {
+            if(kind === 'nota') return payload?.nota?.maksud || payload?.nota?.formula || 'Nota tanpa tajuk';
+            if(kind === 'contoh') return payload?.contoh?.soalan || 'Contoh soalan bergambar';
+            if(kind === 'quiz') return payload?.soalan || 'Quiz bergambar';
+            return 'Draft kandungan';
+        }
+
+        function mjDraftImages(kind, payload = {}) {
+            if(kind === 'nota') return payload?.nota?.imageUrls || [];
+            if(kind === 'contoh') return payload?.contoh?.imageUrls || [];
+            if(kind === 'quiz') return [...(payload?.imageUrls || []), ...(payload?.answerImageUrls || [])];
+            return [];
+        }
+
+        async function mjSaveDraftRecord(record) {
+            const draftRef = push(ref(db, mjDraftOwnerPath()));
+            await set(draftRef, {
+                ...record,
+                id: draftRef.key,
+                status: 'draft',
+                createdAt: Date.now(),
+                updatedAt: Date.now(),
+                createdBy: currentUser.uid
+            });
+            await loadAdminDraftCenter();
+            alert('Draft berjaya disimpan. User belum nampak perubahan ini.');
+        }
+
+        window.saveCurrentNotaAsDraft = async function() {
+            try {
+                const info = getCurrentSubtopicInfo();
+                if(!info.chKey || !info.subKey) return alert('Pilih Tingkatan, Bab dan Subtopik dahulu.');
+                const selectedKey = document.getElementById('adm-nota-list-select')?.value || '';
+                const existingRaw = selectedKey ? info.kandunganList?.[selectedKey] : null;
+                const existingItem = existingRaw ? normalizeContentItem(existingRaw, selectedKey) : null;
+                const newUrls = await uploadMultipleFilesHelper('adm-nota-image-file', 'draft_nota_images');
+                const payload = buildContentPayload('nota', existingItem, newUrls);
+                const hasText = Object.values(payload.nota || {}).some(v => typeof v === 'string' && v.trim());
+                if(!hasText && !(payload.nota?.imageUrls || []).length) return alert('Isi nota atau upload gambar dahulu.');
+                if(!payload.sortOrder) payload.sortOrder = selectedKey ? (existingItem?.sortOrder || 1) : getNextSortOrder(info.kandunganList || {});
+                const targetKey = selectedKey || push(ref(db, `silibus/${info.formNum}/${info.chKey}/subtopik/${info.subKey}/kandungan_list`)).key;
+                await mjSaveDraftRecord({kind:'nota', formNum:info.formNum, chKey:info.chKey, subKey:info.subKey, targetPath:`silibus/${info.formNum}/${info.chKey}/subtopik/${info.subKey}/kandungan_list/${targetKey}`, payload, title:mjDraftTitle('nota',payload)});
+            } catch(err) { alert('Ralat simpan draft nota: ' + err.message); }
+        };
+
+        window.saveCurrentContohAsDraft = async function() {
+            try {
+                const info = getCurrentSubtopicInfo();
+                if(!info.chKey || !info.subKey) return alert('Pilih Tingkatan, Bab dan Subtopik dahulu.');
+                const selectedKey = document.getElementById('adm-content-list-select')?.value || '';
+                const existingRaw = selectedKey ? info.kandunganList?.[selectedKey] : null;
+                const existingItem = existingRaw ? normalizeContentItem(existingRaw, selectedKey) : null;
+                const newUrls = await uploadMultipleFilesHelper('adm-contoh-image-file', 'draft_contoh_images');
+                const payload = buildContentPayload('contoh', existingItem, newUrls);
+                if(!payload.contoh?.soalan && !(payload.contoh?.imageUrls || []).length) return alert('Isi soalan atau upload gambar contoh dahulu.');
+                if(!payload.sortOrder) payload.sortOrder = selectedKey ? (existingItem?.sortOrder || 1) : getNextSortOrder(info.kandunganList || {});
+                const targetKey = selectedKey || push(ref(db, `silibus/${info.formNum}/${info.chKey}/subtopik/${info.subKey}/kandungan_list`)).key;
+                await mjSaveDraftRecord({kind:'contoh', formNum:info.formNum, chKey:info.chKey, subKey:info.subKey, targetPath:`silibus/${info.formNum}/${info.chKey}/subtopik/${info.subKey}/kandungan_list/${targetKey}`, payload, title:mjDraftTitle('contoh',payload)});
+            } catch(err) { alert('Ralat simpan draft contoh: ' + err.message); }
+        };
+
+        window.saveCurrentQuizAsDraft = async function() {
+            try {
+                const formNum = document.getElementById('adm-quiz-form')?.value;
+                const chKey = document.getElementById('adm-quiz-chapter')?.value;
+                const subEl = document.getElementById('adm-quiz-subtopic');
+                const subKey = subEl?.value || '';
+                const level = getAdminQuizLevel();
+                const soalan = (document.getElementById('adm-standalone-quiz-soalan')?.value || '').trim();
+                const jawapan = (document.getElementById('adm-standalone-quiz-jawapan')?.value || '').trim().toUpperCase();
+                if(!formNum || !chKey || !subKey) return alert('Pilih Tingkatan, Bab dan Subtopik quiz dahulu.');
+                if(!['A','B','C','D'].includes(jawapan)) return alert('Jawapan betul mesti A, B, C atau D.');
+                const imageUrls = await uploadMultipleFilesHelper('adm-standalone-quiz-image-file', 'draft_quiz_questions');
+                const answerImageUrls = await uploadMultipleFilesHelper('adm-standalone-quiz-answer-image-file', 'draft_quiz_answers');
+                if(!soalan && imageUrls.length === 0) return alert('Taip soalan atau upload gambar soalan dahulu.');
+                const targetKey = push(ref(db, `quizzes/${formNum}/${chKey}/${level}`)).key;
+                const payload = {
+                    soalan, imageUrls, a:'A', b:'B', c:'C', d:'D', jawapan, answerImageUrls,
+                    formNum, chapterKey:chKey, chapterName:getChapterDisplayName(formNum,chKey),
+                    subKey, subtopicKey:subKey, subtopicName:subEl?.selectedOptions?.[0]?.textContent || '',
+                    level, levelLabel:getQuizLevelLabel(level),
+                    marks:Math.max(1, Number(document.getElementById('adm-standalone-quiz-marks')?.value || 1)),
+                    sortOrder:await getNextStandaloneQuizSortOrder(formNum,chKey,level),
+                    createdAt:Date.now(), createdBy:currentUser?.uid || ''
+                };
+                await mjSaveDraftRecord({kind:'quiz', formNum, chKey, subKey, targetPath:`quizzes/${formNum}/${chKey}/${level}/${targetKey}`, payload, title:mjDraftTitle('quiz',payload)});
+            } catch(err) { alert('Ralat simpan draft quiz: ' + err.message); }
+        };
+
+        window.loadAdminDraftCenter = async function() {
+            const list = document.getElementById('mj-admin-draft-list');
+            const count = document.getElementById('mj-draft-count');
+            if(!list || !currentUser || !isCurrentUserAdmin()) return;
+            list.innerHTML = '<p class="text-[10px] text-violet-700 text-center py-4">Memuatkan draft...</p>';
+            try {
+                const snap = await get(ref(db, mjDraftOwnerPath()));
+                const data = snap.exists() ? snap.val() : {};
+                const rows = Object.entries(data).filter(([,d]) => d && d.status === 'draft').sort((a,b)=>(b[1].updatedAt||0)-(a[1].updatedAt||0));
+                count.textContent = `${rows.length} draft`;
+                if(!rows.length) {
+                    list.innerHTML = '<p class="text-[10px] text-gray-400 text-center py-5">Belum ada draft. Isi borang kandungan, kemudian tekan Simpan Sebagai Draft.</p>';
+                    return;
+                }
+                list.innerHTML = rows.map(([id,d]) => `
+                    <div class="border border-violet-100 bg-violet-50/60 rounded-xl p-3 space-y-2">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="min-w-0">
+                                <p class="font-black text-violet-950 text-[11px] truncate">${escapeHtml(d.title || 'Draft')}</p>
+                                <p class="text-[9px] text-gray-500 uppercase font-bold mt-1">${escapeHtml(d.kind || '')} · Tingkatan ${escapeHtml(String(d.formNum || ''))}</p>
+                                <p class="text-[9px] text-gray-400 mt-1">${new Date(d.updatedAt || Date.now()).toLocaleString('ms-MY')}</p>
+                            </div>
+                            <span class="bg-amber-100 text-amber-700 px-2 py-1 rounded-full text-[9px] font-bold">DRAFT</span>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button onclick="previewAdminDraft('${id}')" class="bg-white border border-violet-200 text-violet-700 font-bold py-2 rounded-lg text-[10px]"><i class="fa-solid fa-eye"></i> Preview</button>
+                            <button onclick="publishAdminDraft('${id}')" class="bg-emerald-600 text-white font-bold py-2 rounded-lg text-[10px]"><i class="fa-solid fa-cloud-arrow-up"></i> Publish</button>
+                            <button onclick="discardAdminDraft('${id}')" class="bg-red-50 border border-red-200 text-red-600 font-bold py-2 rounded-lg text-[10px]"><i class="fa-solid fa-trash"></i> Buang</button>
+                        </div>
+                    </div>`).join('');
+            } catch(err) { list.innerHTML = `<p class="text-[10px] text-red-600 text-center py-4">Ralat: ${escapeHtml(err.message)}</p>`; }
+        };
+
+        async function mjGetDraft(id) {
+            const snap = await get(ref(db, `${mjDraftOwnerPath()}/${id}`));
+            if(!snap.exists()) throw new Error('Draft tidak ditemui.');
+            return snap.val();
+        }
+
+        window.previewAdminDraft = async function(id) {
+            try {
+                const d = await mjGetDraft(id);
+                const p = d.payload || {};
+                const body = document.getElementById('mj-draft-preview-body');
+                const modal = document.getElementById('mj-draft-preview-modal');
+                const imgs = mjDraftImages(d.kind,p);
+                let details = '';
+                if(d.kind === 'nota') details = `<h3 class="font-black text-lg text-violet-950">${escapeHtml(p.nota?.maksud || d.title || 'Nota')}</h3><p>${escapeHtml(p.nota?.formula || '')}</p><p class="text-amber-700">${escapeHtml(p.nota?.kesilapan || '')}</p><p class="text-emerald-700">${escapeHtml(p.nota?.tips || '')}</p>`;
+                else if(d.kind === 'contoh') details = `<h3 class="font-black text-lg text-violet-950">${escapeHtml(p.contoh?.soalan || d.title || 'Contoh')}</h3><p class="whitespace-pre-wrap">${escapeHtml(p.contoh?.langkah || '')}</p>`;
+                else details = `<h3 class="font-black text-lg text-violet-950 whitespace-pre-wrap">${escapeHtml(p.soalan || d.title || 'Quiz')}</h3><div class="grid grid-cols-2 gap-2 text-xs"><p class="border p-2 rounded">A</p><p class="border p-2 rounded">B</p><p class="border p-2 rounded">C</p><p class="border p-2 rounded">D</p></div><p class="font-bold text-emerald-700">Jawapan: ${escapeHtml(p.jawapan || '')} · ${escapeHtml(String(p.marks || 1))} markah</p>`;
+                body.innerHTML = `<div class="bg-amber-50 border border-amber-200 text-amber-800 rounded-xl p-3 text-[11px] font-bold">PREVIEW ADMIN — user belum nampak kandungan ini.</div>${details}${imgs.map((u,i)=>`<img src="${u}" class="w-full rounded-xl border bg-white" alt="Draft image ${i+1}">`).join('')}`;
+                document.getElementById('mj-preview-publish-btn').onclick = () => publishAdminDraft(id);
+                modal.classList.remove('hide'); modal.classList.add('flex');
+            } catch(err) { alert('Ralat preview draft: ' + err.message); }
+        };
+
+        window.closeDraftPreview = function() {
+            const modal = document.getElementById('mj-draft-preview-modal');
+            modal?.classList.add('hide'); modal?.classList.remove('flex');
+        };
+
+        window.publishAdminDraft = async function(id) {
+            if(!confirm('Publish draft ini sekarang? Selepas publish, user akan melihat versi baharu apabila kandungan mereka dimuat semula.')) return;
+            try {
+                const d = await mjGetDraft(id);
+                await set(ref(db, d.targetPath), {...(d.payload || {}), publishedAt:Date.now(), publishedBy:currentUser.uid, status:'published'});
+                await remove(ref(db, `${mjDraftOwnerPath()}/${id}`));
+                closeDraftPreview();
+                if(d.kind === 'quiz') await loadAdminStandaloneQuizList();
+                else {
+                    const snap = await get(ref(db,'silibus'));
+                    appSilibusData = snap.exists() ? snap.val() : {};
+                    loadAdminNotaList(); loadSubtopicContentList();
+                    if(currentLevel && currentChapterKey && currentFlowTab) switchFlowSubTab(currentFlowTab);
+                }
+                await loadAdminDraftCenter();
+                alert('Draft berjaya dipublish.');
+            } catch(err) { alert('Ralat publish draft: ' + err.message); }
+        };
+
+        window.discardAdminDraft = async function(id) {
+            if(!confirm('Buang draft ini? Kandungan published yang lama tidak akan terjejas.')) return;
+            try { await remove(ref(db, `${mjDraftOwnerPath()}/${id}`)); await loadAdminDraftCenter(); }
+            catch(err) { alert('Ralat buang draft: ' + err.message); }
+        };
+
     </script>
 
 </body>
