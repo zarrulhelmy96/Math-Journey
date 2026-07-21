@@ -1758,6 +1758,32 @@
             border-radius: 999px;
         }
 
+    
+
+        /* ===== AI Tutor Math Journey ===== */
+        #view-ai-tutor { padding-bottom: 110px; }
+        .mj-ai-shell { max-width: 760px; margin: 0 auto; }
+        .mj-ai-hero {
+            background: linear-gradient(135deg, #4C1D95 0%, #6D28D9 62%, #2E1065 100%);
+            color: white; border-radius: 28px; padding: 22px; position: relative; overflow: hidden;
+            box-shadow: 0 18px 38px rgba(76,29,149,.20), 0 4px 0 rgba(250,204,21,.65);
+        }
+        .mj-ai-hero::after { content:'π  x²  √  ÷'; position:absolute; right:-10px; bottom:-10px; font-weight:900; font-size:2rem; color:rgba(255,255,255,.10); transform:rotate(-8deg); }
+        .mj-ai-card { background:#fff; border:1px solid rgba(109,40,217,.14); border-radius:24px; padding:18px; box-shadow:0 14px 30px rgba(46,16,101,.07); }
+        .mj-ai-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+        .mj-ai-label { display:block; font-size:.72rem; font-weight:900; color:#4C1D95; margin-bottom:6px; text-transform:uppercase; letter-spacing:.06em; }
+        .mj-ai-input { width:100%; border:1px solid #DDD6FE; border-radius:14px; padding:11px 12px; background:#FFFEFA; color:#1E1B4B; outline:none; }
+        .mj-ai-input:focus { border-color:#FACC15; box-shadow:0 0 0 3px rgba(250,204,21,.20); }
+        #ai-question { min-height:135px; resize:vertical; line-height:1.55; }
+        .mj-ai-upload { border:2px dashed #C4B5FD; border-radius:18px; padding:14px; text-align:center; background:#FAF5FF; cursor:pointer; }
+        .mj-ai-preview { max-height:220px; max-width:100%; border-radius:16px; margin:12px auto 0; display:block; }
+        .mj-ai-answer { white-space:pre-wrap; line-height:1.72; color:#292524; overflow-wrap:anywhere; }
+        .mj-ai-thinking { display:inline-flex; align-items:center; gap:8px; color:#6D28D9; font-weight:800; }
+        .mj-ai-dot { width:7px; height:7px; border-radius:50%; background:#6D28D9; animation:mjAiPulse 1s infinite alternate; }
+        .mj-ai-dot:nth-child(2){animation-delay:.2s}.mj-ai-dot:nth-child(3){animation-delay:.4s}
+        @keyframes mjAiPulse { from{opacity:.25;transform:translateY(0)} to{opacity:1;transform:translateY(-4px)} }
+        @media(max-width:640px){ .mj-ai-grid{grid-template-columns:1fr;} }
+
     </style>
 </head>
 <body class="text-slate-800 antialiased">
@@ -2563,6 +2589,43 @@
             </div>
         </section>
 
+
+        <section id="view-ai-tutor" class="view p-5 hide">
+            <div class="mj-ai-shell space-y-4">
+                <div class="mj-ai-hero">
+                    <div class="relative z-10">
+                        <div class="inline-flex items-center gap-2 bg-white/15 rounded-full px-3 py-2 text-xs font-black uppercase tracking-wider mb-3">
+                            <i class="fa-solid fa-wand-magic-sparkles text-yellow-300"></i> AI Tutor
+                        </div>
+                        <h2 class="text-2xl font-black">Tanya AI Math Journey</h2>
+                        <p class="mt-2 text-sm text-purple-100 leading-relaxed">Taip atau muat naik gambar soalan. AI akan beri petunjuk dan penerangan langkah demi langkah dalam Bahasa Melayu.</p>
+                    </div>
+                </div>
+
+                <div class="mj-ai-card space-y-4">
+                    <div class="mj-ai-grid">
+                        <div><label class="mj-ai-label" for="ai-form">Tingkatan</label><select id="ai-form" class="mj-ai-input"><option value="Tingkatan 1">Tingkatan 1</option><option value="Tingkatan 2">Tingkatan 2</option><option value="Tingkatan 3" selected>Tingkatan 3</option><option value="Tingkatan 4">Tingkatan 4</option><option value="Tingkatan 5">Tingkatan 5</option></select></div>
+                        <div><label class="mj-ai-label" for="ai-chapter">Bab</label><input id="ai-chapter" class="mj-ai-input" placeholder="Contoh: Bab 3"></div>
+                        <div><label class="mj-ai-label" for="ai-mode">Cara jawab</label><select id="ai-mode" class="mj-ai-input"><option value="hint">Beri petunjuk dahulu</option><option value="steps">Langkah demi langkah</option><option value="check">Semak jawapan saya</option></select></div>
+                    </div>
+                    <div><label class="mj-ai-label" for="ai-question">Soalan</label><textarea id="ai-question" class="mj-ai-input" maxlength="2000" placeholder="Contoh: Selesaikan 3x + 7 = 22 dan terangkan setiap langkah..."></textarea><div class="text-right text-xs text-gray-400 mt-1"><span id="ai-char-count">0</span>/2000</div></div>
+                    <div>
+                        <label class="mj-ai-label">Gambar soalan (pilihan)</label>
+                        <label class="mj-ai-upload" for="ai-image-input"><i class="fa-regular fa-image text-2xl text-purple-600"></i><div class="font-bold text-purple-900 mt-1">Tekan untuk pilih gambar</div><div class="text-xs text-gray-500 mt-1">JPG, PNG atau WebP — maksimum 4 MB</div></label>
+                        <input id="ai-image-input" type="file" accept="image/jpeg,image/png,image/webp" class="hide">
+                        <div id="ai-image-preview-wrap" class="hide"><img id="ai-image-preview" class="mj-ai-preview" alt="Pratonton soalan"><button id="ai-remove-image" type="button" class="mt-2 text-xs font-bold text-red-600"><i class="fa-solid fa-trash"></i> Buang gambar</button></div>
+                    </div>
+                    <button id="ai-ask-btn" type="button" class="btn-primary w-full rounded-2xl py-3.5 font-black"><i class="fa-solid fa-paper-plane mr-2"></i>Tanya AI</button>
+                    <p class="text-xs text-gray-500 text-center">AI mungkin tersilap. Semak jawapan penting dengan guru atau nota Math Journey.</p>
+                </div>
+
+                <div id="ai-answer-card" class="mj-ai-card hide">
+                    <div class="flex items-center justify-between gap-3 mb-3"><h3 class="font-black text-purple-900"><i class="fa-solid fa-robot mr-2 text-yellow-500"></i>Jawapan AI</h3><button id="ai-copy-btn" type="button" class="text-xs font-bold text-purple-700"><i class="fa-regular fa-copy"></i> Salin</button></div>
+                    <div id="ai-answer" class="mj-ai-answer"></div>
+                </div>
+            </div>
+        </section>
+
         <section id="view-admin" class="view p-5 hide">
             <div class="mb-6">
                 <h2 class="text-xl font-bold text-purple-900">Admin Panel (Silibus Builder)</h2>
@@ -3079,7 +3142,7 @@
     </main>
 
     <footer id="app-footer" class="bg-white border-t border-gray-100 fixed bottom-0 left-0 right-0 z-50 hide shadow-[0_-4px_12px_rgba(0,0,0,0.03)]">
-        <div class="max-w-md mx-auto grid grid-cols-5 text-center py-2 text-gray-400 text-[10px] font-bold uppercase tracking-wider">
+        <div class="max-w-md mx-auto grid grid-cols-6 text-center py-2 text-gray-400 text-[10px] font-bold uppercase tracking-wider">
             <button onclick="switchView('dashboard')" id="nav-btn-dashboard" class="flex flex-col items-center space-y-1 text-soft-pink">
                 <i class="fa-solid fa-compass text-lg"></i> <span>Mula</span>
             </button>
@@ -3088,6 +3151,9 @@
             </button>
             <button onclick="openShopView()" id="nav-btn-shop" class="flex flex-col items-center space-y-1">
                 <i class="fa-solid fa-store text-lg"></i> <span>Shop</span>
+            </button>
+            <button onclick="switchView('ai-tutor')" id="nav-btn-ai-tutor" class="flex flex-col items-center space-y-1">
+                <i class="fa-solid fa-wand-magic-sparkles text-lg"></i> <span>AI Tutor</span>
             </button>
             <button onclick="switchView('profile')" id="nav-btn-profile" class="flex flex-col items-center space-y-1">
                 <i class="fa-solid fa-id-badge text-lg"></i> <span>Profil</span>
@@ -3532,6 +3598,11 @@
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
+        window.getMathJourneyIdToken = async function(forceRefresh = false) {
+            const user = auth.currentUser;
+            if (!user) throw new Error('Sila log masuk terlebih dahulu.');
+            return await user.getIdToken(forceRefresh);
+        };
         // Pastikan sesi login kekal selepas refresh/deploy dan tidak hilang lalu kembali ke landing page.
         const authPersistenceReady = setPersistence(auth, browserLocalPersistence)
             .catch((error) => {
@@ -3542,6 +3613,7 @@
 
         let currentUser = null;
         let isPremiumUser = false;
+        window.isPremiumUser = false;
         let currentLevel = null;
         let currentChapterKey = null;
         let appSilibusData = {};
@@ -4030,6 +4102,7 @@
                 sessionStorage.removeItem(ACTIVE_SESSION_STORAGE_KEY);
                 currentUser = null;
                 isPremiumUser = false;
+                window.isPremiumUser = false;
 
                 const loginView = document.getElementById('view-login');
                 const loginIsAlreadyOpen = loginView && !loginView.classList.contains('hide');
@@ -4078,6 +4151,7 @@
                 udata = { ...udata, ...(localStats || {}) };
 
                 isPremiumUser = udata.premium === true || udata.hasAccess === true || isAdminAccount;
+                window.isPremiumUser = isPremiumUser;
                 currentUserProfileData = udata;
                 document.getElementById('dash-username').innerText = udata.nickname || udata.fullname || "Pelajar";
                 updateStreakUI(udata.streak || 1);
@@ -4145,6 +4219,10 @@
                 return;
             }
             if (viewId === 'content-flow' && !canAccessChapter(currentLevel, currentChapterKey)) {
+                showPremiumModal();
+                return;
+            }
+            if (viewId === 'ai-tutor' && !isPremiumUser && !isCurrentUserAdmin()) {
                 showPremiumModal();
                 return;
             }
@@ -10937,6 +11015,58 @@
             if (!target || !target.matches || !target.matches('#btn-open-crew-application, #btn-reopen-crew-application, [data-open-crew-application]')) return;
             forceOpenCrewForm(event);
         }, true);
+    })();
+    </script>
+
+    <script>
+    (function(){
+        var imageDataUrl = '';
+        var $ = function(id){ return document.getElementById(id); };
+        function setAnswer(content, isError){
+            var card=$('ai-answer-card'), box=$('ai-answer');
+            if(!card||!box) return;
+            card.classList.remove('hide');
+            box.textContent=content;
+            box.style.color=isError?'#b91c1c':'#292524';
+            setTimeout(function(){ card.scrollIntoView({behavior:'smooth',block:'start'}); },50);
+        }
+        function setLoading(loading){
+            var btn=$('ai-ask-btn'); if(!btn)return;
+            btn.disabled=loading;
+            btn.innerHTML=loading?'<span class="mj-ai-thinking"><span class="mj-ai-dot"></span><span class="mj-ai-dot"></span><span class="mj-ai-dot"></span> AI sedang berfikir</span>':'<i class="fa-solid fa-paper-plane mr-2"></i>Tanya AI';
+        }
+        document.addEventListener('DOMContentLoaded',function(){
+            var q=$('ai-question'), input=$('ai-image-input');
+            if(q) q.addEventListener('input',function(){ $('ai-char-count').textContent=String(q.value.length); });
+            if(input) input.addEventListener('change',function(){
+                var file=input.files&&input.files[0]; if(!file)return;
+                if(file.size>4*1024*1024){ alert('Gambar melebihi 4 MB. Sila kecilkan gambar.'); input.value=''; return; }
+                var reader=new FileReader();
+                reader.onload=function(){ imageDataUrl=String(reader.result||''); $('ai-image-preview').src=imageDataUrl; $('ai-image-preview-wrap').classList.remove('hide'); };
+                reader.readAsDataURL(file);
+            });
+            $('ai-remove-image')?.addEventListener('click',function(){ imageDataUrl=''; input.value=''; $('ai-image-preview').removeAttribute('src'); $('ai-image-preview-wrap').classList.add('hide'); });
+            $('ai-copy-btn')?.addEventListener('click',async function(){ try{ await navigator.clipboard.writeText($('ai-answer').textContent||''); this.innerHTML='<i class="fa-solid fa-check"></i> Disalin'; setTimeout(()=>this.innerHTML='<i class="fa-regular fa-copy"></i> Salin',1500);}catch(e){ alert('Tidak dapat menyalin jawapan.'); } });
+            $('ai-ask-btn')?.addEventListener('click',async function(){
+                if(!(window.isPremiumUser === true || (typeof window.isCurrentUserAdmin === 'function' && window.isCurrentUserAdmin()))){
+                    if(typeof window.showPremiumModal === 'function') window.showPremiumModal();
+                    else alert('AI Tutor adalah akses premium.');
+                    return;
+                }
+                var question=(q.value||'').trim();
+                if(!question&&!imageDataUrl){ alert('Sila taip soalan atau pilih gambar dahulu.'); return; }
+                setLoading(true); setAnswer('AI sedang menyediakan penerangan…',false);
+                try{
+                    if(typeof window.getMathJourneyIdToken !== 'function') throw new Error('Sistem pengesahan belum tersedia. Sila refresh dan cuba lagi.');
+                    var idToken=await window.getMathJourneyIdToken(true);
+                    var response=await fetch('/.netlify/functions/ai-tutor',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+idToken},body:JSON.stringify({question:question,form:$('ai-form').value,chapter:($('ai-chapter').value||'').trim(),mode:$('ai-mode').value,imageDataUrl:imageDataUrl})});
+                    var data=await response.json().catch(function(){return {};});
+                    if(!response.ok) throw new Error(data.error||'AI tidak dapat menjawab sekarang.');
+                    setAnswer(data.answer||'Tiada jawapan diterima.',false);
+                }catch(err){ setAnswer('Ralat: '+err.message+'\n\nPastikan Netlify Function telah dipasang dan OPENAI_API_KEY sudah ditambah dalam Netlify Environment Variables.',true); }
+                finally{ setLoading(false); }
+            });
+        });
     })();
     </script>
 
