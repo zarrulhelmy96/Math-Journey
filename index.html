@@ -610,6 +610,32 @@
             50% { transform: translateY(-8px); }
         }
         .hide { display: none !important; }
+
+        /* Quiz UX: scrollable question list + solid answer feedback */
+        .mj-quiz-question-scroll {
+            max-height: min(58vh, 520px);
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            padding-right: 6px;
+            scrollbar-gutter: stable;
+        }
+        .mj-quiz-question-scroll::-webkit-scrollbar { width: 7px; }
+        .mj-quiz-question-scroll::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 999px; }
+        .mj-quiz-question-scroll::-webkit-scrollbar-thumb { background: #a78bfa; border-radius: 999px; }
+        .mj-quiz-answer-correct {
+            background: #16a34a !important;
+            border-color: #15803d !important;
+            color: #ffffff !important;
+            box-shadow: 0 10px 22px rgba(22, 163, 74, 0.24) !important;
+        }
+        .mj-quiz-answer-wrong {
+            background: #dc2626 !important;
+            border-color: #b91c1c !important;
+            color: #ffffff !important;
+            box-shadow: 0 10px 22px rgba(220, 38, 38, 0.22) !important;
+        }
+        .mj-quiz-answer-correct i,
+        .mj-quiz-answer-wrong i { color: #ffffff !important; }
     
 
 
@@ -5161,6 +5187,7 @@
                         <h3 class="font-bold text-slate-900 text-base">Pilih Soalan Quiz</h3>
                         <p class="text-xs text-gray-500 mt-1">Setiap soalan hanya boleh dijawab sekali sahaja.</p>
                     </div>
+                    <div class="mj-quiz-question-scroll space-y-3">
                 `;
 
                 for (let i = 0; i < allEntries.length; i++) {
@@ -5174,8 +5201,7 @@
                     html += `
                         <button onclick='openSubtopicQuizQuestion(${JSON.stringify(entry.level)}, ${JSON.stringify(entry.id)}, ${JSON.stringify(entry.sourceMode || "level")})' class="w-full bg-white border ${isDone ? 'border-green-200 bg-green-50' : 'border-gray-100 hover:border-soft-pink'} p-4 rounded-2xl text-left shadow-sm transition flex justify-between items-center">
                             <div class="pr-3">
-                                <span class="${getQuizLevelBadgeClass(entry.level)} text-[10px] font-bold px-2 py-1 rounded-full">${getQuizLevelLabel(entry.level)}</span>
-                                <span class="bg-amber-50 text-amber-700 text-[10px] font-bold px-2 py-1 rounded-full ml-1">${mark} markah</span>
+                                <span class="bg-amber-50 text-amber-700 text-[10px] font-bold px-2 py-1 rounded-full">${mark} markah</span>
                                 ${isDone ? '<span class="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-1 rounded-full ml-1">Sudah dijawab</span>' : ''}
                                 <h4 class="font-bold text-sm text-slate-900 mt-2 leading-relaxed">${renderQuizMathText(title)}</h4>
                             </div>
@@ -5184,6 +5210,7 @@
                     `;
                 }
 
+                html += '</div>';
                 box.innerHTML = html;
             } catch (err) {
                 box.innerHTML = `<p class="text-xs text-red-500 bg-red-50 border border-red-100 rounded-xl p-3">Ralat load quiz: ${err.message}</p>`;
@@ -5247,8 +5274,7 @@
                 <button onclick="window.backToSubtopicQuizList()" class="text-gray-500 text-sm mb-3"><i class="fa-solid fa-arrow-left"></i> Kembali ke senarai soalan</button>
                 <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm text-xs space-y-4">
                     <div>
-                        <span class="${getQuizLevelBadgeClass(level)} font-bold px-2.5 py-1 rounded-lg text-[10px] uppercase tracking-wider">${getQuizLevelLabel(level)}</span>
-                        <span class="ml-1 bg-amber-50 text-amber-700 font-bold px-2.5 py-1 rounded-lg text-[10px] uppercase tracking-wider">${mark} markah</span>
+                        <span class="bg-amber-50 text-amber-700 font-bold px-2.5 py-1 rounded-lg text-[10px] uppercase tracking-wider">${mark} markah</span>
                         ${answered ? '<span class="ml-1 bg-green-100 text-green-700 font-bold px-2.5 py-1 rounded-lg text-[10px] uppercase tracking-wider">Sudah dijawab</span>' : ''}
                         <p class="text-slate-900 font-bold text-base mt-3 leading-relaxed">${renderQuizMathText(q.soalan || '')}</p>
                         ${renderQuizQuestionImageGallery(q.imageUrls, '')}
@@ -5262,11 +5288,11 @@
 
                 if(answered) {
                     if(opt === q.jawapan) {
-                        style = 'border-green-500 bg-green-50 text-green-700 font-bold';
-                        icon = '<i class="fa-solid fa-circle-check text-green-600"></i>';
+                        style = 'mj-quiz-answer-correct font-bold';
+                        icon = '<i class="fa-solid fa-circle-check"></i>';
                     } else if(opt === savedAnswer.chosen && opt !== q.jawapan) {
-                        style = 'border-red-500 bg-red-50 text-red-700 font-bold';
-                        icon = '<i class="fa-solid fa-circle-xmark text-red-600"></i>';
+                        style = 'mj-quiz-answer-wrong font-bold';
+                        icon = '<i class="fa-solid fa-circle-xmark"></i>';
                     } else {
                         style = 'border-gray-100 bg-gray-50 text-gray-400';
                     }
@@ -6356,7 +6382,6 @@
                 <div class="bg-white border rounded-2xl p-5 shadow-sm text-xs space-y-4">
                     <div>
                         <span class="bg-blue-100 text-blue-700 font-bold px-2.5 py-1 rounded-lg text-[10px] uppercase tracking-wider">${window.standaloneQuizContext.chapterName}</span>
-                        <span class="ml-1 ${getQuizLevelBadgeClass(window.standaloneQuizContext.level)} font-bold px-2.5 py-1 rounded-lg text-[10px] uppercase tracking-wider">${window.standaloneQuizContext.levelLabel}</span>
                         <span class="ml-1 bg-slate-100 text-slate-700 font-bold px-2.5 py-1 rounded-lg text-[10px] uppercase tracking-wider">${getQuizLevelMark(window.standaloneQuizContext.level)} markah / soalan</span>
                         ${lockedByPreviousAttempt ? '<span class="ml-1 bg-amber-100 text-amber-700 font-bold px-2.5 py-1 rounded-lg text-[10px] uppercase tracking-wider">Sudah dijawab</span>' : ''}
                         <p class="text-slate-900 font-bold text-base mt-3 leading-relaxed">${renderQuizMathText(q.soalan || '')}</p>
@@ -6371,11 +6396,11 @@
 
                 if(answered) {
                     if(opt === q.jawapan) {
-                        style = 'border-green-500 bg-green-50 text-green-700 font-bold';
-                        icon = '<i class="fa-solid fa-circle-check text-green-600"></i>';
+                        style = 'mj-quiz-answer-correct font-bold';
+                        icon = '<i class="fa-solid fa-circle-check"></i>';
                     } else if(opt === answered.chosen && opt !== q.jawapan) {
-                        style = 'border-red-500 bg-red-50 text-red-700 font-bold';
-                        icon = '<i class="fa-solid fa-circle-xmark text-red-600"></i>';
+                        style = 'mj-quiz-answer-wrong font-bold';
+                        icon = '<i class="fa-solid fa-circle-xmark"></i>';
                     } else {
                         style = 'border-gray-100 bg-gray-50 text-gray-400';
                     }
