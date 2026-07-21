@@ -11186,5 +11186,88 @@
 
     </script>
 
+
+
+    <!-- Math Journey: global button pop sound -->
+    <script>
+    (function () {
+        'use strict';
+
+        var audioContext = null;
+        var soundEnabled = true;
+        var lastPlayedAt = 0;
+
+        function getAudioContext() {
+            if (!audioContext) {
+                var AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContextClass) return null;
+                audioContext = new AudioContextClass();
+            }
+            if (audioContext.state === 'suspended') {
+                audioContext.resume().catch(function () {});
+            }
+            return audioContext;
+        }
+
+        function playButtonPop() {
+            if (!soundEnabled) return;
+
+            var now = performance.now();
+            if (now - lastPlayedAt < 55) return;
+            lastPlayedAt = now;
+
+            var ctx = getAudioContext();
+            if (!ctx) return;
+
+            try {
+                var start = ctx.currentTime;
+                var oscillator = ctx.createOscillator();
+                var gain = ctx.createGain();
+
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(520, start);
+                oscillator.frequency.exponentialRampToValueAtTime(760, start + 0.045);
+
+                gain.gain.setValueAtTime(0.0001, start);
+                gain.gain.exponentialRampToValueAtTime(0.075, start + 0.008);
+                gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.075);
+
+                oscillator.connect(gain);
+                gain.connect(ctx.destination);
+                oscillator.start(start);
+                oscillator.stop(start + 0.08);
+            } catch (error) {
+                console.warn('Bunyi butang tidak dapat dimainkan:', error);
+            }
+        }
+
+        function isUsableButton(element) {
+            if (!element) return false;
+            var button = element.closest('button, input[type="button"], input[type="submit"], input[type="reset"], [role="button"]');
+            if (!button) return false;
+            if (button.disabled || button.getAttribute('aria-disabled') === 'true') return false;
+            if (button.classList.contains('hide')) return false;
+            return true;
+        }
+
+        document.addEventListener('pointerdown', function (event) {
+            if (isUsableButton(event.target)) playButtonPop();
+        }, true);
+
+        document.addEventListener('keydown', function (event) {
+            if ((event.key === 'Enter' || event.key === ' ') && isUsableButton(event.target)) {
+                playButtonPop();
+            }
+        }, true);
+
+        window.MathJourneyButtonSound = {
+            play: playButtonPop,
+            enable: function () { soundEnabled = true; },
+            disable: function () { soundEnabled = false; },
+            isEnabled: function () { return soundEnabled; }
+        };
+    })();
+    </script>
+
 </body>
 </html>
