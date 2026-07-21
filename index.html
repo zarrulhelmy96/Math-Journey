@@ -6461,6 +6461,18 @@
             renderStandaloneQuizQuestion();
         };
 
+        function normalizeQuizAnswerValue(value) {
+            return String(value ?? '')
+                .normalize('NFKC')
+                .trim()
+                .replace(/\s+/g, ' ')
+                .toLowerCase();
+        }
+
+        function isStandaloneQuizAnswerCorrect(chosen, correctAnswer) {
+            return normalizeQuizAnswerValue(chosen) === normalizeQuizAnswerValue(correctAnswer);
+        }
+
         window.confirmStandaloneQuizAnswer = function() {
             const idx = window.standaloneQuizIndex;
             const q = window.standaloneQuizQuestions[idx];
@@ -6478,7 +6490,7 @@
                 question: q.soalan || '',
                 chosen,
                 correctAnswer: q.jawapan,
-                correct: chosen === q.jawapan,
+                correct: isStandaloneQuizAnswerCorrect(chosen, q.jawapan),
                 answerImageUrls: q.answerImageUrls || [],
                 optionImageUrls: q.optionImageUrls || q.optionImages || {},
                 answeredAt: Date.now()
@@ -6620,9 +6632,22 @@
 
                 saveLocalLeaderboardRow(leaderboardRow);
 
-                await set(ref(db, `leaderboard/${currentUser.uid}`), leaderboardRow);
+                // Guna update pada root supaya rekod user + leaderboard kekal sepadan.
+                // Jika rules membenarkan leaderboard tetapi menyekat sebahagian field user,
+                // cubaan leaderboard masih dibuat secara berasingan sebagai fallback.
+                try {
+                    const rootUpdates = {};
+                    rootUpdates[`leaderboard/${currentUser.uid}`] = leaderboardRow;
+                    rootUpdates[`users/${currentUser.uid}/leaderboardScore`] = leaderboardScore;
+                    rootUpdates[`users/${currentUser.uid}/correctAnswerCount`] = correctAnswerCount;
+                    rootUpdates[`users/${currentUser.uid}/answeredCount`] = answeredCount;
+                    await update(ref(db), rootUpdates);
+                } catch (atomicErr) {
+                    console.warn('Atomic leaderboard update skipped, trying direct leaderboard write:', atomicErr.message);
+                    await set(ref(db, `leaderboard/${currentUser.uid}`), leaderboardRow);
+                }
 
-                loadLeaderboard();
+                await loadLeaderboard();
                 return true;
             } catch (err) {
                 console.warn('Leaderboard update skipped:', err.message);
@@ -6874,12 +6899,20 @@
 
                         // Update remote secara berasingan supaya satu field rules yang block tidak gagalkan semua statistik.
                         const coreUpdates = {
-                            answeredCount: leaderboardUpdates.answeredCount,
-                            correctAnswerCount: leaderboardUpdates.correctAnswerCount,
-                            leaderboardScore: leaderboardUpdates.leaderboardScore
+                            answeredCount: Number(leaderboardUpdates.answeredCount || 0),
+                            correctAnswerCount: Number(leaderboardUpdates.correctAnswerCount || 0),
+                            leaderboardScore: Number(leaderboardUpdates.leaderboardScore || 0)
                         };
-                        await update(ref(db, `users/${currentUser.uid}`), coreUpdates).catch(err => {
-                            console.warn('Core quiz stats remote update skipped:', err.message);
+                        await runTransaction(ref(db, `users/${currentUser.uid}`), currentData => {
+                            const current = currentData || {};
+                            return {
+                                ...current,
+                                answeredCount: Math.max(Number(current.answeredCount || 0), coreUpdates.answeredCount),
+                                correctAnswerCount: Math.max(Number(current.correctAnswerCount || current.totalCorrectAnswers || 0), coreUpdates.correctAnswerCount),
+                                leaderboardScore: Math.max(Number(current.leaderboardScore || current.quizMarks || current.quizScore || 0), coreUpdates.leaderboardScore)
+                            };
+                        }).catch(err => {
+                            console.warn('Core quiz stats transaction skipped:', err.message);
                         });
 
                         const optionalUpdates = {};
