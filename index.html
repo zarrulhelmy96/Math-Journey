@@ -1803,6 +1803,20 @@
             border-radius: 999px;
         }
 
+    
+        /* Final admin slider fix: visible, draggable thumb + transform viewport */
+        .mj-admin-order-scroll { overflow-x: hidden !important; }
+        .mj-admin-horizontal-slider {
+            appearance: auto !important;
+            -webkit-appearance: auto !important;
+            pointer-events: auto !important;
+            touch-action: none !important;
+            opacity: 1 !important;
+            position: relative !important;
+            z-index: 20 !important;
+        }
+        .mj-admin-horizontal-controls { position: relative; z-index: 30; }
+
     </style>
 </head>
 <body class="text-slate-800 antialiased">
@@ -7563,59 +7577,83 @@
 
         window.mjBindAdminHorizontalSlider = function(scrollId, sliderId) {
             requestAnimationFrame(() => {
-                const scroller = document.getElementById(scrollId);
+                const viewport = document.getElementById(scrollId);
                 const slider = document.getElementById(sliderId);
-                if(!scroller || !slider) return;
+                if(!viewport || !slider) return;
 
-                const syncRange = () => {
-                    const list = scroller.querySelector('.mj-admin-order-list');
-                    const rows = scroller.querySelectorAll('.mj-admin-order-row');
+                const list = viewport.querySelector('.mj-admin-order-list');
+                if(!list) return;
 
-                    // Pastikan memang wujud ruang mendatar untuk slider bergerak.
-                    // Lebar kandungan sentiasa lebih besar daripada panel semasa.
-                    const forcedContentWidth = Math.max(1100, scroller.clientWidth + 520);
-                    if(list) {
-                        list.style.width = forcedContentWidth + 'px';
-                        list.style.minWidth = forcedContentWidth + 'px';
-                    }
-                    rows.forEach(row => {
-                        row.style.width = forcedContentWidth + 'px';
-                        row.style.minWidth = forcedContentWidth + 'px';
-                        row.style.maxWidth = forcedContentWidth + 'px';
+                // Gunakan transform, bukan scrollLeft. Ini lebih stabil dan tidak bergantung
+                // pada scrollbar browser yang kadang-kadang tersembunyi atau gagal dikira.
+                viewport.style.overflowX = 'hidden';
+                viewport.style.position = 'relative';
+                list.style.willChange = 'transform';
+                list.style.transition = 'transform 0.08s linear';
+
+                const measure = () => {
+                    const viewportWidth = Math.max(1, viewport.getBoundingClientRect().width);
+                    const targetWidth = Math.max(920, viewportWidth + 420);
+                    list.style.width = targetWidth + 'px';
+                    list.style.minWidth = targetWidth + 'px';
+
+                    list.querySelectorAll('.mj-admin-order-row').forEach(row => {
+                        row.style.width = targetWidth + 'px';
+                        row.style.minWidth = targetWidth + 'px';
+                        row.style.maxWidth = targetWidth + 'px';
                     });
 
-                    const maxScroll = Math.max(0, scroller.scrollWidth - scroller.clientWidth);
+                    const maxShift = Math.max(1, Math.round(targetWidth - viewportWidth));
                     slider.min = '0';
-                    slider.max = String(Math.max(1, Math.floor(maxScroll)));
+                    slider.max = String(maxShift);
                     slider.step = '1';
-                    slider.value = String(Math.min(maxScroll, Math.round(scroller.scrollLeft)));
                     slider.disabled = false;
+                    if(Number(slider.value) > maxShift) slider.value = String(maxShift);
+                    applyPosition();
                 };
 
-                slider.oninput = function() {
-                    const nextLeft = Number(this.value) || 0;
-                    scroller.scrollTo({ left: nextLeft, behavior: 'auto' });
-                };
-                slider.onchange = slider.oninput;
-                scroller.onscroll = () => {
-                    slider.value = String(Math.round(scroller.scrollLeft));
+                const applyPosition = () => {
+                    const maxShift = Number(slider.max) || 1;
+                    const x = Math.max(0, Math.min(maxShift, Number(slider.value) || 0));
+                    list.style.transform = `translate3d(${-x}px, 0, 0)`;
+                    slider.setAttribute('aria-valuenow', String(x));
                 };
 
-                syncRange();
-                setTimeout(syncRange, 80);
-                setTimeout(syncRange, 300);
+                slider.oninput = applyPosition;
+                slider.onchange = applyPosition;
+                slider.onpointermove = function(event) {
+                    if(event.buttons === 1) applyPosition();
+                };
+                slider.onkeydown = function() {
+                    requestAnimationFrame(applyPosition);
+                };
+
+                viewport._mjSlider = slider;
+                viewport._mjSliderApply = applyPosition;
+                viewport._mjSliderMeasure = measure;
+
+                measure();
+                setTimeout(measure, 120);
+                setTimeout(measure, 500);
+
                 if(window.ResizeObserver) {
-                    const observer = new ResizeObserver(syncRange);
-                    observer.observe(scroller);
-                    scroller._mjSliderResizeObserver = observer;
+                    if(viewport._mjSliderResizeObserver) viewport._mjSliderResizeObserver.disconnect();
+                    const observer = new ResizeObserver(measure);
+                    observer.observe(viewport);
+                    viewport._mjSliderResizeObserver = observer;
                 }
             });
         };
 
         window.mjAdminScrollStep = function(scrollId, direction) {
-            const scroller = document.getElementById(scrollId);
-            if(!scroller) return;
-            scroller.scrollBy({ left: direction * Math.max(180, scroller.clientWidth * 0.65), behavior: 'smooth' });
+            const viewport = document.getElementById(scrollId);
+            if(!viewport || !viewport._mjSlider) return;
+            const slider = viewport._mjSlider;
+            const current = Number(slider.value) || 0;
+            const max = Number(slider.max) || 1;
+            const step = Math.max(140, Math.round((viewport.clientWidth || 300) * 0.55));
+            slider.value = String(Math.max(0, Math.min(max, current + (direction * step))));
+            if(viewport._mjSliderApply) viewport._mjSliderApply();
         };
 
         window.closeStandaloneQuizImageOrderPanel = function() {
