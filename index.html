@@ -1911,6 +1911,83 @@
                 position: relative;
                 z-index: 3;
             }
+        
+
+            /* Quiz desktop: gambar kiri, pilihan jawapan kanan */
+            .mj-quiz-question-card {
+                            display: grid !important;
+                            grid-template-columns: minmax(0, 1.35fr) minmax(340px, 0.65fr);
+                            grid-template-rows: auto auto;
+                            column-gap: 24px;
+                            row-gap: 14px;
+                            align-items: start;
+                            padding: 20px !important;
+                        }
+
+                        .mj-quiz-question-card > div:first-child {
+                            grid-column: 1;
+                            grid-row: 1 / span 2;
+                            min-width: 0;
+                        }
+
+                        .mj-quiz-options {
+                            grid-column: 2;
+                            grid-row: 1;
+                            grid-template-columns: 1fr !important;
+                            align-content: start;
+                            gap: 12px !important;
+                            padding-top: 0 !important;
+                            position: sticky;
+                            top: 96px;
+                        }
+
+                        .mj-quiz-options button {
+                            min-height: 66px !important;
+                            padding: 12px 16px !important;
+                        }
+
+                        .mj-quiz-feedback {
+                            grid-column: 2;
+                            grid-row: 2;
+                            margin-top: 0 !important;
+                            align-self: start;
+                        }
+
+                        .mj-quiz-question-images {
+                            margin-top: 12px !important;
+                        }
+
+                        .mj-quiz-question-images .space-y-3 {
+                            max-height: calc(100vh - 300px);
+                            min-height: 280px;
+                            overflow-y: auto;
+                            overscroll-behavior: contain;
+                            padding-right: 6px;
+                            scrollbar-gutter: stable;
+                        }
+
+                        .mj-quiz-question-images .space-y-3::-webkit-scrollbar {
+                            width: 7px;
+                        }
+
+                        .mj-quiz-question-images .space-y-3::-webkit-scrollbar-track {
+                            background: #f1f5f9;
+                            border-radius: 999px;
+                        }
+
+                        .mj-quiz-question-images .space-y-3::-webkit-scrollbar-thumb {
+                            background: #a78bfa;
+                            border-radius: 999px;
+                        }
+
+                        .mj-quiz-question-image {
+                            display: block;
+                            width: 100% !important;
+                            height: auto !important;
+                            max-height: calc(100vh - 390px);
+                            min-height: 260px;
+                            object-fit: contain !important;
+                        }
         }
 
         @media (min-width: 1280px) {
@@ -1928,83 +2005,8 @@
             }
         }
     
-        /* ===== Desktop Quiz Split Layout: image left, answers right ===== */
-        @media (min-width: 900px) {
-            .mj-quiz-question-card {
-                display: grid !important;
-                grid-template-columns: minmax(0, 1.35fr) minmax(340px, 0.65fr);
-                grid-template-rows: auto auto;
-                column-gap: 24px;
-                row-gap: 14px;
-                align-items: start;
-                padding: 20px !important;
-            }
 
-            .mj-quiz-question-card > div:first-child {
-                grid-column: 1;
-                grid-row: 1 / span 2;
-                min-width: 0;
-            }
-
-            .mj-quiz-options {
-                grid-column: 2;
-                grid-row: 1;
-                grid-template-columns: 1fr !important;
-                align-content: start;
-                gap: 12px !important;
-                padding-top: 0 !important;
-                position: sticky;
-                top: 96px;
-            }
-
-            .mj-quiz-options button {
-                min-height: 66px !important;
-                padding: 12px 16px !important;
-            }
-
-            .mj-quiz-feedback {
-                grid-column: 2;
-                grid-row: 2;
-                margin-top: 0 !important;
-                align-self: start;
-            }
-
-            .mj-quiz-question-images {
-                margin-top: 12px !important;
-            }
-
-            .mj-quiz-question-images .space-y-3 {
-                max-height: calc(100vh - 300px);
-                min-height: 280px;
-                overflow-y: auto;
-                overscroll-behavior: contain;
-                padding-right: 6px;
-                scrollbar-gutter: stable;
-            }
-
-            .mj-quiz-question-images .space-y-3::-webkit-scrollbar {
-                width: 7px;
-            }
-
-            .mj-quiz-question-images .space-y-3::-webkit-scrollbar-track {
-                background: #f1f5f9;
-                border-radius: 999px;
-            }
-
-            .mj-quiz-question-images .space-y-3::-webkit-scrollbar-thumb {
-                background: #a78bfa;
-                border-radius: 999px;
-            }
-
-            .mj-quiz-question-image {
-                display: block;
-                width: 100% !important;
-                height: auto !important;
-                max-height: calc(100vh - 390px);
-                min-height: 260px;
-                object-fit: contain !important;
-            }
-        }
+    
 
         @media (min-width: 900px) and (max-height: 760px) {
             .mj-quiz-question-images .space-y-3 {
@@ -2021,7 +2023,6 @@
                 min-height: 58px !important;
             }
         }
-
     </style>
 </head>
 <body class="text-slate-800 antialiased">
@@ -3528,6 +3529,7 @@
             try {
                 var appModule = await import('https://www.gstatic.com/firebasejs/10.1.0/firebase-app.js');
                 var authModule = await import('https://www.gstatic.com/firebasejs/10.1.0/firebase-auth.js');
+                var databaseModule = await import('https://www.gstatic.com/firebasejs/10.1.0/firebase-database.js');
 
                 var firebaseConfig = {
                     apiKey: "AIzaSyCsFCvkBLuLHzUVGokE82jRWshbsTsavVI",
@@ -3558,7 +3560,22 @@
                     const fallbackCredential = await authModule.signInWithEmailAndPassword(auth, email, password);
                     await fallbackCredential.user.getIdToken(true);
 
-                    // Main app akan mengesan sesi Firebase yang telah disimpan selepas reload.
+                    const fallbackUser = fallbackCredential.user;
+                    const fallbackSessionId = `${fallbackUser.uid}_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+                    const fallbackDb = databaseModule.getDatabase(app);
+
+                    await databaseModule.set(
+                        databaseModule.ref(fallbackDb, `users/${fallbackUser.uid}/activeSession`),
+                        {
+                            sessionId: fallbackSessionId,
+                            status: 'active',
+                            loginAt: Date.now(),
+                            lastSeen: Date.now(),
+                            userAgent: navigator.userAgent.slice(0, 220)
+                        }
+                    );
+
+                    localStorage.setItem('mathJourneyActiveSessionId', fallbackSessionId);
                     location.reload();
                     return;
                 }
@@ -4264,14 +4281,16 @@
         window.standaloneQuizIsFinishing = false;
 
         // Single-login session control
-        // Tujuan: satu akaun hanya aktif pada satu device/browser pada satu masa.
+        // Satu akaun hanya boleh mempunyai satu sesi aktif pada satu masa.
+        // Login terbaru akan menamatkan sesi lama pada device/browser lain.
         const ACTIVE_SESSION_STORAGE_KEY = 'mathJourneyActiveSessionId';
-        let currentActiveSessionId = sessionStorage.getItem(ACTIVE_SESSION_STORAGE_KEY) || null;
+        let currentActiveSessionId = localStorage.getItem(ACTIVE_SESSION_STORAGE_KEY) || null;
         let activeSessionUnsubscribe = null;
         let singleLoginLogoutInProgress = false;
+        let explicitLoginInProgress = false;
 
         function generateActiveSessionId(user) {
-            const randomPart = Math.random().toString(36).substring(2, 12);
+            const randomPart = (crypto?.randomUUID?.() || Math.random().toString(36).slice(2));
             return `${user.uid}_${Date.now()}_${randomPart}`;
         }
 
@@ -4282,14 +4301,89 @@
             activeSessionUnsubscribe = null;
         }
 
-        async function startSingleDeviceSession(user) {
-            // AUTO-LOGOUT SATU DEVICE DIMATIKAN.
-            // Ciri lama ini boleh tersalah anggap sesi sendiri sebagai device lain dan menendang pengguna keluar.
-            // Login dan akses app tidak lagi bergantung pada activeSession atau Firebase Rules tambahan.
+        async function forceLogoutBecauseSessionReplaced() {
+            if (singleLoginLogoutInProgress) return;
+            singleLoginLogoutInProgress = true;
+
             stopActiveSessionWatcher();
-            singleLoginLogoutInProgress = false;
             currentActiveSessionId = null;
-            sessionStorage.removeItem(ACTIVE_SESSION_STORAGE_KEY);
+            localStorage.removeItem(ACTIVE_SESSION_STORAGE_KEY);
+
+            try {
+                await signOut(auth);
+            } catch (e) {
+                console.warn('Forced logout signOut skipped:', e.message);
+            }
+
+            alert('Akaun ini telah log masuk pada peranti atau pelayar lain. Sesi pada peranti ini telah ditamatkan.');
+            switchView('login');
+            singleLoginLogoutInProgress = false;
+        }
+
+        function watchActiveSession(user, sessionId) {
+            stopActiveSessionWatcher();
+
+            activeSessionUnsubscribe = onValue(
+                ref(db, `users/${user.uid}/activeSession/sessionId`),
+                (snapshot) => {
+                    const serverSessionId = snapshot.exists() ? snapshot.val() : null;
+
+                    if (serverSessionId === sessionId) return;
+                    if (serverSessionId === null || serverSessionId === undefined || serverSessionId === '') return;
+
+                    forceLogoutBecauseSessionReplaced();
+                },
+                (error) => {
+                    console.warn('Active session watcher unavailable:', error.message);
+                }
+            );
+        }
+
+        async function claimSingleDeviceSession(user) {
+            const sessionId = generateActiveSessionId(user);
+
+            await set(ref(db, `users/${user.uid}/activeSession`), {
+                sessionId,
+                status: 'active',
+                loginAt: Date.now(),
+                lastSeen: Date.now(),
+                userAgent: navigator.userAgent.slice(0, 220)
+            });
+
+            currentActiveSessionId = sessionId;
+            localStorage.setItem(ACTIVE_SESSION_STORAGE_KEY, sessionId);
+            watchActiveSession(user, sessionId);
+            return sessionId;
+        }
+
+        async function restoreSingleDeviceSession(user) {
+            const savedSessionId = localStorage.getItem(ACTIVE_SESSION_STORAGE_KEY);
+            const sessionSnap = await get(ref(db, `users/${user.uid}/activeSession/sessionId`));
+            const serverSessionId = sessionSnap.exists() ? sessionSnap.val() : null;
+
+            if (!savedSessionId) {
+                if (serverSessionId) {
+                    await forceLogoutBecauseSessionReplaced();
+                    return false;
+                }
+
+                await claimSingleDeviceSession(user);
+                return true;
+            }
+
+            if (savedSessionId === serverSessionId) {
+                currentActiveSessionId = savedSessionId;
+                watchActiveSession(user, savedSessionId);
+
+                update(ref(db, `users/${user.uid}/activeSession`), {
+                    lastSeen: Date.now(),
+                    status: 'active'
+                }).catch(() => {});
+
+                return true;
+            }
+
+            await forceLogoutBecauseSessionReplaced();
             return false;
         }
 
@@ -4298,11 +4392,7 @@
                 if (currentUser && currentActiveSessionId) {
                     const sessionSnap = await get(ref(db, `users/${currentUser.uid}/activeSession/sessionId`));
                     if (sessionSnap.exists() && sessionSnap.val() === currentActiveSessionId) {
-                        await update(ref(db, `users/${currentUser.uid}/activeSession`), {
-                            sessionId: null,
-                            status: 'loggedOut',
-                            lastLogout: Date.now()
-                        });
+                        await remove(ref(db, `users/${currentUser.uid}/activeSession`));
                     }
                 }
             } catch (e) {
@@ -4311,8 +4401,17 @@
 
             stopActiveSessionWatcher();
             currentActiveSessionId = null;
-            sessionStorage.removeItem(ACTIVE_SESSION_STORAGE_KEY);
+            localStorage.removeItem(ACTIVE_SESSION_STORAGE_KEY);
         }
+
+        setInterval(() => {
+            if (!currentUser || !currentActiveSessionId) return;
+
+            update(ref(db, `users/${currentUser.uid}/activeSession`), {
+                lastSeen: Date.now()
+            }).catch(() => {});
+        }, 60000);
+
 
         let firebaseAuthStateResolved = false;
 
@@ -4322,8 +4421,17 @@
             if (user) {
                 currentUser = user;
 
-                // PENTING: buka app serta-merta. Jangan tunggu database, leaderboard, rules atau session tracking.
-                // Jika mana-mana data tambahan gagal, pengguna tetap kekal login di dalam app.
+                if (!explicitLoginInProgress) {
+                    try {
+                        const sessionValid = await restoreSingleDeviceSession(user);
+                        if (!sessionValid) return;
+                    } catch (sessionError) {
+                        console.error('Single-login validation failed:', sessionError);
+                        await forceLogoutBecauseSessionReplaced();
+                        return;
+                    }
+                }
+
                 switchView('dashboard');
 
                 try {
@@ -4334,7 +4442,7 @@
             } else {
                 stopActiveSessionWatcher();
                 currentActiveSessionId = null;
-                sessionStorage.removeItem(ACTIVE_SESSION_STORAGE_KEY);
+                localStorage.removeItem(ACTIVE_SESSION_STORAGE_KEY);
                 currentUser = null;
                 isPremiumUser = false;
 
@@ -4649,9 +4757,12 @@
                 }
 
                 try {
+                    explicitLoginInProgress = true;
                     await authPersistenceReady;
                     const uc = await signInWithEmailAndPassword(auth, email, password);
                     const user = uc.user;
+
+                    await claimSingleDeviceSession(user);
                     let loginProfileData = {};
 
                     try {
@@ -4695,6 +4806,7 @@
                         alert("Gagal log masuk: " + (err?.message || err));
                     }
                 } finally {
+                    explicitLoginInProgress = false;
                     window.__mjAuthBusy = false;
                     if (submitButton) {
                         submitButton.disabled = false;
@@ -6432,31 +6544,6 @@
             }
         }
 
-        function getLocalLeaderboardRowKey(uid) {
-            return `mathJourneyLeaderboardRow_${uid || 'guest'}`;
-        }
-
-        function saveLocalLeaderboardRow(row = {}) {
-            if(!row?.uid) return;
-            try {
-                localStorage.setItem(getLocalLeaderboardRowKey(row.uid), JSON.stringify(row));
-            } catch (err) {
-                console.warn('Local leaderboard save skipped:', err.message);
-            }
-        }
-
-        function loadLocalLeaderboardRow(uid) {
-            try {
-                const raw = localStorage.getItem(getLocalLeaderboardRowKey(uid));
-                if(!raw) return null;
-                const parsed = JSON.parse(raw);
-                return parsed && typeof parsed === 'object' ? parsed : null;
-            } catch (err) {
-                return null;
-            }
-        }
-
-
         function getSavedQuizAnswerMap(resultData) {
             const map = {};
             (resultData?.answers || []).forEach((answer) => {
@@ -6938,11 +7025,6 @@
                     } catch (removeErr) {
                         console.warn('Leaderboard remove skipped:', removeErr.message);
                     }
-                    try {
-                        localStorage.removeItem(getLocalLeaderboardRowKey(currentUser.uid));
-                    } catch (localRemoveErr) {
-                        console.warn('Local leaderboard remove skipped:', localRemoveErr.message);
-                    }
                     loadLeaderboard();
                     return false;
                 }
@@ -6978,11 +7060,7 @@
                     updatedAt: Date.now()
                 };
 
-                saveLocalLeaderboardRow(leaderboardRow);
-
                 // Guna update pada root supaya rekod user + leaderboard kekal sepadan.
-                // Jika rules membenarkan leaderboard tetapi menyekat sebahagian field user,
-                // cubaan leaderboard masih dibuat secara berasingan sebagai fallback.
                 try {
                     const rootUpdates = {};
                     rootUpdates[`leaderboard/${currentUser.uid}`] = leaderboardRow;
@@ -7013,27 +7091,15 @@
             try {
                 const snap = await get(ref(db, 'leaderboard'));
                 const raw = snap.exists() ? snap.val() : {};
-                let rows = Object.entries(raw || {})
-                    .map(([uid, data]) => ({ uid, ...(data || {}) }));
 
-                const localRow = currentUser ? loadLocalLeaderboardRow(currentUser.uid) : null;
-                if(localRow && Number(localRow.leaderboardScore || localRow.quizMarks || localRow.quizScore || 0) > 0) {
-                    const existingIndex = rows.findIndex(row => row.uid === localRow.uid);
-                    if(existingIndex >= 0) {
-                        const firebaseScore = Number(rows[existingIndex].leaderboardScore || rows[existingIndex].quizMarks || rows[existingIndex].quizScore || 0);
-                        const localScore = Number(localRow.leaderboardScore || localRow.quizMarks || localRow.quizScore || 0);
-                        if(localScore >= firebaseScore) rows[existingIndex] = { ...rows[existingIndex], ...localRow };
-                    } else {
-                        rows.push(localRow);
-                    }
-                }
-
-                rows = rows
+                const rows = Object.entries(raw || {})
+                    .map(([uid, data]) => ({ uid, ...(data || {}) }))
                     .filter(row => Number(row.leaderboardScore || row.quizMarks || row.quizScore || 0) > 0)
                     .filter(row => hasLeaderboardProfileInfo(row))
                     .sort((a, b) => {
-                        const scoreDiff = Number(b.leaderboardScore || b.quizMarks || b.quizScore || 0) - Number(a.leaderboardScore || a.quizMarks || a.quizScore || 0);
-                        if(scoreDiff !== 0) return scoreDiff;
+                        const scoreA = Number(a.leaderboardScore || a.quizMarks || a.quizScore || 0);
+                        const scoreB = Number(b.leaderboardScore || b.quizMarks || b.quizScore || 0);
+                        if(scoreB !== scoreA) return scoreB - scoreA;
                         return Number(b.updatedAt || 0) - Number(a.updatedAt || 0);
                     });
 
@@ -7075,33 +7141,10 @@
                     `;
                 }).join('');
             } catch (err) {
-                const localRow = currentUser ? loadLocalLeaderboardRow(currentUser.uid) : null;
-                const localScore = Number(localRow?.leaderboardScore || localRow?.quizMarks || localRow?.quizScore || 0);
-
-                if(localRow && localScore > 0 && hasLeaderboardProfileInfo(localRow)) {
-                    box.innerHTML = `
-                        <div class="bg-pink-50 border-pink-200 border rounded-2xl p-3 flex items-center gap-3 shadow-sm">
-                            <div class="w-10 h-10 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center font-extrabold text-sm shrink-0">#1</div>
-                            <div class="flex-1 min-w-0">
-                                <div class="flex items-center gap-1">
-                                    <p class="font-extrabold text-sm text-slate-900 truncate">${localRow.displayName || 'Pelajar'}</p>
-                                    <span class="text-[9px] font-bold bg-soft-pink text-soft-pink px-2 py-0.5 rounded-full">Anda</span>
-                                </div>
-                                <p class="text-[11px] text-gray-500 truncate">${localRow.schoolName || 'Sekolah belum diisi'} • ${localRow.schoolForm || 'Tingkatan belum diisi'}</p>
-                                <p class="text-[10px] text-amber-600 mt-1">Paparan local kerana Firebase leaderboard tidak dapat dibaca.</p>
-                            </div>
-                            <div class="text-right shrink-0">
-                                <p class="text-lg font-extrabold text-neon-green">${localScore}</p>
-                                <p class="text-[10px] text-gray-400">markah</p>
-                            </div>
-                        </div>
-                    `;
-                    return;
-                }
-
+                console.error('Leaderboard load failed:', err);
                 box.innerHTML = `
                     <div class="text-center text-xs text-red-500 py-5 bg-red-50 rounded-xl border border-red-100">
-                        Ralat load leaderboard: ${err.message}
+                        Leaderboard tidak dapat disambungkan ke Firebase. Sila semak sambungan internet atau Firebase Rules.
                     </div>
                 `;
             }
