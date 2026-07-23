@@ -1758,6 +1758,149 @@
             border-radius: 999px;
         }
 
+
+
+        /* ===== Desktop / Windows Responsive Layout ===== */
+        @media (min-width: 900px) {
+            body {
+                padding: 0 24px;
+            }
+
+            main.max-w-md {
+                width: min(1180px, calc(100vw - 48px));
+                max-width: 1180px !important;
+                min-height: 100vh;
+                border-left: 1px solid rgba(109, 40, 217, 0.10);
+                border-right: 1px solid rgba(109, 40, 217, 0.10);
+                border-radius: 0 0 28px 28px;
+                overflow: hidden;
+            }
+
+            #app-nav > .max-w-md,
+            #app-footer > .max-w-md {
+                width: min(1180px, calc(100vw - 48px));
+                max-width: 1180px !important;
+            }
+
+            #app-nav > div {
+                padding-left: 28px;
+                padding-right: 28px;
+            }
+
+            #app-footer > div {
+                padding-left: 18px;
+                padding-right: 18px;
+            }
+
+            .view.p-5,
+            #view-content-flow > .p-5,
+            #view-content-flow > .sticky,
+            #view-quiz,
+            #view-profile,
+            #view-contact,
+            #view-admin {
+                padding-left: 32px !important;
+                padding-right: 32px !important;
+            }
+
+            #view-dashboard {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) minmax(340px, 0.72fr);
+                gap: 22px;
+                align-items: start;
+            }
+
+            #view-dashboard.hide { display: none !important; }
+            #view-dashboard > :first-child,
+            #view-dashboard > :nth-child(2),
+            #view-dashboard > :nth-child(3),
+            #view-dashboard > :nth-child(4) {
+                grid-column: 1;
+            }
+            #view-dashboard > :nth-child(n+5) {
+                grid-column: 2;
+            }
+            #view-dashboard > :nth-child(5) { grid-row: 1 / span 2; }
+            #view-dashboard > :nth-child(6) { grid-row: 3 / span 3; }
+
+            #view-levels > .space-y-3,
+            #chapters-container,
+            #flow-subtopic-list {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 16px;
+            }
+
+            #view-levels > .space-y-3 > *,
+            #chapters-container > *,
+            #flow-subtopic-list > * {
+                margin-top: 0 !important;
+            }
+
+            #view-login > div,
+            #view-profile > div,
+            #view-contact > div {
+                max-width: 760px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            #view-admin {
+                max-width: none !important;
+            }
+
+            #view-admin .grid-cols-1 {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .mj-hero-shell {
+                max-width: 1040px;
+                margin: 0 auto;
+                padding-left: 42px;
+                padding-right: 42px;
+            }
+
+            .mj-landing-ad-card {
+                width: min(520px, 100%);
+            }
+
+            .mj-hero-desc {
+                max-width: 680px;
+                font-size: 1rem;
+            }
+
+            .mj-feature-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .mj-section {
+                padding: 38px 42px;
+            }
+
+            #nota-list-content img,
+            #contoh-list-content img,
+            #flow-content-area img,
+            #view-quiz img {
+                max-width: 900px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+        }
+
+        @media (min-width: 1280px) {
+            main.max-w-md,
+            #app-nav > .max-w-md,
+            #app-footer > .max-w-md {
+                width: min(1280px, calc(100vw - 64px));
+                max-width: 1280px !important;
+            }
+
+            #view-levels > .space-y-3,
+            #chapters-container,
+            #flow-subtopic-list {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
     </style>
 </head>
 <body class="text-slate-800 antialiased">
