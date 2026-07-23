@@ -1885,6 +1885,32 @@
                 margin-left: auto;
                 margin-right: auto;
             }
+
+            /* Repair: prevent the chapter/subtopic header from covering the tabs on Windows */
+            #view-content-flow > .sticky {
+                position: relative !important;
+                top: auto !important;
+                z-index: 1 !important;
+            }
+
+            #flow-content-area {
+                position: relative;
+                z-index: 2;
+                clear: both;
+            }
+
+            #flow-content-area > div:first-child {
+                padding-top: 16px !important;
+                padding-bottom: 16px !important;
+            }
+
+            #flow-tab-nota,
+            #flow-tab-contoh,
+            #flow-tab-quiz {
+                min-height: 48px;
+                position: relative;
+                z-index: 3;
+            }
         }
 
         @media (min-width: 1280px) {
