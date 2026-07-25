@@ -1760,6 +1760,144 @@
 
 
 
+        /* ===== Tablet / iPad Responsive Layout (portrait + landscape) ===== */
+        @media (min-width: 700px) and (max-width: 899px) {
+            body {
+                padding: 0;
+            }
+
+            /* Remove the phone-only 28rem width so iPad can use the screen. */
+            main.max-w-md,
+            #app-nav > .max-w-md,
+            #app-footer > .max-w-md {
+                width: 100%;
+                max-width: none !important;
+            }
+
+            main.max-w-md {
+                min-height: 100vh;
+                border-left: 0;
+                border-right: 0;
+                overflow: hidden;
+            }
+
+            #app-nav > div {
+                padding-left: 28px;
+                padding-right: 28px;
+            }
+
+            #app-footer > div {
+                padding-left: 24px;
+                padding-right: 24px;
+            }
+
+            .view.p-5,
+            #view-content-flow > .p-5,
+            #view-content-flow > .sticky,
+            #view-quiz,
+            #view-profile,
+            #view-contact,
+            #view-admin {
+                padding-left: 28px !important;
+                padding-right: 28px !important;
+            }
+
+            /* Use the horizontal room on iPad instead of one narrow phone column. */
+            #view-levels > .space-y-3,
+            #chapters-container,
+            #flow-subtopic-list,
+            #quiz-chapter-list {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 16px;
+                width: 100%;
+            }
+
+            #view-levels > .space-y-3 > *,
+            #chapters-container > *,
+            #flow-subtopic-list > *,
+            #quiz-chapter-list > * {
+                margin-top: 0 !important;
+                min-width: 0;
+            }
+
+            #flow-subtopic-list {
+                max-height: none;
+                overflow-y: visible;
+                padding: 24px 28px 110px !important;
+            }
+
+            #view-content-flow > .sticky {
+                position: sticky !important;
+                top: 57px !important;
+                z-index: 35 !important;
+            }
+
+            #flow-subtopic-list button {
+                min-height: 142px;
+                padding: 20px !important;
+                align-items: center;
+            }
+
+            #flow-subtopic-list h4 {
+                font-size: 1rem !important;
+            }
+
+            #flow-subtopic-list p {
+                font-size: 0.75rem !important;
+                line-height: 1.55;
+            }
+
+            #flow-content-area > div:first-child {
+                padding: 16px 28px !important;
+            }
+
+            #nota-list-content,
+            #nota-viewer-content,
+            #contoh-list-content,
+            #contoh-viewer-content,
+            #flow-quiz-content {
+                padding-left: 28px !important;
+                padding-right: 28px !important;
+            }
+
+            #nota-list-content img,
+            #nota-viewer-content img,
+            #contoh-list-content img,
+            #contoh-viewer-content img,
+            #flow-quiz-content img,
+            #view-quiz img {
+                width: auto;
+                max-width: 100%;
+                max-height: calc(100vh - 230px);
+                object-fit: contain;
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            #view-login > div,
+            #view-profile > div,
+            #view-contact > div {
+                max-width: 680px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+        }
+
+        /* iPad portrait has less horizontal room; keep generous cards without overflow. */
+        @media (min-width: 700px) and (max-width: 760px) {
+            #flow-subtopic-list {
+                gap: 14px;
+                padding-left: 22px !important;
+                padding-right: 22px !important;
+            }
+
+            #flow-subtopic-list button {
+                min-height: 134px;
+                padding: 17px !important;
+            }
+        }
+
         /* ===== Desktop / Windows Responsive Layout ===== */
         @media (min-width: 900px) {
             body {
