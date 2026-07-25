@@ -1827,10 +1827,40 @@
                 padding: 24px 28px 110px !important;
             }
 
+            /* On iPad the tall chapter header was covering the Nota/Contoh/Quiz tabs while scrolling. */
             #view-content-flow > .sticky {
-                position: sticky !important;
-                top: 57px !important;
-                z-index: 35 !important;
+                position: relative !important;
+                top: auto !important;
+                z-index: 20 !important;
+            }
+
+            #flow-content-area > div:first-child {
+                position: sticky;
+                top: 72px;
+                z-index: 30;
+                padding-top: 16px !important;
+                padding-bottom: 16px !important;
+                background: rgba(248, 250, 252, 0.98) !important;
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+                box-shadow: 0 8px 18px rgba(46, 16, 101, 0.06);
+            }
+
+            #flow-content-area > div:first-child .grid {
+                overflow: visible;
+                padding-top: 2px;
+                padding-bottom: 4px;
+            }
+
+            #flow-tab-nota,
+            #flow-tab-contoh,
+            #flow-tab-quiz {
+                min-height: 48px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                line-height: 1.2;
+                overflow: visible;
             }
 
             #flow-subtopic-list button {
