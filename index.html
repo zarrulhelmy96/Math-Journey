@@ -2723,7 +2723,15 @@
                             <textarea id="mj-inline-quiz-question" rows="3" class="w-full border p-3 rounded-xl text-sm" placeholder="Taip soalan. Untuk isi tempat kosong, gunakan ____"></textarea>
                             <input id="mj-inline-quiz-files" type="file" accept="image/jpeg,image/png,image/webp" multiple class="w-full border p-3 rounded-xl text-xs">
                             <div id="mj-inline-quiz-dynamic"></div>
-                            <textarea id="mj-inline-quiz-explanation" rows="2" class="w-full border p-3 rounded-xl text-sm" placeholder="Penerangan jawapan (pilihan)"></textarea>
+                            <div class="space-y-2">
+                                <label class="block text-xs font-bold text-slate-700">Penerangan jawapan</label>
+                                <textarea id="mj-inline-quiz-explanation" rows="3" class="w-full border p-3 rounded-xl text-sm" placeholder="Taip penerangan jawapan di sini. Anda juga boleh copy gambar dan tekan Ctrl+V dalam kotak ini."></textarea>
+                                <div class="rounded-xl border border-dashed border-purple-200 bg-purple-50/40 p-3">
+                                    <label for="mj-inline-quiz-explanation-files" class="block text-xs font-bold text-purple-800 mb-2"><i class="fa-solid fa-image mr-1"></i> Gambar penerangan jawapan (pilihan)</label>
+                                    <input id="mj-inline-quiz-explanation-files" type="file" accept="image/jpeg,image/png,image/webp" multiple class="w-full text-xs">
+                                    <p id="mj-inline-quiz-explanation-file-status" class="text-[10px] text-gray-500 mt-2">Pilih gambar melalui Choose File atau tampal gambar dalam kotak penerangan menggunakan Ctrl+V.</p>
+                                </div>
+                            </div>
                             <button type="button" onclick="saveInlineQuizQuestion()" class="w-full bg-blue-700 text-white font-bold py-3 rounded-xl text-sm"><i class="fa-solid fa-circle-plus mr-1"></i> Cipta Soalan Quiz</button>
                         </div>
                     </div>
@@ -5741,7 +5749,10 @@
             viewerDiv.classList.remove('hide');
 
             viewerDiv.innerHTML = `
-                <button onclick="backToNotaList()" class="text-gray-500 text-sm mb-4"><i class="fa-solid fa-arrow-left"></i> Kembali ke senarai nota</button>
+                <div class="flex items-center justify-between gap-3 mb-4">
+                    <button type="button" onclick="backToNotaList()" class="text-gray-500 text-sm"><i class="fa-solid fa-arrow-left"></i> Kembali ke senarai nota</button>
+                    ${isCurrentUserAdmin() ? `<button type="button" onclick="deleteCurrentInlineNota()" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-3 py-2 rounded-xl shadow-sm"><i class="fa-solid fa-trash mr-1"></i> Padam Nota</button>` : ''}
+                </div>
                 <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm space-y-4 text-xs">
                     <div>
                         <p class="text-[11px] font-bold text-blue-700 uppercase tracking-wider">Nota ${selectedNotaIndex + 1}</p>
@@ -5923,7 +5934,7 @@
                     return;
                 }
 
-                const q = { id: entry.id, ...(entry.q || {}) };
+                const q = { id: entry.id, _sourceMode: entry.sourceMode || sourceMode || 'level', ...(entry.q || {}) };
                 const resultKey = getQuizQuestionResultKey(currentLevel, currentChapterKey, subKey, level, entry.id);
                 const saved = await getSavedQuestionAnswer(resultKey);
                 renderSubtopicQuizQuestion(q, level, resultKey, saved);
@@ -5962,14 +5973,17 @@
                     control = pairs.map((pair,index) => `<div class="grid grid-cols-2 gap-2 items-center"><div class="bg-slate-50 border p-3 rounded-xl font-bold">${escapeHtml(String(pair.left))}</div><select id="mj-sub-match-${index}" ${answered ? 'disabled' : ''} class="border p-3 rounded-xl bg-white"><option value="">-- Padankan --</option>${(q.matchOptions || pairs.map(x=>x.right)).map(v=>`<option value="${escapeHtml(String(v))}">${escapeHtml(String(v))}</option>`).join('')}</select></div>`).join('');
                     setTimeout(() => pairs.forEach((pair,index) => { const el=document.getElementById(`mj-sub-match-${index}`); if(el && answered?.chosen?.[index]) el.value=answered.chosen[index]; }),0);
                 }
-                box.innerHTML = `<button onclick="window.backToSubtopicQuizList()" class="text-gray-500 text-sm mb-3"><i class="fa-solid fa-arrow-left"></i> Kembali ke senarai soalan</button><div class="bg-white border rounded-2xl p-5 shadow-sm space-y-4"><span class="bg-amber-50 text-amber-700 font-bold px-2.5 py-1 rounded-lg text-[10px] uppercase">${mark} markah</span><p class="text-slate-900 font-bold text-base">${renderQuizMathText(q.soalan || '')}</p>${renderQuizQuestionImageGallery(q.imageUrls,'')}<div class="space-y-3">${control}</div>${answered ? `<div class="p-3 rounded-xl border ${savedAnswer.correct ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}"><p class="font-bold">${savedAnswer.correct ? 'Betul!' : 'Kurang tepat.'}</p>${q.explanation ? `<p class="mt-2 text-xs">${escapeHtml(q.explanation)}</p>` : ''}</div>` : `<button onclick="submitCurrentSubtopicFlexibleAnswer()" class="w-full bg-slate-900 text-white font-bold py-3 rounded-xl">Semak Jawapan</button>`}</div>`;
+                box.innerHTML = `<div class="flex items-center justify-between gap-3 mb-3"><button type="button" onclick="window.backToSubtopicQuizList()" class="text-gray-500 text-sm"><i class="fa-solid fa-arrow-left"></i> Kembali ke senarai soalan</button>${isCurrentUserAdmin() ? `<button type="button" onclick="deleteCurrentInlineQuizQuestion()" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-3 py-2 rounded-xl shadow-sm"><i class="fa-solid fa-trash mr-1"></i> Padam Quiz</button>` : ''}</div><div class="bg-white border rounded-2xl p-5 shadow-sm space-y-4"><span class="bg-amber-50 text-amber-700 font-bold px-2.5 py-1 rounded-lg text-[10px] uppercase">${mark} markah</span><p class="text-slate-900 font-bold text-base">${renderQuizMathText(q.soalan || '')}</p>${renderQuizQuestionImageGallery(q.imageUrls,'')}<div class="space-y-3">${control}</div>${answered ? `<div class="p-3 rounded-xl border ${savedAnswer.correct ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}"><p class="font-bold">${savedAnswer.correct ? 'Betul!' : 'Kurang tepat.'}</p>${q.explanation ? `<p class="mt-2 text-xs whitespace-pre-line">${escapeHtml(q.explanation)}</p>` : ''}${renderQuizQuestionImageGallery(q.explanationImageUrls || [], 'mt-3')}</div>` : `<button onclick="submitCurrentSubtopicFlexibleAnswer()" class="w-full bg-slate-900 text-white font-bold py-3 rounded-xl">Semak Jawapan</button>`}</div>`;
                 return;
             }
 
             const mark = getQuizQuestionMark(q, level);
             const answered = !!savedAnswer;
             let html = `
-                <button onclick="window.backToSubtopicQuizList()" class="text-gray-500 text-sm mb-3"><i class="fa-solid fa-arrow-left"></i> Kembali ke senarai soalan</button>
+                <div class="flex items-center justify-between gap-3 mb-3">
+                    <button type="button" onclick="window.backToSubtopicQuizList()" class="text-gray-500 text-sm"><i class="fa-solid fa-arrow-left"></i> Kembali ke senarai soalan</button>
+                    ${isCurrentUserAdmin() ? `<button type="button" onclick="deleteCurrentInlineQuizQuestion()" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-3 py-2 rounded-xl shadow-sm"><i class="fa-solid fa-trash mr-1"></i> Padam Quiz</button>` : ''}
+                </div>
                 <div class="mj-quiz-question-card bg-white border border-gray-100 rounded-2xl p-5 shadow-sm text-xs space-y-4">
                     <div>
                         <span class="bg-amber-50 text-amber-700 font-bold px-2.5 py-1 rounded-lg text-[10px] uppercase tracking-wider">${mark} markah</span>
@@ -6270,7 +6284,10 @@
             viewerDiv.classList.remove('hide');
 
             viewerDiv.innerHTML = `
-                <button onclick="backToContohList()" class="text-gray-500 text-sm mb-4"><i class="fa-solid fa-arrow-left"></i> Kembali ke senarai contoh</button>
+                <div class="flex items-center justify-between gap-3 mb-4">
+                    <button type="button" onclick="backToContohList()" class="text-gray-500 text-sm"><i class="fa-solid fa-arrow-left"></i> Kembali ke senarai contoh</button>
+                    ${isCurrentUserAdmin() ? `<button type="button" onclick="deleteCurrentInlineContoh()" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-3 py-2 rounded-xl shadow-sm"><i class="fa-solid fa-trash mr-1"></i> Padam Contoh</button>` : ''}
+                </div>
                 <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm space-y-4">
                     <div>
                         <p class="text-[11px] font-bold text-soft-pink uppercase tracking-wider">Contoh ${selectedContohIndex + 1}</p>
@@ -7098,7 +7115,7 @@
             }
 
             if(!answered && !isAdminPreview) html += `<button onclick="confirmStandaloneQuizAnswer()" class="w-full bg-slate-900 text-white font-bold py-3 rounded-xl">Confirm Jawapan</button>`;
-            if(answered){ const box=answered.correct?'bg-green-50 text-green-700 border-green-100':'bg-red-50 text-red-700 border-red-100'; html += `<div class="p-3 rounded-xl border ${box}"><p class="font-bold">${answered.correct?'Betul! Jawapan anda tepat.':'Kurang tepat. Semak jawapan dan penerangan.'}</p>${q.explanation?`<p class="mt-2">${escapeHtml(q.explanation)}</p>`:''}</div>`; }
+            if(answered){ const box=answered.correct?'bg-green-50 text-green-700 border-green-100':'bg-red-50 text-red-700 border-red-100'; html += `<div class="p-3 rounded-xl border ${box}"><p class="font-bold">${answered.correct?'Betul! Jawapan anda tepat.':'Kurang tepat. Semak jawapan dan penerangan.'}</p>${q.explanation?`<p class="mt-2 whitespace-pre-line">${escapeHtml(q.explanation)}</p>`:''}${renderQuizQuestionImageGallery(q.explanationImageUrls || [], 'mt-3')}</div>`; }
             if(isAdminPreview && !answered) html += '<div class="p-3 bg-amber-50 text-amber-700 border border-amber-100 rounded-xl font-bold">Admin preview aktif.</div>';
             html += `</div><div class="grid grid-cols-2 gap-3"><button onclick="navigateStandaloneQuiz('back')" ${isFirst?'disabled':''} class="${isFirst?'bg-gray-100 text-gray-300':'bg-slate-100 text-slate-700'} font-bold py-3 rounded-xl">← Back</button><button onclick="navigateStandaloneQuiz('next')" ${canNavigateNext?'':'disabled'} class="${canNavigateNext?'btn-primary':'bg-gray-100 text-gray-300'} font-bold py-3 rounded-xl">${isLast?(isAdminPreview?'Selesai Preview':'Lihat Result'):'Next →'}</button></div>`;
             runner.innerHTML=html;
@@ -11807,7 +11824,7 @@
                 document.getElementById(`mj-inline-form-${x}`)?.classList.toggle('hide',x!==mode);
                 const b=document.getElementById(`mj-inline-mode-${x}`); if(b) b.className=`border rounded-xl py-2 text-xs font-bold ${x===mode?'bg-purple-700 text-white border-purple-700':'bg-white text-gray-600 border-gray-200'}`;
             });
-            if(mode==='quiz') renderInlineQuizTypeFields();
+            if(mode==='quiz') { renderInlineQuizTypeFields(); setTimeout(attachInlineExplanationPasteHandler,0); }
         };
 
         window.renderInlineQuizTypeFields = function() {
@@ -11844,6 +11861,39 @@
             } catch(err) { alert('Ralat simpan kandungan: '+err.message); }
         };
 
+        function updateInlineExplanationFileStatus() {
+            const input=document.getElementById('mj-inline-quiz-explanation-files');
+            const status=document.getElementById('mj-inline-quiz-explanation-file-status');
+            if(!status) return;
+            const count=input?.files?.length||0;
+            status.textContent=count ? `${count} gambar penerangan telah dipilih.` : 'Pilih gambar melalui Choose File atau tampal gambar dalam kotak penerangan menggunakan Ctrl+V.';
+        }
+
+        function attachInlineExplanationPasteHandler() {
+            const textarea=document.getElementById('mj-inline-quiz-explanation');
+            const input=document.getElementById('mj-inline-quiz-explanation-files');
+            if(!textarea||!input||textarea.dataset.pasteReady==='true') return;
+            textarea.dataset.pasteReady='true';
+            input.addEventListener('change',updateInlineExplanationFileStatus);
+            textarea.addEventListener('paste',event=>{
+                const items=Array.from(event.clipboardData?.items||[]);
+                const imageFiles=items.filter(item=>item.kind==='file'&&item.type.startsWith('image/')).map(item=>item.getAsFile()).filter(Boolean);
+                if(!imageFiles.length) return;
+                event.preventDefault();
+                const dt=new DataTransfer();
+                Array.from(input.files||[]).forEach(file=>dt.items.add(file));
+                imageFiles.forEach((file,index)=>{
+                    const ext=(file.type.split('/')[1]||'png').replace('jpeg','jpg');
+                    const namedFile=new File([file],`penerangan-tampal-${Date.now()}-${index+1}.${ext}`,{type:file.type,lastModified:Date.now()});
+                    dt.items.add(namedFile);
+                });
+                input.files=dt.files;
+                updateInlineExplanationFileStatus();
+                const current=textarea.value.trim();
+                textarea.value=current ? current+'\n[Gambar penerangan ditampal]' : '[Gambar penerangan ditampal]';
+            });
+        }
+
         window.saveInlineQuizQuestion = async function() {
             if(!isCurrentUserAdmin()) return alert('Admin sahaja.');
             try {
@@ -11853,18 +11903,86 @@
                 const soalan=(document.getElementById('mj-inline-quiz-question').value||'').trim();
                 const imageUrls=await uploadMultipleFilesHelper('mj-inline-quiz-files','inline_quiz_questions');
                 if(!soalan&&!imageUrls.length) return alert('Taip soalan atau upload gambar soalan.');
-                const payload={questionType:type,soalan,imageUrls,explanation:(document.getElementById('mj-inline-quiz-explanation').value||'').trim(),formNum:c.formNum,chapterKey:c.chKey,chapterName:getChapterDisplayName(c.formNum,c.chKey),subKey:c.subKey,subtopicKey:c.subKey,subtopicName:c.subtopicName,level,levelLabel:getQuizLevelLabel(level),marks:getQuizLevelMark(level),sortOrder:await getNextStandaloneQuizSortOrder(c.formNum,c.chKey,level),createdAt:Date.now(),createdBy:currentUser.uid};
+                const explanationImageUrls=await uploadMultipleFilesHelper('mj-inline-quiz-explanation-files','inline_quiz_explanations');
+                const payload={questionType:type,soalan,imageUrls,explanation:(document.getElementById('mj-inline-quiz-explanation').value||'').trim(),explanationImageUrls,formNum:c.formNum,chapterKey:c.chKey,chapterName:getChapterDisplayName(c.formNum,c.chKey),subKey:c.subKey,subtopicKey:c.subKey,subtopicName:c.subtopicName,level,levelLabel:getQuizLevelLabel(level),marks:getQuizLevelMark(level),sortOrder:await getNextStandaloneQuizSortOrder(c.formNum,c.chKey,level),createdAt:Date.now(),createdBy:currentUser.uid};
                 if(type==='multiple_choice'){ payload.a=(document.getElementById('mj-q-a').value||'').trim()||'A';payload.b=(document.getElementById('mj-q-b').value||'').trim()||'B';payload.c=(document.getElementById('mj-q-c').value||'').trim()||'C';payload.d=(document.getElementById('mj-q-d').value||'').trim()||'D';payload.jawapan=document.getElementById('mj-q-correct').value; }
                 else if(type==='short_answer'||type==='fill_blank'){ payload.acceptedAnswers=(document.getElementById('mj-q-accepted').value||'').split('|').map(x=>x.trim()).filter(Boolean); if(!payload.acceptedAnswers.length)return alert('Masukkan sekurang-kurangnya satu jawapan diterima.');payload.jawapan=payload.acceptedAnswers[0]; }
                 else { const lines=(document.getElementById('mj-q-pairs').value||'').split('\n').map(x=>x.trim()).filter(Boolean);payload.pairs=lines.map(line=>{const pos=line.indexOf('=');return pos<0?null:{left:line.slice(0,pos).trim(),right:line.slice(pos+1).trim()};}).filter(Boolean);if(payload.pairs.length<2)return alert('Masukkan sekurang-kurangnya dua pasangan dalam format kiri = kanan.');payload.matchOptions=payload.pairs.map(p=>p.right).sort(()=>Math.random()-.5);payload.jawapan='matching'; }
                 const qRef=push(ref(db,`quizzes/${c.formNum}/${c.chKey}/${level}`)); await set(qRef,payload);
-                ['mj-inline-quiz-question','mj-inline-quiz-explanation','mj-inline-quiz-files'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});renderInlineQuizTypeFields();
+                ['mj-inline-quiz-question','mj-inline-quiz-explanation','mj-inline-quiz-files','mj-inline-quiz-explanation-files'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+                const explanationStatus=document.getElementById('mj-inline-quiz-explanation-file-status');
+                if(explanationStatus) explanationStatus.textContent='Pilih gambar melalui Choose File atau tampal gambar dalam kotak penerangan menggunakan Ctrl+V.';
+                renderInlineQuizTypeFields();
                 if(currentFlowTab==='quiz') renderSubtopicQuizList();
                 alert('Soalan quiz berjaya dicipta.');
             } catch(err) { alert('Ralat cipta quiz: '+err.message); }
         };
 
-        setTimeout(()=>{ if(isCurrentUserAdmin()) applyAdminUI(true); setInlineAdminMode('nota'); },1200);
+        async function refreshInlineSyllabusCache() {
+            const snap = await get(ref(db, 'silibus'));
+            appSilibusData = snap.exists() ? (snap.val() || {}) : {};
+        }
+
+        window.deleteCurrentInlineNota = async function() {
+            if(!isCurrentUserAdmin()) return alert('Admin sahaja.');
+            const item = notaItems?.[selectedNotaIndex] || null;
+            const contentKey = item?._key || '';
+            if(!contentKey) return alert('ID nota tidak dijumpai. Nota tidak dipadam.');
+            if(!confirm('Padam nota ini? Tindakan ini tidak boleh dibatalkan.')) return;
+            try {
+                const c = getInlineSubtopicContext();
+                await remove(ref(db, `silibus/${c.formNum}/${c.chKey}/subtopik/${c.subKey}/kandungan_list/${contentKey}`));
+                await refreshInlineSyllabusCache();
+                selectedNotaIndex = 0;
+                notaStepIndex = 0;
+                notaStepImages = [];
+                renderStudentNotaList();
+                alert('Nota berjaya dipadam.');
+            } catch(err) {
+                alert('Ralat padam nota: ' + err.message);
+            }
+        };
+
+        window.deleteCurrentInlineContoh = async function() {
+            if(!isCurrentUserAdmin()) return alert('Admin sahaja.');
+            const item = contohItems?.[selectedContohIndex] || null;
+            const contentKey = item?._key || '';
+            if(!contentKey) return alert('ID contoh soalan tidak dijumpai. Contoh tidak dipadam.');
+            if(!confirm('Padam contoh soalan ini? Tindakan ini tidak boleh dibatalkan.')) return;
+            try {
+                const c = getInlineSubtopicContext();
+                await remove(ref(db, `silibus/${c.formNum}/${c.chKey}/subtopik/${c.subKey}/kandungan_list/${contentKey}`));
+                await refreshInlineSyllabusCache();
+                selectedContohIndex = 0;
+                contohStepIndex = 0;
+                contohStepImages = [];
+                renderContohQuestionList();
+                alert('Contoh soalan berjaya dipadam.');
+            } catch(err) {
+                alert('Ralat padam contoh soalan: ' + err.message);
+            }
+        };
+
+        window.deleteCurrentInlineQuizQuestion = async function() {
+            if(!isCurrentUserAdmin()) return alert('Admin sahaja.');
+            const q = window.currentSubtopicQuizQuestion || null;
+            const level = window.currentSubtopicQuizLevel || q?.level || 'easy';
+            const sourceMode = q?._sourceMode || 'level';
+            if(!q?.id) return alert('ID soalan quiz tidak dijumpai. Soalan tidak dipadam.');
+            if(!confirm('Padam soalan quiz ini? Tindakan ini tidak boleh dibatalkan.')) return;
+            try {
+                await remove(ref(db, getStandaloneQuizQuestionPath(String(currentLevel), currentChapterKey, normalizeQuizLevel(level), q.id, sourceMode)));
+                window.currentSubtopicQuizQuestion = null;
+                window.currentSubtopicQuizLevel = null;
+                window.currentSubtopicQuizResultKey = null;
+                await renderSubtopicQuizList();
+                alert('Soalan quiz berjaya dipadam.');
+            } catch(err) {
+                alert('Ralat padam soalan quiz: ' + err.message);
+            }
+        };
+
+        setTimeout(()=>{ if(isCurrentUserAdmin()) applyAdminUI(true); setInlineAdminMode('nota'); attachInlineExplanationPasteHandler(); },1200);
 
 </script>
 
