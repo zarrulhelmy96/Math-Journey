@@ -5973,7 +5973,7 @@
                     control = pairs.map((pair,index) => `<div class="grid grid-cols-2 gap-2 items-center"><div class="bg-slate-50 border p-3 rounded-xl font-bold">${escapeHtml(String(pair.left))}</div><select id="mj-sub-match-${index}" ${answered ? 'disabled' : ''} class="border p-3 rounded-xl bg-white"><option value="">-- Padankan --</option>${(q.matchOptions || pairs.map(x=>x.right)).map(v=>`<option value="${escapeHtml(String(v))}">${escapeHtml(String(v))}</option>`).join('')}</select></div>`).join('');
                     setTimeout(() => pairs.forEach((pair,index) => { const el=document.getElementById(`mj-sub-match-${index}`); if(el && answered?.chosen?.[index]) el.value=answered.chosen[index]; }),0);
                 }
-                box.innerHTML = `<div class="flex items-center justify-between gap-3 mb-3"><button type="button" onclick="window.backToSubtopicQuizList()" class="text-gray-500 text-sm"><i class="fa-solid fa-arrow-left"></i> Kembali ke senarai soalan</button>${isCurrentUserAdmin() ? `<button type="button" onclick="window.deleteCurrentInlineQuizQuestion()" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-3 py-2 rounded-xl shadow-sm"><i class="fa-solid fa-trash mr-1"></i> Padam Quiz</button>` : ''}</div><div class="bg-white border rounded-2xl p-5 shadow-sm space-y-4"><span class="bg-amber-50 text-amber-700 font-bold px-2.5 py-1 rounded-lg text-[10px] uppercase">${mark} markah</span><p class="text-slate-900 font-bold text-base">${renderQuizMathText(q.soalan || '')}</p>${renderQuizQuestionImageGallery(q.imageUrls,'')}<div class="space-y-3">${control}</div>${answered ? `<div class="p-3 rounded-xl border ${savedAnswer.correct ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}"><p class="font-bold">${savedAnswer.correct ? 'Betul!' : 'Kurang tepat.'}</p>${q.explanation ? `<p class="mt-2 text-xs whitespace-pre-line">${escapeHtml(q.explanation)}</p>` : ''}${renderQuizQuestionImageGallery(q.explanationImageUrls || [], 'mt-3')}</div>` : `<button onclick="submitCurrentSubtopicFlexibleAnswer()" class="w-full bg-slate-900 text-white font-bold py-3 rounded-xl">Semak Jawapan</button>`}</div>`;
+                box.innerHTML = `<div class="flex items-center justify-between gap-3 mb-3"><button type="button" onclick="window.backToSubtopicQuizList()" class="text-gray-500 text-sm"><i class="fa-solid fa-arrow-left"></i> Kembali ke senarai soalan</button>${isCurrentUserAdmin() ? `<button type="button" data-mj-action="delete-current-quiz" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-3 py-2 rounded-xl shadow-sm"><i class="fa-solid fa-trash mr-1"></i> Padam Quiz</button>` : ''}</div><div class="bg-white border rounded-2xl p-5 shadow-sm space-y-4"><span class="bg-amber-50 text-amber-700 font-bold px-2.5 py-1 rounded-lg text-[10px] uppercase">${mark} markah</span><p class="text-slate-900 font-bold text-base">${renderQuizMathText(q.soalan || '')}</p>${renderQuizQuestionImageGallery(q.imageUrls,'')}<div class="space-y-3">${control}</div>${answered ? `<div class="p-3 rounded-xl border ${savedAnswer.correct ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}"><p class="font-bold">${savedAnswer.correct ? 'Betul!' : 'Kurang tepat.'}</p>${q.explanation ? `<p class="mt-2 text-xs whitespace-pre-line">${escapeHtml(q.explanation)}</p>` : ''}${renderQuizQuestionImageGallery(q.explanationImageUrls || [], 'mt-3')}</div>` : `<button onclick="submitCurrentSubtopicFlexibleAnswer()" class="w-full bg-slate-900 text-white font-bold py-3 rounded-xl">Semak Jawapan</button>`}</div>`;
                 return;
             }
 
@@ -5982,7 +5982,7 @@
             let html = `
                 <div class="flex items-center justify-between gap-3 mb-3">
                     <button type="button" onclick="window.backToSubtopicQuizList()" class="text-gray-500 text-sm"><i class="fa-solid fa-arrow-left"></i> Kembali ke senarai soalan</button>
-                    ${isCurrentUserAdmin() ? `<button type="button" onclick="window.deleteCurrentInlineQuizQuestion()" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-3 py-2 rounded-xl shadow-sm"><i class="fa-solid fa-trash mr-1"></i> Padam Quiz</button>` : ''}
+                    ${isCurrentUserAdmin() ? `<button type="button" data-mj-action="delete-current-quiz" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-3 py-2 rounded-xl shadow-sm"><i class="fa-solid fa-trash mr-1"></i> Padam Quiz</button>` : ''}
                 </div>
                 <div class="mj-quiz-question-card bg-white border border-gray-100 rounded-2xl p-5 shadow-sm text-xs space-y-4">
                     <div>
@@ -11964,23 +11964,58 @@
         };
 
         window.deleteCurrentInlineQuizQuestion = async function() {
-            if(!isCurrentUserAdmin()) return alert('Admin sahaja.');
+            if(!isCurrentUserAdmin()) {
+                alert('Admin sahaja.');
+                return;
+            }
+
             const q = window.currentSubtopicQuizQuestion || null;
-            const level = window.currentSubtopicQuizLevel || q?.level || 'easy';
-            const sourceMode = q?._sourceMode || 'level';
-            if(!q?.id) return alert('ID soalan quiz tidak dijumpai. Soalan tidak dipadam.');
-            if(!confirm('Padam soalan quiz ini? Tindakan ini tidak boleh dibatalkan.')) return;
+            if(!q) {
+                alert('Soalan semasa tidak dijumpai. Sila buka semula soalan quiz dan cuba lagi.');
+                return;
+            }
+
+            const questionId = q.id || q._key || q.key || '';
+            const formNum = String(q.formNum || q.tingkatan || currentLevel || '');
+            const chapterKey = q.chapterKey || q.chKey || currentChapterKey || '';
+            const level = normalizeQuizLevel(window.currentSubtopicQuizLevel || q.level || q.levelKey || 'easy');
+            const sourceMode = q._sourceMode || q.sourceMode || 'level';
+
+            if(!questionId) {
+                alert('ID soalan quiz tidak dijumpai. Sila kembali ke senarai quiz, buka soalan semula dan cuba lagi.');
+                return;
+            }
+            if(!formNum || !chapterKey) {
+                alert('Maklumat tingkatan atau bab tidak lengkap. Soalan tidak dipadam.');
+                return;
+            }
+
+            const approved = window.confirm('Padam soalan quiz ini? Tindakan ini tidak boleh dibatalkan.');
+            if(!approved) return;
+
             try {
-                await remove(ref(db, getStandaloneQuizQuestionPath(String(currentLevel), currentChapterKey, normalizeQuizLevel(level), q.id, sourceMode)));
+                const deletePath = getStandaloneQuizQuestionPath(formNum, chapterKey, level, questionId, sourceMode);
+                console.log('[MMJ] Memadam quiz:', deletePath, q);
+                await remove(ref(db, deletePath));
+
                 window.currentSubtopicQuizQuestion = null;
                 window.currentSubtopicQuizLevel = null;
                 window.currentSubtopicQuizResultKey = null;
                 await renderSubtopicQuizList();
                 alert('Soalan quiz berjaya dipadam.');
             } catch(err) {
-                alert('Ralat padam soalan quiz: ' + err.message);
+                console.error('[MMJ] Ralat padam quiz:', err);
+                alert('Ralat padam soalan quiz: ' + (err?.message || err));
             }
         };
+
+        document.addEventListener('click', function(event) {
+            const deleteButton = event.target.closest('[data-mj-action="delete-current-quiz"]');
+            if(!deleteButton) return;
+            event.preventDefault();
+            event.stopPropagation();
+            window.deleteCurrentInlineQuizQuestion();
+        }, true);
 
         setTimeout(()=>{ if(isCurrentUserAdmin()) applyAdminUI(true); setInlineAdminMode('nota'); attachInlineExplanationPasteHandler(); },1200);
 
