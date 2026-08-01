@@ -2692,22 +2692,22 @@
                             Kandungan akan disimpan terus ke <strong>tingkatan, bab dan subtopik yang sedang dibuka</strong>. UI ini hanya dipaparkan kepada admin.
                         </div>
                         <div class="grid grid-cols-3 gap-2">
-                            <button onclick="setInlineAdminMode('nota')" id="mj-inline-mode-nota" class="border rounded-xl py-2 text-xs font-bold">Nota</button>
-                            <button onclick="setInlineAdminMode('contoh')" id="mj-inline-mode-contoh" class="border rounded-xl py-2 text-xs font-bold">Contoh</button>
-                            <button onclick="setInlineAdminMode('quiz')" id="mj-inline-mode-quiz" class="border rounded-xl py-2 text-xs font-bold">Quiz</button>
+                            <button type="button" onclick="setInlineAdminMode('nota')" id="mj-inline-mode-nota" class="border rounded-xl py-2 text-xs font-bold">Nota</button>
+                            <button type="button" onclick="setInlineAdminMode('contoh')" id="mj-inline-mode-contoh" class="border rounded-xl py-2 text-xs font-bold">Contoh</button>
+                            <button type="button" onclick="setInlineAdminMode('quiz')" id="mj-inline-mode-quiz" class="border rounded-xl py-2 text-xs font-bold">Quiz</button>
                         </div>
 
                         <div id="mj-inline-form-nota" class="space-y-3">
                             <input id="mj-inline-nota-title" class="w-full border p-3 rounded-xl text-sm" placeholder="Tajuk / penerangan ringkas nota (pilihan)">
                             <input id="mj-inline-nota-files" type="file" accept="image/jpeg,image/png,image/webp" multiple class="w-full border p-3 rounded-xl text-xs">
-                            <button onclick="saveInlineSyllabusContent('nota')" class="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl text-sm"><i class="fa-solid fa-upload mr-1"></i> Upload Gambar Nota</button>
+                            <button type="button" onclick="saveInlineSyllabusContent('nota')" class="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl text-sm"><i class="fa-solid fa-upload mr-1"></i> Upload Gambar Nota</button>
                         </div>
 
                         <div id="mj-inline-form-contoh" class="hide space-y-3">
                             <input id="mj-inline-contoh-title" class="w-full border p-3 rounded-xl text-sm" placeholder="Tajuk contoh soalan (pilihan)">
                             <textarea id="mj-inline-contoh-langkah" rows="2" class="w-full border p-3 rounded-xl text-sm" placeholder="Penerangan / langkah kerja (pilihan)"></textarea>
                             <input id="mj-inline-contoh-files" type="file" accept="image/jpeg,image/png,image/webp" multiple class="w-full border p-3 rounded-xl text-xs">
-                            <button onclick="saveInlineSyllabusContent('contoh')" class="w-full bg-purple-700 text-white font-bold py-3 rounded-xl text-sm"><i class="fa-solid fa-upload mr-1"></i> Upload Contoh Soalan</button>
+                            <button type="button" onclick="saveInlineSyllabusContent('contoh')" class="w-full bg-purple-700 text-white font-bold py-3 rounded-xl text-sm"><i class="fa-solid fa-upload mr-1"></i> Upload Contoh Soalan</button>
                         </div>
 
                         <div id="mj-inline-form-quiz" class="hide space-y-3">
@@ -2724,7 +2724,7 @@
                             <input id="mj-inline-quiz-files" type="file" accept="image/jpeg,image/png,image/webp" multiple class="w-full border p-3 rounded-xl text-xs">
                             <div id="mj-inline-quiz-dynamic"></div>
                             <textarea id="mj-inline-quiz-explanation" rows="2" class="w-full border p-3 rounded-xl text-sm" placeholder="Penerangan jawapan (pilihan)"></textarea>
-                            <button onclick="saveInlineQuizQuestion()" class="w-full bg-blue-700 text-white font-bold py-3 rounded-xl text-sm"><i class="fa-solid fa-circle-plus mr-1"></i> Cipta Soalan Quiz</button>
+                            <button type="button" onclick="saveInlineQuizQuestion()" class="w-full bg-blue-700 text-white font-bold py-3 rounded-xl text-sm"><i class="fa-solid fa-circle-plus mr-1"></i> Cipta Soalan Quiz</button>
                         </div>
                     </div>
                 </div>
@@ -11771,11 +11771,35 @@
     
         // ===== Inline Admin Content Studio =====
         window.toggleInlineAdminStudio = function() {
-            if(!isCurrentUserAdmin()) return;
-            document.getElementById('mj-inline-admin-body')?.classList.toggle('hide');
-            document.getElementById('mj-inline-admin-chevron')?.classList.toggle('fa-chevron-up');
-            document.getElementById('mj-inline-admin-chevron')?.classList.toggle('fa-chevron-down');
-            renderInlineQuizTypeFields();
+            try {
+                const body = document.getElementById('mj-inline-admin-body');
+                const chevron = document.getElementById('mj-inline-admin-chevron');
+
+                if (!body) {
+                    console.error('[MMJ] Elemen mj-inline-admin-body tidak dijumpai.');
+                    alert('Ralat HTML: panel Admin Content Studio tidak dijumpai.');
+                    return;
+                }
+
+                // Panel ini sudah disembunyikan daripada pengguna biasa melalui applyAdminUI().
+                // Firebase Rules masih menjadi kawalan keselamatan sebenar untuk operasi simpan/upload.
+                const isOpening = body.classList.contains('hide');
+                body.classList.toggle('hide');
+
+                if (chevron) {
+                    chevron.classList.toggle('fa-chevron-up', isOpening);
+                    chevron.classList.toggle('fa-chevron-down', !isOpening);
+                }
+
+                if (isOpening) {
+                    setInlineAdminMode('nota');
+                    renderInlineQuizTypeFields();
+                    setTimeout(() => body.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
+                }
+            } catch (err) {
+                console.error('[MMJ] Gagal membuka Admin Content Studio:', err);
+                alert('Admin Content Studio gagal dibuka: ' + (err?.message || err));
+            }
         };
 
         window.setInlineAdminMode = function(mode) {
