@@ -2191,7 +2191,140 @@
                 min-height: 58px !important;
             }
         }
-    </style>
+    
+
+        /* ===== Math Journey Digital Book: Nota page-turn animation ===== */
+        .mj-book-stage {
+            position: relative;
+            width: 100%;
+            perspective: 1800px;
+            touch-action: pan-y;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .mj-book-shell {
+            position: relative;
+            overflow: hidden;
+            border-radius: 1rem;
+            background: #f8fafc;
+            border: 1px solid rgba(109, 40, 217, 0.12);
+            box-shadow: 0 18px 38px rgba(46, 16, 101, 0.10), 0 3px 0 rgba(250, 204, 21, 0.34);
+            transform-style: preserve-3d;
+        }
+        .mj-book-page,
+        .mj-book-turning-page {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            min-height: 220px;
+            background: #fff;
+            transform-style: preserve-3d;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+        .mj-book-page img,
+        .mj-book-turning-page img {
+            display: block;
+            width: 100%;
+            height: auto;
+            object-fit: contain;
+            border-radius: 0.75rem;
+            pointer-events: none;
+        }
+        .mj-book-turning-page {
+            position: absolute;
+            inset: 0;
+            z-index: 5;
+            pointer-events: none;
+            will-change: transform, filter;
+        }
+        .mj-book-turning-page::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            pointer-events: none;
+            background: linear-gradient(90deg, transparent 52%, rgba(15, 23, 42, 0.25) 100%);
+        }
+        .mj-book-stage.turn-next .mj-book-turning-page {
+            transform-origin: left center;
+            animation: mjPageTurnNext 0.68s cubic-bezier(.55,.05,.25,1) both;
+        }
+        .mj-book-stage.turn-next .mj-book-turning-page::after {
+            animation: mjPageShadowNext 0.68s ease both;
+        }
+        .mj-book-stage.turn-back .mj-book-turning-page {
+            transform-origin: right center;
+            animation: mjPageTurnBack 0.68s cubic-bezier(.55,.05,.25,1) both;
+        }
+        .mj-book-stage.turn-back .mj-book-turning-page::after {
+            background: linear-gradient(270deg, transparent 52%, rgba(15, 23, 42, 0.25) 100%);
+            animation: mjPageShadowBack 0.68s ease both;
+        }
+        .mj-book-spine {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            width: 2px;
+            z-index: 7;
+            opacity: .34;
+            pointer-events: none;
+            background: linear-gradient(180deg, transparent, rgba(46,16,101,.35), transparent);
+            box-shadow: 0 0 12px rgba(46,16,101,.22);
+        }
+        .mj-book-hint {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 8px;
+            color: #94a3b8;
+            font-size: 10px;
+            font-weight: 700;
+        }
+        .mj-note-nav-btn:disabled {
+            cursor: not-allowed !important;
+            transform: none !important;
+            opacity: .62;
+        }
+        @keyframes mjPageTurnNext {
+            0% { transform: rotateY(0deg); filter: brightness(1); }
+            48% { filter: brightness(.92); }
+            100% { transform: rotateY(-180deg); filter: brightness(.78); }
+        }
+        @keyframes mjPageTurnBack {
+            0% { transform: rotateY(0deg); filter: brightness(1); }
+            48% { filter: brightness(.92); }
+            100% { transform: rotateY(180deg); filter: brightness(.78); }
+        }
+        @keyframes mjPageShadowNext {
+            0%, 100% { opacity: 0; }
+            42% { opacity: .72; }
+        }
+        @keyframes mjPageShadowBack {
+            0%, 100% { opacity: 0; }
+            42% { opacity: .72; }
+        }
+        @media (max-width: 480px) {
+            .mj-book-page, .mj-book-turning-page { min-height: 180px; }
+            .mj-book-spine { display: none; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .mj-book-stage.turn-next .mj-book-turning-page,
+            .mj-book-stage.turn-back .mj-book-turning-page {
+                animation: mjPageFade .24s ease both;
+                transform-origin: center;
+            }
+            .mj-book-stage.turn-next .mj-book-turning-page::after,
+            .mj-book-stage.turn-back .mj-book-turning-page::after { animation: none; }
+        }
+        @keyframes mjPageFade {
+            from { opacity: 1; transform: translateX(0); }
+            to { opacity: 0; transform: translateX(-10px); }
+        }
+</style>
 </head>
 <body class="text-slate-800 antialiased">
 
@@ -5733,6 +5866,18 @@
             renderNotaStepViewer();
         };
 
+        let notaPageAnimating = false;
+        let notaSwipeStartX = 0;
+        let notaSwipeStartY = 0;
+
+        function preloadNotaImage(index) {
+            const url = notaStepImages[index];
+            if(!url) return;
+            const img = new Image();
+            img.decoding = 'async';
+            img.src = url;
+        }
+
         function renderNotaStepViewer() {
             const listDiv = document.getElementById('nota-list-content');
             const viewerDiv = document.getElementById('nota-viewer-content');
@@ -5754,39 +5899,120 @@
                     ${isCurrentUserAdmin() ? `<button type="button" onclick="window.deleteCurrentInlineNota()" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-3 py-2 rounded-xl shadow-sm"><i class="fa-solid fa-trash mr-1"></i> Padam Nota</button>` : ''}
                 </div>
                 <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm space-y-4 text-xs">
-                    <div>
-                        <p class="text-[11px] font-bold text-blue-700 uppercase tracking-wider">Nota ${selectedNotaIndex + 1}</p>
-                    </div>
+                    <div><p class="text-[11px] font-bold text-blue-700 uppercase tracking-wider">Nota ${selectedNotaIndex + 1}</p></div>
                     ${n.maksud ? `<div><p class="font-bold text-slate-900 mb-1">Maksud</p><p class="text-gray-600 bg-gray-50 p-2.5 rounded-xl leading-relaxed whitespace-pre-line">${escapeHtml(n.maksud)}</p></div>` : ''}
                     ${n.formula ? `<div><p class="font-bold text-slate-900 mb-1">Formula</p><p class="text-gray-600 bg-gray-50 p-2.5 rounded-xl leading-relaxed whitespace-pre-line">${renderQuizMathText(n.formula)}</p></div>` : ''}
                     ${n.kesilapan ? `<div><p class="font-bold text-red-600 mb-1">Kesilapan Lazim</p><p class="text-red-700 bg-red-50 p-2.5 rounded-xl leading-relaxed whitespace-pre-line">${escapeHtml(n.kesilapan)}</p></div>` : ''}
                     ${n.tips ? `<div><p class="font-bold text-emerald-700 mb-1">Tips</p><p class="text-emerald-700 bg-emerald-50 p-2.5 rounded-xl leading-relaxed whitespace-pre-line">${escapeHtml(n.tips)}</p></div>` : ''}
                     ${hasImages ? `
-                        <div class="bg-slate-50 border border-gray-100 rounded-2xl p-2">
-                            <img src="${imgUrl}" class="w-full h-auto object-contain rounded-xl bg-white" alt="Gambar nota ${notaStepIndex + 1}">
+                        <div id="mj-nota-book-stage" class="mj-book-stage" aria-live="polite">
+                            <div class="mj-book-shell">
+                                <div id="mj-nota-page-current" class="mj-book-page p-2">
+                                    <img id="mj-nota-current-img" src="${imgUrl}" alt="Gambar nota ${notaStepIndex + 1}">
+                                </div>
+                                <div id="mj-nota-page-turning" class="mj-book-turning-page p-2 hide" aria-hidden="true"></div>
+                                <span class="mj-book-spine" aria-hidden="true"></span>
+                            </div>
+                            <div class="mj-book-hint"><i class="fa-solid fa-hand-pointer"></i> Swipe kiri atau kanan untuk menyelak</div>
                         </div>
-                        <div class="text-center text-[11px] font-bold text-gray-400">Gambar ${notaStepIndex + 1} daripada ${notaStepImages.length}</div>
+                        <div id="mj-nota-page-counter" class="text-center text-[11px] font-bold text-gray-400">Gambar ${notaStepIndex + 1} daripada ${notaStepImages.length}</div>
                     ` : `<p class="text-center text-gray-400 bg-gray-50 rounded-xl py-5">Nota ini tidak mempunyai gambar.</p>`}
                 </div>
                 <div class="grid grid-cols-2 gap-3 mt-5">
-                    <button onclick="navigateNotaStep('back')" ${isFirst ? 'disabled' : ''} class="${isFirst ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-red-500 hover:bg-red-600 text-white'} font-bold py-3 rounded-xl transition">← Back</button>
-                    <button onclick="navigateNotaStep('next')" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl transition">${isLast ? 'Selesai' : 'Next →'}</button>
+                    <button id="mj-nota-back-btn" onclick="navigateNotaStep('back')" ${isFirst ? 'disabled' : ''} class="mj-note-nav-btn ${isFirst ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-red-500 hover:bg-red-600 text-white'} font-bold py-3 rounded-xl transition">← Back</button>
+                    <button id="mj-nota-next-btn" onclick="navigateNotaStep('next')" class="mj-note-nav-btn bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-xl transition">${isLast ? 'Selesai' : 'Next →'}</button>
                 </div>
             `;
+
+            setupNotaSwipe();
+            preloadNotaImage(notaStepIndex + 1);
             window.scrollTo(0,0);
         }
 
+        function updateNotaNavigationControls() {
+            const isFirst = notaStepIndex === 0;
+            const isLast = notaStepIndex >= notaStepImages.length - 1;
+            const backBtn = document.getElementById('mj-nota-back-btn');
+            const nextBtn = document.getElementById('mj-nota-next-btn');
+            const counter = document.getElementById('mj-nota-page-counter');
+
+            if(backBtn) {
+                backBtn.disabled = notaPageAnimating || isFirst;
+                backBtn.className = `mj-note-nav-btn ${isFirst ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-red-500 hover:bg-red-600 text-white'} font-bold py-3 rounded-xl transition`;
+            }
+            if(nextBtn) {
+                nextBtn.disabled = notaPageAnimating;
+                nextBtn.textContent = isLast ? 'Selesai' : 'Next →';
+            }
+            if(counter) counter.textContent = `Gambar ${notaStepIndex + 1} daripada ${notaStepImages.length}`;
+        }
+
+        function setupNotaSwipe() {
+            const stage = document.getElementById('mj-nota-book-stage');
+            if(!stage) return;
+            stage.addEventListener('touchstart', (event) => {
+                const touch = event.changedTouches[0];
+                notaSwipeStartX = touch.clientX;
+                notaSwipeStartY = touch.clientY;
+            }, { passive: true });
+            stage.addEventListener('touchend', (event) => {
+                if(notaPageAnimating) return;
+                const touch = event.changedTouches[0];
+                const deltaX = touch.clientX - notaSwipeStartX;
+                const deltaY = touch.clientY - notaSwipeStartY;
+                if(Math.abs(deltaX) < 55 || Math.abs(deltaX) <= Math.abs(deltaY)) return;
+                navigateNotaStep(deltaX < 0 ? 'next' : 'back');
+            }, { passive: true });
+        }
+
+        async function animateNotaPageTurn(direction, targetIndex) {
+            const stage = document.getElementById('mj-nota-book-stage');
+            const currentImg = document.getElementById('mj-nota-current-img');
+            const turningPage = document.getElementById('mj-nota-page-turning');
+            if(!stage || !currentImg || !turningPage) {
+                notaStepIndex = targetIndex;
+                renderNotaStepViewer();
+                return;
+            }
+
+            notaPageAnimating = true;
+            updateNotaNavigationControls();
+
+            const targetUrl = notaStepImages[targetIndex];
+            await new Promise(resolve => {
+                const img = new Image();
+                img.onload = img.onerror = resolve;
+                img.src = targetUrl;
+            });
+
+            turningPage.innerHTML = `<img src="${currentImg.src}" alt="" aria-hidden="true">`;
+            turningPage.classList.remove('hide');
+            stage.classList.remove('turn-next', 'turn-back');
+            void stage.offsetWidth;
+            stage.classList.add(direction === 'next' ? 'turn-next' : 'turn-back');
+
+            // Let the new page sit underneath the turning sheet.
+            currentImg.src = targetUrl;
+            currentImg.alt = `Gambar nota ${targetIndex + 1}`;
+
+            await new Promise(resolve => setTimeout(resolve, 700));
+            notaStepIndex = targetIndex;
+            stage.classList.remove('turn-next', 'turn-back');
+            turningPage.classList.add('hide');
+            turningPage.innerHTML = '';
+            notaPageAnimating = false;
+            updateNotaNavigationControls();
+            preloadNotaImage(notaStepIndex + (direction === 'next' ? 1 : -1));
+        }
+
         window.navigateNotaStep = function(direction) {
+            if(notaPageAnimating) return;
             if(direction === 'back') {
-                if(notaStepIndex > 0) {
-                    notaStepIndex--;
-                    renderNotaStepViewer();
-                }
+                if(notaStepIndex > 0) animateNotaPageTurn('back', notaStepIndex - 1);
                 return;
             }
             if(notaStepIndex < notaStepImages.length - 1) {
-                notaStepIndex++;
-                renderNotaStepViewer();
+                animateNotaPageTurn('next', notaStepIndex + 1);
             } else {
                 backToNotaList();
             }
