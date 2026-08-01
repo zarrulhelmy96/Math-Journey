@@ -5952,6 +5952,62 @@
             return [];
         }
 
+        function bindCurrentQuizDeleteButton() {
+            const btn = document.getElementById('mj-delete-current-quiz-btn');
+            if(!btn) {
+                console.warn('[MMJ] Butang Padam Quiz tidak dijumpai selepas render.');
+                return;
+            }
+
+            btn.onclick = async function(event) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                const q = window.currentSubtopicQuizQuestion || null;
+                if(!q) {
+                    window.alert('Soalan semasa tidak dijumpai. Sila buka semula soalan quiz.');
+                    return;
+                }
+
+                const questionId = String(q.id || q._key || q.key || '').trim();
+                const formNum = String(currentLevel || q.formNum || q.tingkatan || '').trim();
+                const chapterKey = String(currentChapterKey || q.chapterKey || q.chKey || '').trim();
+                const quizLevel = normalizeQuizLevel(window.currentSubtopicQuizLevel || q.level || q.levelKey || 'easy');
+                const sourceMode = q._sourceMode || q.sourceMode || 'level';
+
+                if(!questionId) {
+                    window.alert('ID soalan quiz tidak dijumpai. Soalan tidak dipadam.');
+                    return;
+                }
+                if(!formNum || !chapterKey) {
+                    window.alert('Maklumat tingkatan atau bab tidak lengkap. Soalan tidak dipadam.');
+                    return;
+                }
+
+                if(!window.confirm('Padam soalan quiz ini? Tindakan ini tidak boleh dibatalkan.')) return;
+
+                btn.disabled = true;
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Memadam...';
+
+                try {
+                    const deletePath = getStandaloneQuizQuestionPath(formNum, chapterKey, quizLevel, questionId, sourceMode);
+                    console.log('[MMJ] Delete quiz path:', deletePath);
+                    await remove(ref(db, deletePath));
+                    window.currentSubtopicQuizQuestion = null;
+                    window.currentSubtopicQuizLevel = null;
+                    window.currentSubtopicQuizResultKey = null;
+                    window.alert('Soalan quiz berjaya dipadam.');
+                    await renderSubtopicQuizList();
+                } catch(err) {
+                    console.error('[MMJ] Gagal padam quiz:', err);
+                    window.alert('Ralat padam soalan quiz: ' + (err && err.message ? err.message : String(err)));
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                }
+            };
+        }
+
         function renderSubtopicQuizQuestion(q, level, resultKey, savedAnswer = null, selectedChoice = null) {
             const box = document.getElementById('flow-quiz-content');
             if(!box) return;
@@ -5973,7 +6029,8 @@
                     control = pairs.map((pair,index) => `<div class="grid grid-cols-2 gap-2 items-center"><div class="bg-slate-50 border p-3 rounded-xl font-bold">${escapeHtml(String(pair.left))}</div><select id="mj-sub-match-${index}" ${answered ? 'disabled' : ''} class="border p-3 rounded-xl bg-white"><option value="">-- Padankan --</option>${(q.matchOptions || pairs.map(x=>x.right)).map(v=>`<option value="${escapeHtml(String(v))}">${escapeHtml(String(v))}</option>`).join('')}</select></div>`).join('');
                     setTimeout(() => pairs.forEach((pair,index) => { const el=document.getElementById(`mj-sub-match-${index}`); if(el && answered?.chosen?.[index]) el.value=answered.chosen[index]; }),0);
                 }
-                box.innerHTML = `<div class="flex items-center justify-between gap-3 mb-3"><button type="button" onclick="window.backToSubtopicQuizList()" class="text-gray-500 text-sm"><i class="fa-solid fa-arrow-left"></i> Kembali ke senarai soalan</button>${isCurrentUserAdmin() ? `<button type="button" data-mj-action="delete-current-quiz" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-3 py-2 rounded-xl shadow-sm"><i class="fa-solid fa-trash mr-1"></i> Padam Quiz</button>` : ''}</div><div class="bg-white border rounded-2xl p-5 shadow-sm space-y-4"><span class="bg-amber-50 text-amber-700 font-bold px-2.5 py-1 rounded-lg text-[10px] uppercase">${mark} markah</span><p class="text-slate-900 font-bold text-base">${renderQuizMathText(q.soalan || '')}</p>${renderQuizQuestionImageGallery(q.imageUrls,'')}<div class="space-y-3">${control}</div>${answered ? `<div class="p-3 rounded-xl border ${savedAnswer.correct ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}"><p class="font-bold">${savedAnswer.correct ? 'Betul!' : 'Kurang tepat.'}</p>${q.explanation ? `<p class="mt-2 text-xs whitespace-pre-line">${escapeHtml(q.explanation)}</p>` : ''}${renderQuizQuestionImageGallery(q.explanationImageUrls || [], 'mt-3')}</div>` : `<button onclick="submitCurrentSubtopicFlexibleAnswer()" class="w-full bg-slate-900 text-white font-bold py-3 rounded-xl">Semak Jawapan</button>`}</div>`;
+                box.innerHTML = `<div class="flex items-center justify-between gap-3 mb-3"><button type="button" onclick="window.backToSubtopicQuizList()" class="text-gray-500 text-sm"><i class="fa-solid fa-arrow-left"></i> Kembali ke senarai soalan</button>${isCurrentUserAdmin() ? `<button type="button" id="mj-delete-current-quiz-btn" class="relative z-[50] pointer-events-auto bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-3 py-2 rounded-xl shadow-sm"><i class="fa-solid fa-trash mr-1"></i> Padam Quiz</button>` : ''}</div><div class="bg-white border rounded-2xl p-5 shadow-sm space-y-4"><span class="bg-amber-50 text-amber-700 font-bold px-2.5 py-1 rounded-lg text-[10px] uppercase">${mark} markah</span><p class="text-slate-900 font-bold text-base">${renderQuizMathText(q.soalan || '')}</p>${renderQuizQuestionImageGallery(q.imageUrls,'')}<div class="space-y-3">${control}</div>${answered ? `<div class="p-3 rounded-xl border ${savedAnswer.correct ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}"><p class="font-bold">${savedAnswer.correct ? 'Betul!' : 'Kurang tepat.'}</p>${q.explanation ? `<p class="mt-2 text-xs whitespace-pre-line">${escapeHtml(q.explanation)}</p>` : ''}${renderQuizQuestionImageGallery(q.explanationImageUrls || [], 'mt-3')}</div>` : `<button onclick="submitCurrentSubtopicFlexibleAnswer()" class="w-full bg-slate-900 text-white font-bold py-3 rounded-xl">Semak Jawapan</button>`}</div>`;
+                bindCurrentQuizDeleteButton();
                 return;
             }
 
@@ -5982,7 +6039,7 @@
             let html = `
                 <div class="flex items-center justify-between gap-3 mb-3">
                     <button type="button" onclick="window.backToSubtopicQuizList()" class="text-gray-500 text-sm"><i class="fa-solid fa-arrow-left"></i> Kembali ke senarai soalan</button>
-                    ${isCurrentUserAdmin() ? `<button type="button" data-mj-action="delete-current-quiz" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-3 py-2 rounded-xl shadow-sm"><i class="fa-solid fa-trash mr-1"></i> Padam Quiz</button>` : ''}
+                    ${isCurrentUserAdmin() ? `<button type="button" id="mj-delete-current-quiz-btn" class="relative z-[50] pointer-events-auto bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-3 py-2 rounded-xl shadow-sm"><i class="fa-solid fa-trash mr-1"></i> Padam Quiz</button>` : ''}
                 </div>
                 <div class="mj-quiz-question-card bg-white border border-gray-100 rounded-2xl p-5 shadow-sm text-xs space-y-4">
                     <div>
@@ -6043,6 +6100,7 @@
 
             html += `</div>`;
             box.innerHTML = html;
+            bindCurrentQuizDeleteButton();
             window.scrollTo(0,0);
         }
 
@@ -12009,13 +12067,6 @@
             }
         };
 
-        document.addEventListener('click', function(event) {
-            const deleteButton = event.target.closest('[data-mj-action="delete-current-quiz"]');
-            if(!deleteButton) return;
-            event.preventDefault();
-            event.stopPropagation();
-            window.deleteCurrentInlineQuizQuestion();
-        }, true);
 
         setTimeout(()=>{ if(isCurrentUserAdmin()) applyAdminUI(true); setInlineAdminMode('nota'); attachInlineExplanationPasteHandler(); },1200);
 
