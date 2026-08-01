@@ -2683,7 +2683,7 @@
 
                 <!-- Admin-only inline syllabus studio -->
                 <div id="mj-inline-admin-studio" class="hide mx-5 mb-6 bg-white border-2 border-purple-200 rounded-2xl shadow-sm overflow-hidden">
-                    <button type="button" onclick="toggleInlineAdminStudio()" class="w-full px-4 py-3 bg-purple-50 text-purple-900 font-extrabold text-sm flex items-center justify-between">
+                    <button type="button" id="mj-inline-admin-toggle-btn" class="w-full px-4 py-3 bg-purple-50 text-purple-900 font-extrabold text-sm flex items-center justify-between">
                         <span><i class="fa-solid fa-wand-magic-sparkles mr-2"></i>Admin Content Studio</span>
                         <i id="mj-inline-admin-chevron" class="fa-solid fa-chevron-down"></i>
                     </button>
@@ -2692,26 +2692,26 @@
                             Kandungan akan disimpan terus ke <strong>tingkatan, bab dan subtopik yang sedang dibuka</strong>. UI ini hanya dipaparkan kepada admin.
                         </div>
                         <div class="grid grid-cols-3 gap-2">
-                            <button type="button" onclick="setInlineAdminMode('nota')" id="mj-inline-mode-nota" class="border rounded-xl py-2 text-xs font-bold">Nota</button>
-                            <button type="button" onclick="setInlineAdminMode('contoh')" id="mj-inline-mode-contoh" class="border rounded-xl py-2 text-xs font-bold">Contoh</button>
-                            <button type="button" onclick="setInlineAdminMode('quiz')" id="mj-inline-mode-quiz" class="border rounded-xl py-2 text-xs font-bold">Quiz</button>
+                            <button type="button" id="mj-inline-mode-nota" class="border rounded-xl py-2 text-xs font-bold">Nota</button>
+                            <button type="button" id="mj-inline-mode-contoh" class="border rounded-xl py-2 text-xs font-bold">Contoh</button>
+                            <button type="button" id="mj-inline-mode-quiz" class="border rounded-xl py-2 text-xs font-bold">Quiz</button>
                         </div>
 
                         <div id="mj-inline-form-nota" class="space-y-3">
                             <input id="mj-inline-nota-title" class="w-full border p-3 rounded-xl text-sm" placeholder="Tajuk / penerangan ringkas nota (pilihan)">
                             <input id="mj-inline-nota-files" type="file" accept="image/jpeg,image/png,image/webp" multiple class="w-full border p-3 rounded-xl text-xs">
-                            <button type="button" onclick="saveInlineSyllabusContent('nota')" class="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl text-sm"><i class="fa-solid fa-upload mr-1"></i> Upload Gambar Nota</button>
+                            <button type="button" id="mj-inline-upload-nota-btn" class="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl text-sm"><i class="fa-solid fa-upload mr-1"></i> Upload Gambar Nota</button>
                         </div>
 
                         <div id="mj-inline-form-contoh" class="hide space-y-3">
                             <input id="mj-inline-contoh-title" class="w-full border p-3 rounded-xl text-sm" placeholder="Tajuk contoh soalan (pilihan)">
                             <textarea id="mj-inline-contoh-langkah" rows="2" class="w-full border p-3 rounded-xl text-sm" placeholder="Penerangan / langkah kerja (pilihan)"></textarea>
                             <input id="mj-inline-contoh-files" type="file" accept="image/jpeg,image/png,image/webp" multiple class="w-full border p-3 rounded-xl text-xs">
-                            <button type="button" onclick="saveInlineSyllabusContent('contoh')" class="w-full bg-purple-700 text-white font-bold py-3 rounded-xl text-sm"><i class="fa-solid fa-upload mr-1"></i> Upload Contoh Soalan</button>
+                            <button type="button" id="mj-inline-upload-contoh-btn" class="w-full bg-purple-700 text-white font-bold py-3 rounded-xl text-sm"><i class="fa-solid fa-upload mr-1"></i> Upload Contoh Soalan</button>
                         </div>
 
                         <div id="mj-inline-form-quiz" class="hide space-y-3">
-                            <select id="mj-inline-quiz-type" onchange="renderInlineQuizTypeFields()" class="w-full border p-3 rounded-xl text-sm bg-white">
+                            <select id="mj-inline-quiz-type" class="w-full border p-3 rounded-xl text-sm bg-white">
                                 <option value="multiple_choice">Pilihan Jawapan A, B, C, D</option>
                                 <option value="short_answer">Jawapan Pendek</option>
                                 <option value="fill_blank">Isi Tempat Kosong</option>
@@ -2732,7 +2732,7 @@
                                     <p id="mj-inline-quiz-explanation-file-status" class="text-[10px] text-gray-500 mt-2">Pilih gambar melalui Choose File atau tampal gambar dalam kotak penerangan menggunakan Ctrl+V.</p>
                                 </div>
                             </div>
-                            <button type="button" onclick="saveInlineQuizQuestion()" class="w-full bg-blue-700 text-white font-bold py-3 rounded-xl text-sm"><i class="fa-solid fa-circle-plus mr-1"></i> Cipta Soalan Quiz</button>
+                            <button type="button" id="mj-inline-create-quiz-btn" class="w-full bg-blue-700 text-white font-bold py-3 rounded-xl text-sm"><i class="fa-solid fa-circle-plus mr-1"></i> Cipta Soalan Quiz</button>
                         </div>
                     </div>
                 </div>
@@ -11975,6 +11975,115 @@
                 alert('Soalan quiz berjaya dicipta.');
             } catch(err) { alert('Ralat cipta quiz: '+err.message); }
         };
+
+
+        function setInlineActionButtonBusy(button, busy, busyLabel) {
+            if (!button) return;
+            if (!button.dataset.originalHtml) button.dataset.originalHtml = button.innerHTML;
+            button.disabled = !!busy;
+            button.classList.toggle('opacity-60', !!busy);
+            button.classList.toggle('cursor-not-allowed', !!busy);
+            button.innerHTML = busy
+                ? `<i class="fa-solid fa-spinner fa-spin mr-1"></i> ${busyLabel || 'Sedang diproses...'}`
+                : button.dataset.originalHtml;
+        }
+
+        function bindInlineAdminStudioActions() {
+            const bindings = [
+                ['mj-inline-admin-toggle-btn', 'click', () => window.toggleInlineAdminStudio?.()],
+                ['mj-inline-mode-nota', 'click', () => window.setInlineAdminMode?.('nota')],
+                ['mj-inline-mode-contoh', 'click', () => window.setInlineAdminMode?.('contoh')],
+                ['mj-inline-mode-quiz', 'click', () => window.setInlineAdminMode?.('quiz')],
+                ['mj-inline-quiz-type', 'change', () => window.renderInlineQuizTypeFields?.()]
+            ];
+
+            bindings.forEach(([id, eventName, handler]) => {
+                const el = document.getElementById(id);
+                if (!el || el.dataset.mjDirectBound === 'true') return;
+                el.dataset.mjDirectBound = 'true';
+                el.removeAttribute('onclick');
+                el.removeAttribute('onchange');
+                el.addEventListener(eventName, event => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    try {
+                        handler();
+                    } catch (err) {
+                        console.error(`[MMJ] Aksi ${id} gagal:`, err);
+                        alert('Ralat butang Admin Content Studio: ' + (err?.message || err));
+                    }
+                });
+            });
+
+            const notaBtn = document.getElementById('mj-inline-upload-nota-btn');
+            if (notaBtn && notaBtn.dataset.mjDirectBound !== 'true') {
+                notaBtn.dataset.mjDirectBound = 'true';
+                notaBtn.removeAttribute('onclick');
+                notaBtn.addEventListener('click', async event => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    setInlineActionButtonBusy(notaBtn, true, 'Sedang upload nota...');
+                    try {
+                        if (typeof window.saveInlineSyllabusContent !== 'function') throw new Error('Fungsi upload nota tidak dijumpai.');
+                        await window.saveInlineSyllabusContent('nota');
+                    } catch (err) {
+                        console.error('[MMJ] Upload nota gagal:', err);
+                        alert('Upload nota gagal: ' + (err?.message || err));
+                    } finally {
+                        setInlineActionButtonBusy(notaBtn, false);
+                    }
+                });
+            }
+
+            const contohBtn = document.getElementById('mj-inline-upload-contoh-btn');
+            if (contohBtn && contohBtn.dataset.mjDirectBound !== 'true') {
+                contohBtn.dataset.mjDirectBound = 'true';
+                contohBtn.removeAttribute('onclick');
+                contohBtn.addEventListener('click', async event => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    setInlineActionButtonBusy(contohBtn, true, 'Sedang upload contoh...');
+                    try {
+                        if (typeof window.saveInlineSyllabusContent !== 'function') throw new Error('Fungsi upload contoh tidak dijumpai.');
+                        await window.saveInlineSyllabusContent('contoh');
+                    } catch (err) {
+                        console.error('[MMJ] Upload contoh gagal:', err);
+                        alert('Upload contoh gagal: ' + (err?.message || err));
+                    } finally {
+                        setInlineActionButtonBusy(contohBtn, false);
+                    }
+                });
+            }
+
+            const quizBtn = document.getElementById('mj-inline-create-quiz-btn');
+            if (quizBtn && quizBtn.dataset.mjDirectBound !== 'true') {
+                quizBtn.dataset.mjDirectBound = 'true';
+                quizBtn.removeAttribute('onclick');
+                quizBtn.addEventListener('click', async event => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    setInlineActionButtonBusy(quizBtn, true, 'Sedang cipta quiz...');
+                    try {
+                        if (typeof window.saveInlineQuizQuestion !== 'function') throw new Error('Fungsi cipta quiz tidak dijumpai.');
+                        await window.saveInlineQuizQuestion();
+                    } catch (err) {
+                        console.error('[MMJ] Cipta quiz gagal:', err);
+                        alert('Cipta quiz gagal: ' + (err?.message || err));
+                    } finally {
+                        setInlineActionButtonBusy(quizBtn, false);
+                    }
+                });
+            }
+
+            attachInlineExplanationPasteHandler();
+        }
+
+        // Elemen studio ialah HTML statik, jadi binding boleh dibuat selepas module dimuatkan.
+        bindInlineAdminStudioActions();
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', bindInlineAdminStudioActions, { once: true });
+        }
+        window.addEventListener('pageshow', bindInlineAdminStudioActions);
 
         async function refreshInlineSyllabusCache() {
             const snap = await get(ref(db, 'silibus'));
