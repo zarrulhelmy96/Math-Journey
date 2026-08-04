@@ -2860,9 +2860,9 @@
                                 <label class="block text-xs font-bold text-slate-700">Penerangan jawapan</label>
                                 <textarea id="mj-inline-quiz-explanation" rows="3" class="w-full border p-3 rounded-xl text-sm" placeholder="Taip penerangan jawapan di sini. Anda juga boleh copy gambar dan tekan Ctrl+V dalam kotak ini."></textarea>
                                 <div class="rounded-xl border border-dashed border-purple-200 bg-purple-50/40 p-3">
-                                    <label for="mj-inline-quiz-explanation-files" class="block text-xs font-bold text-purple-800 mb-2"><i class="fa-solid fa-image mr-1"></i> Gambar penerangan jawapan (pilihan)</label>
+                                    <label for="mj-inline-quiz-explanation-files" class="block text-xs font-bold text-purple-800 mb-2"><i class="fa-solid fa-image mr-1"></i> Gambar jawapan / penerangan (pilihan)</label>
                                     <input id="mj-inline-quiz-explanation-files" type="file" accept="image/jpeg,image/png,image/webp" multiple class="w-full text-xs">
-                                    <p id="mj-inline-quiz-explanation-file-status" class="text-[10px] text-gray-500 mt-2">Pilih gambar melalui Choose File atau tampal gambar dalam kotak penerangan menggunakan Ctrl+V.</p>
+                                    <p id="mj-inline-quiz-explanation-file-status" class="text-[10px] text-gray-500 mt-2">Gambar ini akan dipaparkan melalui butang “Lihat Gambar Jawapan”. Pilih fail atau tampal gambar menggunakan Ctrl+V.</p>
                                 </div>
                             </div>
                             <button type="button" id="mj-inline-create-quiz-btn" class="w-full bg-blue-700 text-white font-bold py-3 rounded-xl text-sm"><i class="fa-solid fa-circle-plus mr-1"></i> Cipta Soalan Quiz</button>
@@ -7112,6 +7112,8 @@
                 q.gambarJawapanUrls,
                 q.answerImageUrl,
                 q.solutionImageUrl,
+                q.explanationImageUrls,
+                q.explanationImages,
                 savedAnswer.answerImageUrls,
                 savedAnswer.answerImages,
                 savedAnswer.solutionImageUrls,
@@ -12054,7 +12056,7 @@
             const status=document.getElementById('mj-inline-quiz-explanation-file-status');
             if(!status) return;
             const count=input?.files?.length||0;
-            status.textContent=count ? `${count} gambar penerangan telah dipilih.` : 'Pilih gambar melalui Choose File atau tampal gambar dalam kotak penerangan menggunakan Ctrl+V.';
+            status.textContent=count ? `${count} gambar jawapan telah dipilih.` : 'Gambar ini akan dipaparkan melalui butang “Lihat Gambar Jawapan”. Pilih fail atau tampal gambar menggunakan Ctrl+V.';
         }
 
         function attachInlineExplanationPasteHandler() {
@@ -12091,18 +12093,19 @@
                 const soalan=(document.getElementById('mj-inline-quiz-question').value||'').trim();
                 const imageUrls=await uploadMultipleFilesHelper('mj-inline-quiz-files','inline_quiz_questions');
                 if(!soalan&&!imageUrls.length) return alert('Taip soalan atau upload gambar soalan.');
-                const explanationImageUrls=await uploadMultipleFilesHelper('mj-inline-quiz-explanation-files','inline_quiz_explanations');
-                const payload={questionType:type,soalan,imageUrls,explanation:(document.getElementById('mj-inline-quiz-explanation').value||'').trim(),explanationImageUrls,formNum:c.formNum,chapterKey:c.chKey,chapterName:getChapterDisplayName(c.formNum,c.chKey),subKey:c.subKey,subtopicKey:c.subKey,subtopicName:c.subtopicName,level,levelLabel:getQuizLevelLabel(level),marks:getQuizLevelMark(level),sortOrder:await getNextStandaloneQuizSortOrder(c.formNum,c.chKey,level),createdAt:Date.now(),createdBy:currentUser.uid};
+                const explanationImageUrls=await uploadMultipleFilesHelper('mj-inline-quiz-explanation-files','inline_quiz_answers');
+                const answerImageUrls=[...explanationImageUrls];
+                const payload={questionType:type,soalan,imageUrls,explanation:(document.getElementById('mj-inline-quiz-explanation').value||'').trim(),explanationImageUrls,answerImageUrls,answerImages:answerImageUrls,solutionImageUrls:answerImageUrls,jawapanImageUrls:answerImageUrls,formNum:c.formNum,chapterKey:c.chKey,chapterName:getChapterDisplayName(c.formNum,c.chKey),subKey:c.subKey,subtopicKey:c.subKey,subtopicName:c.subtopicName,level,levelLabel:getQuizLevelLabel(level),marks:getQuizLevelMark(level),sortOrder:await getNextStandaloneQuizSortOrder(c.formNum,c.chKey,level),createdAt:Date.now(),createdBy:currentUser.uid};
                 if(type==='multiple_choice'){ payload.a=(document.getElementById('mj-q-a').value||'').trim()||'A';payload.b=(document.getElementById('mj-q-b').value||'').trim()||'B';payload.c=(document.getElementById('mj-q-c').value||'').trim()||'C';payload.d=(document.getElementById('mj-q-d').value||'').trim()||'D';payload.jawapan=document.getElementById('mj-q-correct').value; }
                 else if(type==='short_answer'||type==='fill_blank'){ payload.acceptedAnswers=(document.getElementById('mj-q-accepted').value||'').split('|').map(x=>x.trim()).filter(Boolean); if(!payload.acceptedAnswers.length)return alert('Masukkan sekurang-kurangnya satu jawapan diterima.');payload.jawapan=payload.acceptedAnswers[0]; }
                 else { const lines=(document.getElementById('mj-q-pairs').value||'').split('\n').map(x=>x.trim()).filter(Boolean);payload.pairs=lines.map(line=>{const pos=line.indexOf('=');return pos<0?null:{left:line.slice(0,pos).trim(),right:line.slice(pos+1).trim()};}).filter(Boolean);if(payload.pairs.length<2)return alert('Masukkan sekurang-kurangnya dua pasangan dalam format kiri = kanan.');payload.matchOptions=payload.pairs.map(p=>p.right).sort(()=>Math.random()-.5);payload.jawapan='matching'; }
                 const qRef=push(ref(db,`quizzes/${c.formNum}/${c.chKey}/${level}`)); await set(qRef,payload);
                 ['mj-inline-quiz-question','mj-inline-quiz-explanation','mj-inline-quiz-files','mj-inline-quiz-explanation-files'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
                 const explanationStatus=document.getElementById('mj-inline-quiz-explanation-file-status');
-                if(explanationStatus) explanationStatus.textContent='Pilih gambar melalui Choose File atau tampal gambar dalam kotak penerangan menggunakan Ctrl+V.';
+                if(explanationStatus) explanationStatus.textContent='Gambar ini akan dipaparkan melalui butang “Lihat Gambar Jawapan”. Pilih fail atau tampal gambar menggunakan Ctrl+V.';
                 renderInlineQuizTypeFields();
                 if(currentFlowTab==='quiz') renderSubtopicQuizList();
-                alert('Soalan quiz berjaya dicipta.');
+                alert(`Soalan quiz berjaya dicipta. Gambar jawapan tersimpan: ${answerImageUrls.length}.`);
             } catch(err) { alert('Ralat cipta quiz: '+err.message); }
         };
 
