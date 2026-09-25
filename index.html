@@ -1708,6 +1708,23 @@ body.gold-access-prompt-open{overflow:hidden}#goldAccessOverlay{z-index:60}#gold
 .quiz-tools #revealSolution:active,.quiz-tools #showSolution:active,.quiz-tools #revealSolution:focus,.quiz-tools #showSolution:focus{border-color:#b68b00;background:linear-gradient(145deg,#fff5a8 0%,#ffe25a 52%,#ffc928 100%);color:#3b2b00;box-shadow:0 3px 0 #c69700,0 7px 15px rgba(156,113,0,.22)}
 .quiz-tools #revealSolution:focus-visible,.quiz-tools #showSolution:focus-visible{outline:3px solid #815f00;outline-offset:4px}
 </style>
+  <style id="memberCardStyles">
+    .membership-card{position:relative;isolation:isolate;overflow:hidden;margin:22px 0 26px;padding:24px;border:1px solid #a9afb8;border-radius:22px;background:linear-gradient(125deg,#eef0f3 0%,#cbd0d7 30%,#fbfcfd 53%,#d3d8df 78%,#b6bdc6 100%);color:#303943;box-shadow:0 6px 0 #969faa,0 12px 26px #30394312;text-align:left}
+    .membership-card::after{content:"";position:absolute;z-index:-1;width:220px;height:220px;right:-98px;top:-106px;border:28px solid #ffffff30;border-radius:50%;pointer-events:none}
+    .membership-card[data-tier="gold"]{border-color:#c59a26;background:linear-gradient(125deg,#fff4bd 0%,#e5bf50 30%,#fff6cf 53%,#e5bf4c 78%,#be901c 100%);color:#503900;box-shadow:0 6px 0 #ac8017,0 12px 26px #8c65151c}
+    .membership-card[data-tier="pending"]{background:#f0f1f4;border-color:#d5d8df;box-shadow:0 6px 0 #cdd1d8}
+    .member-card-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:27px}
+    .member-card-brand{font-size:22px;font-weight:900;letter-spacing:-.7px;line-height:1.1}
+    .member-card-brand small{display:block;margin-top:5px;font-size:8px;font-weight:800;letter-spacing:2.4px}
+    .member-card-tier{border:1px solid currentColor;border-radius:7px;padding:6px 10px;font-size:10px;font-weight:900;letter-spacing:1.1px;background:#ffffff32;white-space:nowrap}
+    .member-card-name{display:block;margin:0 0 5px;font-size:19px;font-weight:900;line-height:1.35;overflow-wrap:anywhere}
+    .member-card-detail{margin:0;font-size:12px;font-weight:600;line-height:1.5}
+    .member-card-bottom{margin-top:23px;padding-top:15px;border-top:1px solid #30394330}
+    .membership-card[data-tier="gold"] .member-card-bottom{border-color:#70500035}
+    .member-card-id-label{display:block;margin-bottom:5px;font-size:9px;font-weight:800;letter-spacing:1.5px}
+    .member-card-id{display:block;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:clamp(14px,4.3vw,20px);font-weight:700;letter-spacing:1px;line-height:1.5;overflow-wrap:anywhere;font-variant-numeric:tabular-nums;user-select:all}
+    @media(max-width:360px){.membership-card{padding:20px}.member-card-top{gap:8px}.member-card-brand{font-size:20px}.member-card-tier{font-size:9px;padding:6px 8px}.member-card-name{font-size:17px}.member-card-id{letter-spacing:.3px}}
+  </style>
 </head>
 <body>
   <main class="app" aria-label="MathDay">
@@ -1747,7 +1764,7 @@ body.gold-access-prompt-open{overflow:hidden}#goldAccessOverlay{z-index:60}#gold
       <div class="verify-card"><div class="verify-icon">✉</div><h1 class="screen-title" id="verifyTitle">Sahkan Email</h1><p class="screen-copy">Kami telah menghantar link pengesahan ke:</p><p class="verify-email" id="verifyEmail"></p><button class="primary" id="checkVerification">Saya sudah sahkan email</button><button class="secondary" id="resendVerification">Hantar semula email</button><button class="secondary" id="changeEmail">Kembali ke Log in</button><p class="message" id="verifyMessage" role="status" aria-live="polite"></p></div>
     </section>
     <section class="screen" id="profileScreen" aria-labelledby="profileTitle">
-      <div class="profile-dashboard"><div class="profile-top"><h1 class="profile-greeting" id="profileTitle">Hi, <span id="profileName">Pelajar MathDay</span></h1><div class="avatar" id="avatar">M</div></div><div class="student-details"><p class="profile-email" id="profileEmail"></p><p class="profile-school" id="profileSchool">Sekolah belum ditetapkan</p><div class="profile-choice" id="profileChoice">Tingkatan belum dipilih</div></div><section class="xp-card" aria-label="MathDay Experience"><p class="xp-label">MathDay Experience</p><span class="xp-value" id="profileXP">0</span><span class="xp-unit">XP</span><div class="level-row"><span id="profileLevel">Level 1</span><span id="nextLevelXP">50 XP lagi</span></div><div class="xp-track"><div class="xp-fill" id="xpFill"></div></div><button class="question-number" id="continueLearning">Mula Belajar</button></section><h2 class="dashboard-heading">Ringkasan</h2><div class="stats-grid"><div class="stat-card"><div><span class="stat-value" id="quizCompleted" title="Jumlah soalan unik yang telah dijawab, termasuk Lihat Jawapan">0</span><span class="stat-label">Quiz Selesai</span></div></div><div class="stat-card"><div><span class="stat-value" id="answerAccuracy">0%</span><span class="stat-label">Ketepatan</span></div></div><div class="stat-card"><div><span class="stat-value" id="profileResetCoins" aria-live="polite">0</span><span class="stat-label">Reset Coin</span></div></div><div class="stat-card"><div><span class="stat-value" id="profilePoints">0</span><span class="stat-label">Point</span></div></div></div><div class="profile-actions"><button class="secondary" id="editProfile">Edit Profil</button><button class="secondary" id="logoutButton">Log keluar</button></div></div>
+      <div class="profile-dashboard"><div class="profile-top"><h1 class="profile-greeting" id="profileTitle">Hi, <span id="profileName">Pelajar MathDay</span></h1><div class="avatar" id="avatar">M</div></div><div class="student-details"><p class="profile-email" id="profileEmail"></p><p class="profile-school" id="profileSchool">Sekolah belum ditetapkan</p><div class="profile-choice" id="profileChoice">Tingkatan belum dipilih</div></div><section class="membership-card" id="membershipCard" data-tier="pending" aria-label="Kad keahlian MathDay" hidden><div class="member-card-top"><div class="member-card-brand">MathDay<small>MEMBERSHIP</small></div><span class="member-card-tier" id="memberCardTier">MENYEMAK</span></div><strong class="member-card-name" id="memberCardName"></strong><p class="member-card-detail" id="memberCardDetail">Menyemak status keahlian…</p><div class="member-card-bottom"><span class="member-card-id-label">ID AHLI</span><span class="member-card-id" id="memberCardId" aria-live="polite">Menyediakan ID…</span></div></section><section class="xp-card" aria-label="MathDay Experience"><p class="xp-label">MathDay Experience</p><span class="xp-value" id="profileXP">0</span><span class="xp-unit">XP</span><div class="level-row"><span id="profileLevel">Level 1</span><span id="nextLevelXP">50 XP lagi</span></div><div class="xp-track"><div class="xp-fill" id="xpFill"></div></div><button class="question-number" id="continueLearning">Mula Belajar</button></section><h2 class="dashboard-heading">Ringkasan</h2><div class="stats-grid"><div class="stat-card"><div><span class="stat-value" id="quizCompleted" title="Jumlah soalan unik yang telah dijawab, termasuk Lihat Jawapan">0</span><span class="stat-label">Quiz Selesai</span></div></div><div class="stat-card"><div><span class="stat-value" id="answerAccuracy">0%</span><span class="stat-label">Ketepatan</span></div></div><div class="stat-card"><div><span class="stat-value" id="profileResetCoins" aria-live="polite">0</span><span class="stat-label">Reset Coin</span></div></div><div class="stat-card"><div><span class="stat-value" id="profilePoints">0</span><span class="stat-label">Point</span></div></div></div><div class="profile-actions"><button class="secondary" id="editProfile">Edit Profil</button><button class="secondary" id="logoutButton">Log keluar</button></div></div>
     </section>
     <section class="screen" id="leaderboardScreen" aria-labelledby="leaderboardTitle">
       <div class="screen-head"><button class="back" data-go="profile" aria-label="Kembali">‹</button><h2 class="mini-brand"><span class="brand-purple">Math</span><span class="brand-yellow">Day</span></h2></div>
@@ -1803,6 +1820,8 @@ body.gold-access-prompt-open{overflow:hidden}#goldAccessOverlay{z-index:60}#gold
   <script src="./mathday-learning-sync-core.js"></script>
   <script src="./mathday-single-session.js"></script>
   <script src="./mathday-account-wallet.js"></script>
+  <script src="./mathday-member-id.js"></script>
+  <script src="./mathday-payments.js"></script>
   <script type="module">
     import {initializeApp} from 'https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js';
     import {getAuth,signInWithEmailAndPassword,createUserWithEmailAndPassword,updateProfile,sendEmailVerification,sendPasswordResetEmail,setPersistence,browserLocalPersistence,inMemoryPersistence,onAuthStateChanged,signOut,reload} from 'https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js';
@@ -1821,6 +1840,10 @@ body.gold-access-prompt-open{overflow:hidden}#goldAccessOverlay{z-index:60}#gold
     if(typeof window.MathDayAccountWallet?.createController!=='function'){
       document.getElementById('message').textContent='Fail mathday-account-wallet.js belum dimuatkan. Muat naik fail itu bersama index.html dan muat semula.';
       throw Error('Required account wallet module missing');
+    }
+    if(typeof window.MathDayMemberId?.createService!=='function'){
+      document.getElementById('message').textContent='Fail mathday-member-id.js belum dimuatkan. Muat naik fail itu bersama index.html dan muat semula.';
+      throw Error('Required member ID module missing');
     }
     const app=initializeApp(firebaseConfig);
     const auth=getAuth(app);
@@ -6697,19 +6720,7 @@ renderQuestions=async function(){ const container=$('questionList'),papers=$('go
     $('chapterList').addEventListener('click',event=>{if(!event.target.closest('[data-chapter]'))return;state.questionPage=0;state.question=null;localStorage.removeItem('mathDayQuestion')},true);
     $('rememberMe').checked=localStorage.getItem('mathDayRememberMe')==='true';renderForms();if(state.form)renderChapters();if(state.form&&state.chapter!==null)renderQuestions();
     onAuthStateChanged(auth,async user=>{if(!user){singleSession.stop();return showScreen('login');}if(sessionLoginActive)return;const remembered=localStorage.getItem('mathDayRememberMe')==='true',rememberedUid=localStorage.getItem('mathDayRememberUid');if(!sessionLoginActive&&(!remembered||rememberedUid!==user.uid)){await signOut(auth);return showScreen('login')}if(!await singleSession.start(user.uid,false))return;if(!user.emailVerified)return showVerification(user);renderProfile(user);showScreen('profile')});
-    const renderProfileWithMembership=renderProfile;
-    renderProfile=function(user){
-      renderProfileWithMembership(user);
-      const wallet=getWallet(),isLifetime=Boolean(wallet.unlimited&&!wallet.unlimitedUntil);
-      let plate=$('lifetimeGoldPlate');
-      if(isLifetime&&!plate){
-        plate=document.createElement('span');
-        plate.id='lifetimeGoldPlate';
-        plate.className='lifetime-gold-plate';
-        plate.innerHTML='<span class="plate-crown">MD</span><span><strong>UNLIMITED LIFETIME</strong><small>GOLD MEMBER</small></span><span class="plate-shine" aria-hidden="true"></span>';
-        $('profileTitle').appendChild(plate);
-      }else if(!isLifetime&&plate)plate.remove();
-    };
+    // The permanent membership card below replaces the old Lifetime-only plate.
     paymentButtons.forEach(button=>button.addEventListener('click',()=>{
       const isVoucher=button.id==='buyGiftVoucher';
       const option=isVoucher?$('giftVoucherCoins').selectedOptions[0]:null;
@@ -42261,11 +42272,13 @@ questionImageUrl:""},
       finally{cloudConsumedReset='';walletAnswerBusy=false;}
     };
     // No simulated checkout can activate a real account wallet. A verified payment backend is required.
-    const paymentUnavailable=()=>toast('Pembayaran dan tebusan belum diaktifkan. Hubungi admin untuk pengesahan pakej.');
+    const paymentUnavailable=()=>toast('Pembelian dan tebusan voucher belum diaktifkan. Gunakan pakej untuk akaun sendiri atau hubungi admin.');
     activateExtraStorePackage=function(){return {ok:false,message:'Pakej mesti disahkan oleh admin atau pelayan pembayaran.'};};
     commitGoldWithResetBonus=function(){throw Error('Gold Lifetime mesti disahkan oleh admin atau pelayan pembayaran.');};
     document.addEventListener('click',event=>{
-      if(event.target.closest?.('[data-unlimited-lifetime],[data-unlimited-days],[data-extra-package],[data-coins],[data-daily-coins],#buyGoldVoucher,#buyGiftVoucher,#redeemGoldVoucher,#redeemVoucher,#confirmPayment')){
+      const target=event.target.closest?.('[data-unlimited-lifetime],[data-unlimited-days],[data-extra-package],[data-coins],[data-daily-coins],#buyGoldVoucher,#buyGiftVoucher,#redeemGoldVoucher,#redeemVoucher,#confirmPayment');
+      if(target){
+        if(window.MathDayPaymentCheckout?.handleClick(event,target))return;
         event.preventDefault();event.stopImmediatePropagation();pendingPurchaseAction=null;paymentUnavailable();
       }
     },true);
@@ -42276,6 +42289,62 @@ questionImageUrl:""},
     window.addEventListener('online',retryAccountWallet);window.addEventListener('focus',retryAccountWallet);
     // Refresh expiry labels without extra database reads; access checks also evaluate expiry on every use.
     setInterval(()=>{if(accountWallet.read()?.goldPlan==='timed')refreshAccountWallet();},30000);
+    // Permanent member ID and Silver / Gold profile card.
+    const memberIdCore=window.MathDayMemberId;
+    let memberCardQueued=false;
+    function scheduleMemberCard(){
+      if(memberCardQueued)return;memberCardQueued=true;
+      queueMicrotask(()=>{memberCardQueued=false;renderMembershipCard(auth.currentUser);});
+    }
+    const memberIdService=memberIdCore.createService({
+      currentUid:()=>auth.currentUser?.uid||'',onChange:scheduleMemberCard,
+      onError:error=>console.warn('Member ID unavailable',error?.code||error?.message),
+      claim:(uid,candidate,check)=>runTransaction(db,async transaction=>{
+        check();const accountRef=doc(db,'memberAccounts',uid),existing=await transaction.get(accountRef);check();
+        if(existing.exists()){
+          const memberId=existing.data().memberId;if(!memberIdCore.valid(memberId))throw Error('member/invalid-record');
+          return memberId;
+        }
+        const idRef=doc(db,'memberIds',candidate),claimed=await transaction.get(idRef);check();
+        if(claimed.exists())return null;
+        transaction.set(accountRef,{memberId:candidate,createdAt:serverTimestamp()});
+        transaction.set(idRef,{uid});
+        return candidate;
+      })
+    });
+    function renderMembershipCard(user){
+      const card=$('membershipCard');if(!card)return;
+      if(!user||user.uid!==auth.currentUser?.uid){card.hidden=true;$('memberCardName').textContent='';$('memberCardId').textContent='';return;}
+      const view=memberIdCore.cardState(user,accountWallet.read(),memberIdService.read(),memberIdService.status());
+      card.hidden=false;card.dataset.tier=view.tier;
+      $('memberCardTier').textContent=view.label;$('memberCardName').textContent=view.name;
+      $('memberCardDetail').textContent=view.detail;$('memberCardId').textContent=view.id;
+      $('memberCardId').setAttribute('aria-label',`ID Ahli: ${view.id}`);
+      card.setAttribute('aria-label',`Kad keahlian MathDay ${view.label}`);
+    }
+    const renderProfileBeforeMemberCard=renderProfile;
+    renderProfile=function(user){renderProfileBeforeMemberCard(user);renderMembershipCard(user);};
+    onAuthStateChanged(auth,user=>{renderMembershipCard(null);if(user)void memberIdService.start(user.uid);else memberIdService.stop();});
+    const retryMemberId=()=>{if(auth.currentUser)void memberIdService.start(auth.currentUser.uid);};
+    window.addEventListener('online',retryMemberId);window.addEventListener('focus',retryMemberId);
+    // End permanent membership card.
+    // Verified server checkout for self-purchase only; vouchers remain disabled.
+    if(window.MathDayPayments){
+      const checkout=window.MathDayPayments.create({
+        auth,apiBase:'https://mathdays.netlify.app/.netlify/functions/payments',
+        canCheckout:()=>singleSession.isReady()&&Boolean(accountWallet.read()),sessionReady:()=>singleSession.isReady(),
+        onAuthChanged:listener=>onAuthStateChanged(auth,listener),toast,
+        terms:()=>$('purchaseTerms').classList.remove('hidden'),
+        onPaid:()=>{if(auth.currentUser)renderProfile(auth.currentUser);}
+      });
+      window.MathDayPaymentCheckout=checkout;
+      const profileBeforePayments=renderProfile;renderProfile=function(user){profileBeforePayments(user);void checkout.refresh();};
+      const storeBeforePayments=renderStore;renderStore=function(){storeBeforePayments();void checkout.refresh();};
+      const note=$('storeScreen').querySelector(':scope > p.demo-note');if(note)note.textContent='Pembayaran melalui ToyyibPay. Gold atau Reset Coin diaktifkan selepas bayaran disahkan oleh server.';
+      $('paymentConfirmation').querySelector('.demo-note').textContent='Pembayaran sebenar disahkan oleh server.';$('confirmPayment').textContent='Terus ke Pembayaran';
+      if(new URL(location.href).searchParams.has('payment_order')){const note=document.createElement('p');note.textContent='Kembali daripada pembayaran? Log masuk akaun yang digunakan untuk membeli, kemudian semak Status Pembayaran di Pakej Gold.';note.style.cssText='font-size:13px;line-height:1.5;text-align:center;color:#655285';$('loginForm').before(note);}
+    }
+    // End verified server checkout.
   </script>
 </body>
 </html>
