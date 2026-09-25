@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <title>MathDay</title>
+  <defs><linearGradient id="purple" x2="1" y2="1"><stop stop-color="#926aff"/><stop offset="1" stop-color="#6441d5"/></linearGradient></defs>
+  <path fill="url(#purple)" d="M0 0h512v512H0z"/>
+  <circle cx="434" cy="50" r="174" fill="#fff" opacity=".055"/>
+  <circle cx="32" cy="488" r="184" fill="#392573" opacity=".1"/>
+  <path d="M117 323V189l62 70 62-70v134" fill="none" stroke="#fff" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M285 189h31c93 0 93 134 0 134h-31Z" fill="none" stroke="#ffdb50" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M185 369h142" stroke="#fff" stroke-opacity=".6" stroke-width="9" stroke-linecap="round"/>
+</svg>

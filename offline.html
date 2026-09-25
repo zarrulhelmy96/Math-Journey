@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="ms">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#845cff">
+  <title>Tiada sambungan | MathDay</title>
+  <style>
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;min-height:100dvh;display:grid;place-items:center;padding:32px 24px;background:#f5f1ff;color:#282237;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;text-align:center}main{max-width:400px;padding:36px 26px;background:#fff;border:1px solid #e5def2;border-radius:28px;box-shadow:0 12px 36px #4935830c}img{width:76px;height:76px;border-radius:20px}small{display:block;margin:20px 0 10px;font-weight:800;color:#845cff;letter-spacing:.13em}h1{font-size:27px;line-height:1.2;margin:0 0 16px}p{font-size:15px;line-height:1.7;color:#655b75}button{width:100%;margin:15px 0 10px;padding:14px 20px;border:0;border-bottom:4px solid #5737b6;border-radius:14px;background:#845cff;color:#fff;font:inherit;font-weight:800;cursor:pointer}button:focus-visible,a:focus-visible{outline:3px solid #eeb900;outline-offset:4px}a{display:inline-block;margin-top:12px;font-size:14px;color:#6441d5}#connection{min-height:25px;font-weight:700}
+  </style>
+</head>
+<body>
+  <main>
+    <img src="./pwa-icons/icon-192.png" alt="MathDay" width="76" height="76">
+    <small>MATHDAY</small>
+    <h1>Sambung semula,<br>teruskan belajar.</h1>
+    <p>MathDay memerlukan sambungan internet untuk membuka kuiz, menyelaraskan akaun, Gold dan pembayaran.</p>
+    <p>Jika bayaran tadi masih diproses, jangan bayar kali kedua. Semak statusnya selepas kembali ke aplikasi.</p>
+    <button id="retry" type="button">Cuba semula</button>
+    <p id="connection" role="status">Semak Wi-Fi atau data mudah alih anda.</p>
+    <a href="./">Kembali ke MathDay</a>
+  </main>
+  <script>
+    document.getElementById('retry').addEventListener('click',()=>location.reload());
+    addEventListener('online',()=>{document.getElementById('connection').textContent='Sambungan dikesan. Tekan Cuba semula.';});
+    addEventListener('offline',()=>{document.getElementById('connection').textContent='Semak Wi-Fi atau data mudah alih anda.';});
+  </script>
+</body>
+</html>
