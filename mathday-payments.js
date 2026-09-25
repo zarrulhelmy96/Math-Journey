@@ -10,10 +10,12 @@
   });
   const errors={payments_not_enabled:'Pembayaran belum diaktifkan oleh admin.',payment_service_not_configured:'Tetapan pembayaran server belum lengkap.',payment_service_unavailable:'Server pembayaran belum dapat dihubungi. Cuba semak semula; jangan buat bayaran kedua.',login_required:'Sila log masuk semula.',verified_email_required:'Sahkan email sebelum membuat pembayaran.',invalid_phone:'Masukkan nombor telefon Malaysia yang sah.',wallet_not_ready:'Status akaun belum tersedia. Cuba buka profil semula.',already_lifetime:'Akaun anda sudah mempunyai Gold Lifetime.',daily_checkout_limit:'Had pesanan hari ini telah dicapai. Hubungi admin jika perlu.',checkout_too_fast:'Tunggu sebentar sebelum mencipta pesanan baharu.',bill_creation_uncertain:'Penciptaan bil belum dapat dipastikan. Hubungi admin dengan ID pesanan; jangan buat bayaran kedua.',provider_unavailable:'ToyyibPay belum dapat dihubungi. Cuba Semak Status nanti.',payment_pending_at_gateway:'Bayaran masih diproses di ToyyibPay. Tunggu sebelum membatalkan.',cannot_cancel_order:'Pesanan ini memerlukan semakan admin.',order_not_found:'Pesanan bukan milik akaun ini atau tidak dijumpai.',wrong_environment:'Pesanan ini menggunakan persekitaran pembayaran lain.'};
   function validCheckoutUrl(value){try{const u=new URL(value);return ['https://toyyibpay.com','https://dev.toyyibpay.com'].includes(u.origin)&&/^\/[A-Za-z0-9]{6,32}$/.test(u.pathname)&&!u.search&&!u.hash&&!u.username&&!u.password;}catch{return false;}}
+  Object.assign(errors,{invalid_voucher:'Format kod tidak sah. Gunakan kod penuh daripada Voucher Saya.',voucher_unavailable:'Kod tidak dijumpai, telah ditebus atau tidak tersedia.',voucher_attempt_limit:'Terlalu banyak cubaan. Tunggu 15 minit sebelum mencuba lagi.',voucher_requires_review:'Voucher memerlukan semakan admin. Berikan ID pesanan, bukan private key.',wallet_requires_review:'Status akaun belum tersedia. Buka profil dan cuba semula.',wallet_limit:'Baki akaun telah mencapai had. Voucher belum digunakan.'});
   function create(options){
     const {auth,canCheckout,onPaid=()=>{},toast=()=>{},terms=()=>{}}=options,document=options.document||root.document,storage=options.storage||root.localStorage;
     const api=options.apiBase||'https://mathdays.netlify.app/.netlify/functions/payments',request=options.fetch||root.fetch.bind(root),navigate=options.navigate||(url=>root.location.assign(url));
-    let selected='',owner='',busy=false,lastOrder=null,refreshing=false,lastRefresh=0,lastUser='',pollTimer=null,polls=0,generation=0;
+    let selected='',purpose='self',owner='',busy=false,lastOrder=null,refreshing=false,lastRefresh=0,lastUser='',pollTimer=null,polls=0,generation=0;
+    let voucherLoading=false,voucherRefreshAgain=false,voucherRefreshAt=0,voucherCursor=null,redeeming=false;
     const key=uid=>`mathDayPaymentRequest:${uid}`,lastKey=uid=>`mathDayLastPayment:${uid}`,$=id=>document.getElementById(id);
     const overlay=document.createElement('div');overlay.id='secureCheckoutOverlay';overlay.className='announcement-overlay hidden';overlay.setAttribute('role','dialog');overlay.setAttribute('aria-modal','true');overlay.setAttribute('aria-labelledby','secureCheckoutTitle');
     overlay.innerHTML='<div class="announcement-card"><h2 id="secureCheckoutTitle">Pembayaran MathDay</h2><p id="secureCheckoutPackage"></p><p id="secureCheckoutBenefit"></p><label for="secureCheckoutPhone" style="display:block;text-align:left;font-weight:800">Nombor telefon</label><input id="secureCheckoutPhone" type="tel" inputmode="tel" autocomplete="tel" maxlength="18" placeholder="Contoh: 0123456789" style="width:100%;margin:8px 0;padding:12px;border:2px solid #dfd3ff;border-radius:12px"><p style="font-size:12px;line-height:1.5">Nama, email dan nombor telefon dihantar ke ToyyibPay untuk pembayaran FPX. Bayaran sebenar akan dikenakan.</p><label style="display:flex;align-items:center;gap:8px;text-align:left;font-size:13px"><input type="checkbox" id="secureCheckoutAgree">Saya bersetuju dengan terma pembelian.</label><button type="button" id="secureCheckoutTerms" class="secondary">Lihat Terma</button><p id="secureCheckoutError" role="status" style="font-size:13px;color:#a52738"></p><div class="retry-actions"><button type="button" id="secureCheckoutCancel">Batal</button><button type="button" id="secureCheckoutPay">Terus ke ToyyibPay</button></div></div>';
@@ -31,13 +33,63 @@
     const panel=document.createElement('section');panel.id='securePaymentStatus';panel.hidden=true;panel.setAttribute('aria-label','Status pembayaran');panel.style.cssText='margin:16px 0;padding:16px;border:2px solid #dfd3ff;border-radius:16px;background:#faf8ff;text-align:left;overflow-wrap:anywhere';
     panel.innerHTML='<strong id="securePaymentState"></strong><p id="securePaymentDetail" style="font-size:13px;line-height:1.5"></p><small id="securePaymentOrderId" style="display:block;user-select:all"></small><div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px"><button type="button" id="securePaymentRefresh" class="secondary">Semak Status</button><button type="button" id="securePaymentResume" class="secondary" hidden>Sambung Bayaran</button><button type="button" id="securePaymentCancel" class="secondary" hidden>Batalkan Pesanan</button></div>';
     $('storeBalance').after(panel);
+    // Legacy device-only vouchers are never displayed as spendable server vouchers.
+    const voucherStyle=document.createElement('style');voucherStyle.textContent='#myVouchers,#goldVoucherHistory,#generatedGoldVoucher{display:none!important}#secureVoucherList article{padding:16px;margin:12px 0;background:#f7f3ff;border-radius:16px;text-align:left}#secureVoucherList code{display:block;overflow-wrap:anywhere;white-space:normal;font-size:15px;user-select:all;margin:10px 0}#goldVoucherShop .voucher-row{display:flex;flex-wrap:wrap;gap:10px}#goldVoucherPlan,#redeemGoldVoucherCode{min-width:0;flex:1 1 240px;width:100%;padding:12px;border:2px solid #e6dffa;border-radius:14px;background:#fff;font:inherit}';document.head.appendChild(voucherStyle);
+    const shop=$('goldVoucherShop');
+    if(shop){
+      shop.querySelector('h2').textContent='HADIAHKAN GOLD ATAU RESET COIN';
+      shop.querySelector('.demo-note').textContent='Beli melalui ToyyibPay. Kod muncul selepas bayaran disahkan; penerima mendapat pakej apabila menebusnya.';
+      const select=$('goldVoucherPlan');select.replaceChildren();
+      for(const [id,plan]of Object.entries(catalog)){const option=document.createElement('option');option.value=id;option.textContent=`${plan.label} · RM${plan.price}`;select.append(option);}
+      const input=$('redeemGoldVoucherCode');input.maxLength=100;input.placeholder='Tampal kod penuh MDG-…';input.setAttribute('aria-label','Kod voucher');input.spellcheck=false;input.autocapitalize='characters';
+      const note=document.createElement('p');note.className='demo-note';note.textContent='Satu kod untuk satu tebusan. Kod berbayar ini tiada tarikh luput; tempoh Gold bermula ketika tebusan dan disambung pada baki Gold aktif. Lifetime termasuk 10 Reset Coin untuk penerima. Jangan kongsi kod secara terbuka.';shop.append(note);
+      const area=document.createElement('div');area.innerHTML='<p id="secureVoucherMessage" role="status" style="font-size:14px;line-height:1.5"></p><div id="secureVoucherList"></div><button id="secureVoucherRefresh" type="button" class="secondary">Semak Voucher Saya</button><button id="secureVoucherMore" type="button" class="secondary" hidden>Lagi</button>';
+      $('goldVoucherHistory').after(area);
+      $('secureVoucherRefresh').onclick=()=>void refreshVouchers(true);
+      $('secureVoucherMore').onclick=()=>void refreshVouchers(true,true);
+      const termsCard=$('purchaseTerms')?.querySelector('.terms-card');
+      for(const p of termsCard?.querySelectorAll('p')||[])if(p.textContent.startsWith('Aliran semasa ialah simulasi'))p.textContent='Pembayaran sebenar melalui ToyyibPay; server mengesahkan bayaran sebelum mengaktifkan pakej atau mengeluarkan kod voucher.';
+      if(termsCard){const p=document.createElement('p');p.textContent='Voucher berbayar: satu kod untuk satu tebusan, tanpa tarikh luput kod. Tempoh Gold bermula ketika tebusan dan disambung pada baki Gold aktif. Penerima Lifetime mendapat 10 Reset Coin; pembeli tidak menerima manfaat secara automatik. Akaun yang sudah Lifetime tidak boleh menebus voucher Gold, tetapi boleh menebus Reset Coin. Kod yang ditolak atas sebab ini kekal belum digunakan. Kod draf atau simulasi lama bukan voucher berbayar yang sah.';termsCard.querySelector('button')?.before(p);}
+    }
     async function call(op,body,user=auth.currentUser){
       if(!user||!user.emailVerified)throw Error('verified_email_required');const version=generation;
       const token=await user.getIdToken();if(auth.currentUser?.uid!==user.uid||version!==generation)throw Error('account_changed');
       const url=new URL(api);url.searchParams.set('op',op);if(op==='status'&&body?.orderId)url.searchParams.set('orderId',body.orderId);
-      const response=await request(url.href,{method:op==='status'?'GET':'POST',headers:{Authorization:`Bearer ${token}`,...(op==='status'?{}:{'Content-Type':'application/json'})},body:op==='status'?undefined:JSON.stringify(body),signal:AbortSignal.timeout(25000)});
+      if(op==='vouchers'&&body?.cursor)url.searchParams.set('cursor',body.cursor);const read=op==='status'||op==='vouchers';
+      const response=await request(url.href,{method:read?'GET':'POST',headers:{Authorization:`Bearer ${token}`,...(read?{}:{'Content-Type':'application/json'})},body:read?undefined:JSON.stringify(body),cache:'no-store',signal:AbortSignal.timeout(25000)});
       if(auth.currentUser?.uid!==user.uid||version!==generation)throw Error('account_changed');
-      const result=await response.json();if(!response.ok||result.error){if(/^[a-f0-9]{32}$/.test(result.orderId||''))storage.setItem(lastKey(user.uid),result.orderId);throw Error(result.error||'payment_service_unavailable');}return result;
+      const result=await response.json();if(auth.currentUser?.uid!==user.uid||version!==generation)throw Error('account_changed');if(!response.ok||result.error){if(/^[a-f0-9]{32}$/.test(result.orderId||''))storage.setItem(lastKey(user.uid),result.orderId);throw Error(result.error||'payment_service_unavailable');}return result;
+    }
+    async function refreshVouchers(manual=false,more=false){
+      const user=auth.currentUser;if(!shop||!user?.emailVerified||!options.sessionReady())return;
+      if(voucherLoading){if(manual&&!more)voucherRefreshAgain=true;return;}
+      if(!manual&&Date.now()-voucherRefreshAt<15000)return;
+      voucherLoading=true;voucherRefreshAt=Date.now();$('secureVoucherRefresh').disabled=true;$('secureVoucherMore').disabled=true;
+      try{
+        const result=await call('vouchers',{cursor:more?voucherCursor:null},user),list=$('secureVoucherList');
+        if(!more)list.replaceChildren();
+        for(const item of result.items){
+          const card=document.createElement('article'),title=document.createElement('strong'),code=document.createElement('code'),detail=document.createElement('p'),copy=document.createElement('button');
+          title.textContent=item.label;code.textContent=item.code;
+          detail.textContent=`${item.state==='redeemed'?'Telah ditebus':'Belum ditebus'} · ${new Date(item.issuedAt).toLocaleDateString('ms-MY')} · ID pesanan: ${item.orderId}`;
+          detail.style.cssText='font-size:12px;overflow-wrap:anywhere';copy.type='button';copy.className='secondary';copy.textContent='Salin kod';copy.disabled=item.state==='redeemed';
+          copy.onclick=async()=>{if(auth.currentUser?.uid!==user.uid)return;try{await root.navigator.clipboard.writeText(item.code);if(auth.currentUser?.uid===user.uid)toast('Kod voucher disalin. Kongsi dengan penerima sahaja.');}catch{toast('Tekan lama pada kod untuk menyalinnya.');}};
+          card.append(title,code,detail,copy);list.append(card);
+        }
+        voucherCursor=result.nextCursor;$('secureVoucherMore').hidden=!voucherCursor;
+        $('secureVoucherMessage').textContent=list.children.length?'Kod hanya boleh digunakan sekali.':'Belum ada voucher berbayar yang disahkan untuk akaun ini.';
+      }catch(error){if(error.message!=='account_changed')$('secureVoucherMessage').textContent='Senarai voucher belum dapat dimuatkan. Tekan Semak Voucher Saya apabila online.';}
+      finally{voucherLoading=false;$('secureVoucherRefresh').disabled=false;$('secureVoucherMore').disabled=false;if(voucherRefreshAgain){voucherRefreshAgain=false;void refreshVouchers(true);}}
+    }
+    async function redeem(){
+      if(redeeming)return;const user=auth.currentUser,input=$('redeemGoldVoucherCode'),button=$('redeemGoldVoucher');
+      if(!user?.emailVerified||!canCheckout()){toast('Log masuk dan tunggu status akaun disemak dahulu.');return;}
+      if(!/^MDG[A-F0-9]{40}$/.test(input.value.toUpperCase().replace(/[\s-]/g,''))){toast(errors.invalid_voucher);return;}
+      if(!root.confirm('Tebus voucher ini ke akaun yang sedang log masuk? Kod hanya boleh ditebus sekali.'))return;
+      redeeming=true;button.disabled=true;button.textContent='Menyemak…';
+      try{const result=await call('redeem',{code:input.value},user);input.value='';toast(`${result.alreadyRedeemed?'Voucher ini sudah ditebus oleh akaun anda':'Tebusan berjaya'}: ${result.label}.`);onPaid();void refreshVouchers(true);}
+      catch(error){if(error.message!=='account_changed')toast(errors[error.message]||'Tebusan belum dapat dipastikan. Semak profil atau cuba kod yang sama semula; pakej tidak akan ditambah dua kali.');}
+      finally{redeeming=false;button.disabled=false;button.textContent='Tebus';}
     }
     function message(error){return errors[error?.message]||'Belum dapat menyemak bayaran. Cuba lagi apabila online; jangan buat bayaran kedua.';}
     function savedOrder(uid){try{return storage.getItem(lastKey(uid));}catch{return null;}}
@@ -47,11 +99,13 @@
       const titles={paid:'Pembayaran disahkan ✓',pending:'Menunggu pembayaran',creating:'Sedang menyediakan bil',create_uncertain:'Bil memerlukan semakan admin',review:'Pembayaran memerlukan semakan admin',cancelled:'Pesanan dibatalkan'};
       $('securePaymentState').textContent=titles[order.state]||'Semakan pembayaran';
       $('securePaymentDetail').textContent=`${order.label||'Pakej MathDay'} · RM${(Number(order.amountCents)/100).toFixed(2)}. ${order.state==='paid'?'Pakej telah dimasukkan ke akaun Firebase anda.':order.state==='review'||order.state==='create_uncertain'?'Jangan bayar sekali lagi. Berikan ID pesanan ini kepada admin.':'Gold atau coin hanya ditambah selepas bayaran disahkan oleh server.'}`;
+      if(order.purpose==='voucher')$('securePaymentDetail').textContent=`${order.label} · RM${(Number(order.amountCents)/100).toFixed(2)}. ${order.state==='paid'?'Kod tersedia di Voucher Saya. Pakej diberikan kepada akaun yang menebus kod, bukan pembeli.':['review','create_uncertain'].includes(order.state)?'Hubungi admin dengan ID pesanan ini. Jangan bayar semula.':'Kod hanya dikeluarkan selepas bayaran disahkan oleh server.'}`;
       $('securePaymentOrderId').textContent=`ID pesanan: ${order.orderId}`;
       $('securePaymentResume').hidden=!(order.state==='pending'&&validCheckoutUrl(order.checkoutUrl));$('securePaymentCancel').hidden=order.state!=='pending';
-      if(order.state==='paid')onPaid();
+      if(order.state==='paid'){onPaid();if(order.purpose==='voucher')void refreshVouchers(true);}
     }
     async function refresh(manual=false){
+      void refreshVouchers(manual);
       const user=auth.currentUser;if(!user?.emailVerified||refreshing||!options.sessionReady())return;
       if(!manual&&user.uid===lastUser&&Date.now()-lastRefresh<15000)return;
       refreshing=true;lastRefresh=Date.now();lastUser=user.uid;
@@ -64,11 +118,12 @@
       }catch(error){if(error.message!=='account_changed'&&manual)toast(message(error));}
       finally{refreshing=false;}
     }
-    function open(packageId){
+    function open(packageId,kind='self'){
       if(!Object.hasOwn(catalog,packageId))return false;
       if(!auth.currentUser?.emailVerified||!canCheckout()){toast('Log masuk dan tunggu status akaun disemak dahulu.');return true;}
-      selected=packageId;owner=auth.currentUser.uid;const plan=catalog[packageId];
+      selected=packageId;purpose=kind;owner=auth.currentUser.uid;const plan=catalog[packageId];
       $('secureCheckoutPackage').textContent=`${plan.label} · RM${plan.price}`;$('secureCheckoutBenefit').textContent=plan.benefit;
+      if(purpose==='voucher'){$('secureCheckoutPackage').textContent=`Voucher ${plan.label} · RM${plan.price}`;$('secureCheckoutBenefit').textContent='Kod hadiah dijana selepas bayaran disahkan. Pakej hanya masuk ke akaun yang menebus kod; sekali tebus, tiada tarikh luput kod.';}
       $('secureCheckoutAgree').checked=false;$('secureCheckoutError').textContent='';overlay.classList.remove('hidden');$('secureCheckoutPhone').focus();return true;
     }
     $('secureCheckoutPay').onclick=async()=>{
@@ -79,10 +134,10 @@
       busy=true;$('secureCheckoutPay').disabled=true;$('secureCheckoutCancel').disabled=true;$('secureCheckoutTerms').disabled=true;$('secureCheckoutError').textContent='Menyediakan bil pembayaran…';
       try{
         let saved;try{saved=JSON.parse(storage.getItem(key(user.uid))||'null');}catch{}
-        if(!saved||saved.packageId!==selected){saved={packageId:selected,requestId:root.crypto.randomUUID()};storage.setItem(key(user.uid),JSON.stringify(saved));}
+        if(!saved||saved.packageId!==selected||(saved.purpose||'self')!==purpose){saved={packageId:selected,requestId:root.crypto.randomUUID(),...(purpose==='voucher'?{purpose}: {})};storage.setItem(key(user.uid),JSON.stringify(saved));}
         const result=await call('create',{...saved,phone},user);remember(result,user.uid);show(result);
         overlay.classList.add('hidden');$('secureCheckoutPhone').value='';
-        if(result.packageId===selected&&result.state==='pending'&&validCheckoutUrl(result.checkoutUrl))navigate(result.checkoutUrl);
+        if(result.packageId===selected&&(result.purpose||'self')===purpose&&result.state==='pending'&&validCheckoutUrl(result.checkoutUrl))navigate(result.checkoutUrl);
         else toast('Sila semak pesanan sedia ada di bahagian Status Pembayaran.');
       }catch(error){if(error.message!=='account_changed'){$('secureCheckoutError').textContent=message(error);void refresh(true);}}
       finally{busy=false;$('secureCheckoutPay').disabled=false;$('secureCheckoutCancel').disabled=false;$('secureCheckoutTerms').disabled=false;}
@@ -94,9 +149,15 @@
       if(busy||!lastOrder?.orderId)return;if(!root.confirm('Batalkan pesanan ini? Jangan batalkan jika bank sedang memproses bayaran.'))return;
       busy=true;try{const user=auth.currentUser,result=await call('cancel',{orderId:lastOrder.orderId},user);remember(result,user.uid);show(result);}catch(error){toast(message(error));}finally{busy=false;}
     };
-    options.onAuthChanged(()=>{generation++;clearTimeout(pollTimer);polls=0;lastUser='';lastRefresh=0;lastOrder=null;panel.hidden=true;selected='';owner='';overlay.classList.add('hidden');$('secureCheckoutPhone').value='';});
+    options.onAuthChanged(()=>{generation++;clearTimeout(pollTimer);polls=0;lastUser='';lastRefresh=0;lastOrder=null;panel.hidden=true;selected='';owner='';overlay.classList.add('hidden');$('secureCheckoutPhone').value='';voucherRefreshAt=0;voucherRefreshAgain=false;voucherCursor=null;if(shop){$('secureVoucherList').replaceChildren();$('secureVoucherMessage').textContent='Log masuk untuk melihat voucher anda.';$('secureVoucherMore').hidden=true;$('redeemGoldVoucherCode').value='';}});
     root.addEventListener?.('online',()=>void refresh());root.addEventListener?.('focus',()=>void refresh());
     return {refresh,handleClick(event,target){
+      if(['buyGoldVoucher','buyGiftVoucher','redeemGoldVoucher','redeemVoucher'].includes(target.id)){
+        event.preventDefault();event.stopImmediatePropagation();
+        if(target.id==='buyGoldVoucher')open($('goldVoucherPlan').value,'voucher');
+        else if(target.id==='redeemGoldVoucher')void redeem();
+        else toast('Gunakan bahagian Voucher Saya di Pakej Gold.');return true;
+      }
       const id=target.hasAttribute('data-unlimited-lifetime')?'gold-lifetime':target.dataset.extraPackage;
       if(!Object.hasOwn(catalog,id))return false;event.preventDefault();event.stopImmediatePropagation();open(id);return true;
     }};

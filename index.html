@@ -42280,7 +42280,7 @@ questionImageUrl:""},
       finally{cloudConsumedReset='';walletAnswerBusy=false;}
     };
     // No simulated checkout can activate a real account wallet. A verified payment backend is required.
-    const paymentUnavailable=()=>toast('Pembelian dan tebusan voucher belum diaktifkan. Gunakan pakej untuk akaun sendiri atau hubungi admin.');
+    const paymentUnavailable=()=>toast('Pembayaran atau voucher belum tersedia. Muat semula aplikasi ketika online; jangan gunakan kod simulasi lama.');
     activateExtraStorePackage=function(){return {ok:false,message:'Pakej mesti disahkan oleh admin atau pelayan pembayaran.'};};
     commitGoldWithResetBonus=function(){throw Error('Gold Lifetime mesti disahkan oleh admin atau pelayan pembayaran.');};
     document.addEventListener('click',event=>{
@@ -42336,7 +42336,7 @@ questionImageUrl:""},
     const retryMemberId=()=>{if(auth.currentUser)void memberIdService.start(auth.currentUser.uid);};
     window.addEventListener('online',retryMemberId);window.addEventListener('focus',retryMemberId);
     // End permanent membership card.
-    // Verified server checkout for self-purchase only; vouchers remain disabled.
+    // Verified server checkout for own packages and single-use gift vouchers.
     if(window.MathDayPayments){
       const checkout=window.MathDayPayments.create({
         auth,apiBase:'https://mathdays.netlify.app/.netlify/functions/payments',

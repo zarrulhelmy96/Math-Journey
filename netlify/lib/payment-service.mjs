@@ -1,10 +1,13 @@
 import {CATALOG,insist,orderId,digest,grant,validWallet,verifiedPayment,PaymentError} from './payment-policy.mjs';
+import {newVoucherCode,voucherKey,voucherItemPath,createVoucherService} from './vouchers.mjs';
 export function createPaymentService({store,provider,mode,now=Date.now}){
+  const vouchers=createVoucherService({store,mode,now});
   const path=id=>`paymentOrders/${id}`;
-  const publicOrder=o=>({orderId:o.id,packageId:o.packageId,label:CATALOG[o.packageId]?.label,amountCents:o.amountCents,state:o.state==='creating'&&now()-o.createdAt>60000?'create_uncertain':o.state,reviewReason:o.reviewReason||null,checkoutUrl:o.state==='pending'&&o.billCode?provider.url(o.billCode):null});
+  const publicOrder=o=>({orderId:o.id,packageId:o.packageId,purpose:o.purpose||'self',label:(o.purpose==='voucher'?'Voucher ':'')+CATALOG[o.packageId]?.label,amountCents:o.amountCents,state:o.state==='creating'&&now()-o.createdAt>60000?'create_uncertain':o.state,reviewReason:o.reviewReason||null,checkoutUrl:o.state==='pending'&&o.billCode?provider.url(o.billCode):null});
   async function owned(uid,id){insist(/^[a-f0-9]{32}$/.test(id||''),'invalid_order');const order=await store.get(path(id));insist(order&&order.uid===uid,'order_not_found',404);insist(order.mode===mode,'wrong_environment',409);return order;}
   async function review(id,reason){await store.transaction(async tx=>{const o=await tx.get(path(id));if(!o||o.state==='paid')return;tx.set(path(id),{...o,state:'review',reviewReason:reason,updatedAt:now()});});}
   async function fulfill(id,payment){
+    const code=newVoucherCode(),key=voucherKey(code);
     return store.transaction(async tx=>{
       const o=await tx.get(path(id));insist(o&&o.mode===mode,'order_not_found',404);
       if(o.state==='paid')return o;
@@ -13,9 +16,17 @@ export function createPaymentService({store,provider,mode,now=Date.now}){
       const receiptPath=`paymentReceipts/${digest(`${mode}:${payment.invoiceId}`)}`,receipt=await tx.get(receiptPath);
       const walletPath=`accountWallets/${o.uid}`,wallet=await tx.get(walletPath),lockPath=`paymentLocks/${o.uid}`,lock=await tx.get(lockPath);
       insist(!receipt,'invoice_already_used',409);
-      const timestamp=now(),next=grant(wallet,plan,timestamp);
+      insist(!o.purpose||['self','voucher'].includes(o.purpose),'order_requires_review',409);
+      const timestamp=now();
+      if(o.purpose==='voucher'){
+        const voucherPath=`paymentVouchers/${key}`,itemPath=voucherItemPath(o.uid,id);
+        const collision=await tx.get(voucherPath),existingItem=await tx.get(itemPath);
+        insist(!collision&&!existingItem,'voucher_requires_review',409);
+        tx.set(voucherPath,{issuerUid:o.uid,orderId:id,packageId:o.packageId,catalogVersion:1,mode,state:'available',issuedAt:timestamp,expiresAt:0});
+        tx.set(itemPath,{code,voucherKey:key,orderId:id,packageId:o.packageId,mode,state:'available',issuedAt:timestamp});
+      }else tx.set(walletPath,grant(wallet,plan,timestamp));
       const paid={...o,state:'paid',invoiceId:payment.invoiceId,paidAt:timestamp,fulfilledAt:timestamp,updatedAt:timestamp};
-      tx.set(walletPath,next);tx.set(path(id),paid);tx.set(receiptPath,{orderId:id,uid:o.uid,amountCents:o.amountCents,invoiceId:payment.invoiceId,mode,createdAt:timestamp});
+      tx.set(path(id),paid);tx.set(receiptPath,{orderId:id,uid:o.uid,amountCents:o.amountCents,invoiceId:payment.invoiceId,mode,createdAt:timestamp});
       if(lock?.orderId===id)tx.set(lockPath,{orderId:null});
       return paid;
     });
@@ -41,19 +52,22 @@ export function createPaymentService({store,provider,mode,now=Date.now}){
   }
   return {
     publicOrder,
+    listVouchers:vouchers.list,
+    redeemVoucher:vouchers.redeem,
     async create(user,input){
+      const purpose=input.purpose??'self';insist(['self','voucher'].includes(purpose),'invalid_purpose');
       insist(typeof input.packageId==='string'&&Object.hasOwn(CATALOG,input.packageId),'invalid_package');const plan=CATALOG[input.packageId];
       const phone=String(input.phone||'').replace(/[ +()-]/g,'');insist(/^(60\d{8,10}|0\d{8,10})$/.test(phone),'invalid_phone');
       const id=orderId(user.uid,input.requestId),created=await store.transaction(async tx=>{
         const existing=await tx.get(path(id));
-        if(existing){insist(existing.uid===user.uid&&existing.packageId===input.packageId&&existing.mode===mode,'request_conflict',409);return {fresh:false,order:existing};}
+        if(existing){insist(existing.uid===user.uid&&existing.packageId===input.packageId&&existing.mode===mode&&(existing.purpose||'self')===purpose,'request_conflict',409);return {fresh:false,order:existing};}
         const wallet=await tx.get(`accountWallets/${user.uid}`),lock=await tx.get(`paymentLocks/${user.uid}`),limit=await tx.get(`paymentLimits/${user.uid}`);
         const active=lock?.orderId?await tx.get(path(lock.orderId)):null;
         if(active&&!['paid','cancelled','create_failed'].includes(active.state))return {fresh:false,order:active,active:true};
-        insist(validWallet(wallet),'wallet_not_ready',409);insist(!(wallet.goldPlan==='lifetime'&&(plan.days||plan.lifetime)),'already_lifetime',409);
+        insist(validWallet(wallet),'wallet_not_ready',409);insist(!(purpose==='self'&&wallet.goldPlan==='lifetime'&&(plan.days||plan.lifetime)),'already_lifetime',409);
         const timestamp=now(),sameDay=limit&&timestamp-limit.startedAt<86400000;
         insist(!sameDay||limit.count<10,'daily_checkout_limit',429);insist(!limit||timestamp-limit.lastAt>=10000,'checkout_too_fast',429);
-        const order={id,uid:user.uid,packageId:input.packageId,catalogVersion:1,amountCents:plan.amountCents,currency:'MYR',mode,state:'creating',billCode:null,createdAt:timestamp,updatedAt:timestamp};
+        const order={id,uid:user.uid,packageId:input.packageId,purpose,catalogVersion:1,amountCents:plan.amountCents,currency:'MYR',mode,state:'creating',billCode:null,createdAt:timestamp,updatedAt:timestamp};
         tx.set(path(id),order);tx.set(`paymentLocks/${user.uid}`,{orderId:id});tx.set(`paymentLimits/${user.uid}`,{startedAt:sameDay?limit.startedAt:timestamp,lastAt:timestamp,count:sameDay?limit.count+1:1});
         return {fresh:true,order};
       });

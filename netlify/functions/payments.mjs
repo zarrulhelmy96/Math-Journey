@@ -1,6 +1,6 @@
 import {initializeApp,cert,getApps} from 'firebase-admin/app';
 import {getAuth} from 'firebase-admin/auth';
-import {getFirestore} from 'firebase-admin/firestore';
+import {getFirestore,FieldPath} from 'firebase-admin/firestore';
 import {createProvider} from '../lib/toyyibpay.mjs';
 import {createPaymentService} from '../lib/payment-service.mjs';
 import {createHandler} from '../lib/payment-http.mjs';
@@ -13,6 +13,11 @@ function initialize(){
   const app=getApps().find(a=>a.name==='mathday-payments')||initializeApp({credential:cert({projectId:env.FIREBASE_PROJECT_ID,clientEmail:env.FIREBASE_CLIENT_EMAIL,privateKey:env.FIREBASE_PRIVATE_KEY.replace(/\\n/g,'\n')})},'mathday-payments');
   const db=getFirestore(app),store={
     async get(path){const snapshot=await db.doc(path).get();return snapshot.exists?snapshot.data():null;},
+    async listVouchers(uid,after,limit){
+      let query=db.collection(`voucherAccounts/${uid}/items`).orderBy('issuedAt','desc').orderBy(FieldPath.documentId(),'desc');
+      if(after)query=query.startAfter(...after);
+      return (await query.limit(limit).get()).docs.map(doc=>doc.data());
+    },
     transaction:fn=>db.runTransaction(async transaction=>fn({get:async path=>{const snapshot=await transaction.get(db.doc(path));return snapshot.exists?snapshot.data():null;},set:(path,data)=>transaction.set(db.doc(path),data)}))
   };
   const config={mode,enabled:env.PAYMENTS_ENABLED==='true',secret:env.TOYYIBPAY_SECRET_KEY,category:env.TOYYIBPAY_CATEGORY_CODE,appUrl:site.origin+'/index.html',callbackUrl:site.origin+'/.netlify/functions/payments?op=callback',allowedOrigins:[site.origin,...(env.PAYMENT_ALLOWED_ORIGINS||'').split(',').map(s=>s.trim()).filter(Boolean)]};

@@ -10,8 +10,8 @@ export function createProvider(config,request=fetch){
     base,
     async create(order,payer){
       const result=await post('createBill',{
-        userSecretKey:config.secret,categoryCode:config.category,billName:'MathDay '+order.packageId.replaceAll('-',' ').slice(0,22),
-        billDescription:`MathDay ${order.packageId.replaceAll('-',' ')} ${order.id}`,
+        userSecretKey:config.secret,categoryCode:config.category,billName:((order.purpose==='voucher'?'MD Voucher ':'MathDay ')+order.packageId.replaceAll('-',' ')).slice(0,30),
+        billDescription:`MathDay ${order.purpose==='voucher'?'voucher ':''}${order.packageId.replaceAll('-',' ')} ${order.id}`,
         billPriceSetting:'1',billPayorInfo:'1',billAmount:String(order.amountCents),
         billReturnUrl:`${config.appUrl}?payment_order=${order.id}`,billCallbackUrl:config.callbackUrl,
         billExternalReferenceNo:order.id,billTo:payer.name,billEmail:payer.email,billPhone:payer.phone,
