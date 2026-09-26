@@ -8,7 +8,9 @@ export function newVoucherCode(){return 'MDG-'+randomBytes(20).toString('hex').t
 export function normalizeVoucher(value){
   insist(typeof value==='string'&&value.length<=100,'invalid_voucher');
   const code=value.toUpperCase().replace(/[\s-]/g,'');
-  insist(/^MDG[A-F0-9]{40}$/.test(code),'invalid_voucher');return code;
+  // Legacy promotional inventory has 100 random bits; accepting its syntax
+  // does not activate a code. Both formats still require a server registry entry.
+  insist(/^(?:MDG[A-F0-9]{40}|MDGLT[A-HJ-NP-Z2-9]{20})$/.test(code),'invalid_voucher');return code;
 }
 export const voucherKey=code=>digest(normalizeVoucher(code));
 export const voucherItemPath=(uid,id)=>`voucherAccounts/${uid}/items/${id}`;
