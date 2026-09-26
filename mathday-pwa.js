@@ -65,15 +65,23 @@
     refreshConnection();addEventListener('online', refreshConnection);addEventListener('offline', refreshConnection);
     function showUpdate() {if (registration?.waiting && !updateDismissed) update.hidden = false;}
     notices.querySelector('#mathdayLaterUpdate').addEventListener('click', () => {updateDismissed = true;update.hidden = true;});
-    let reloadOnChange = false;
+    let reloadOnChange = false, activationTimer = null;
+    function cancelUpdateWait(){reloadOnChange=false;clearTimeout(activationTimer);notices.querySelector('#mathdayApplyUpdate').disabled=false;}
+    addEventListener('mathday:update-cancel',cancelUpdateWait);
     notices.querySelector('#mathdayApplyUpdate').addEventListener('click', () => {
       if (!navigator.onLine) return;
       if (!confirm('Muat semula MathDay sekarang? Selesaikan soalan atau pembayaran yang sedang dibuat dahulu.')) return;
-      if (registration?.waiting) {reloadOnChange = true;registration.waiting.postMessage({type:'MATHDAY_ACTIVATE_UPDATE'});}
-      else location.reload();
+      window.MathDayUpdateLoader?.start();
+      notices.querySelector('#mathdayApplyUpdate').disabled=true;
+      if (registration?.waiting) {
+        reloadOnChange = true;
+        activationTimer=setTimeout(()=>{cancelUpdateWait();window.MathDayUpdateLoader?.fail('Kemas kini belum dapat diaktifkan. Semak internet dan tekan Cuba semula, atau Tutup untuk kembali.');},20000);
+        try{registration.waiting.postMessage({type:'MATHDAY_ACTIVATE_UPDATE'});}catch{cancelUpdateWait();window.MathDayUpdateLoader?.fail();}
+      }
+      else requestAnimationFrame(()=>location.reload());
     });
     if (!('serviceWorker' in navigator)) return;
-    navigator.serviceWorker.addEventListener('controllerchange', () => {if (reloadOnChange) {reloadOnChange = false;location.reload();}});
+    navigator.serviceWorker.addEventListener('controllerchange', () => {if (reloadOnChange) {cancelUpdateWait();location.reload();}});
     navigator.serviceWorker.register(new URL('sw.js', base).href, {scope:base.pathname,updateViaCache:'none'}).then(reg => {
       registration = reg;showUpdate();
       reg.addEventListener('updatefound', () => {

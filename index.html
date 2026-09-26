@@ -1737,6 +1737,7 @@ body.gold-access-prompt-open{overflow:hidden}#goldAccessOverlay{z-index:60}#gold
   </style>
 </head>
 <body>
+  <script src="./mathday-update-loader.js"></script>
   <main class="app" aria-label="MathDay">
     <section class="login" id="loginScreen">
       <h1 class="brand"><span class="brand-purple">Math</span><span class="brand-yellow">Day</span></h1>
@@ -4402,6 +4403,7 @@ renderQuestions=async function(){ const container=$('questionList'),papers=$('go
       if(new URL(location.href).searchParams.has('payment_order')){const note=document.createElement('p');note.textContent='Kembali daripada pembayaran? Log masuk akaun yang digunakan untuk membeli, kemudian semak Status Pembayaran di Pakej Gold.';note.style.cssText='font-size:13px;line-height:1.5;text-align:center;color:#655285';$('loginForm').before(note);}
     }
     // End verified server checkout.
+    window.dispatchEvent(new Event('mathday:app-ready'));
   </script>
 </body>
 </html>
