@@ -244,20 +244,22 @@
   <style id="leaderboard-podium-style">
     #leaderboardScreen{background:#fff}
     .leaderboard-list{width:100%;min-width:0;margin:24px 0;text-align:left;padding-bottom:24px}
-    .leaderboard-podium{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:end;gap:6px;list-style:none;margin:32px 0 26px;padding:0;border-bottom:5px solid #dfb329;border-radius:0 0 10px 10px}
+    .leaderboard-podium{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:stretch;gap:6px;list-style:none;margin:32px 0 26px;padding:0;border-bottom:5px solid #dfb329;border-radius:0 0 10px 10px}
     .leaderboard-podium>li{min-width:0;text-align:center;grid-row:1;display:flex;flex-direction:column;justify-content:flex-end}
     .leaderboard-podium .place-1{grid-column:2}.leaderboard-podium .place-2{grid-column:1}.leaderboard-podium .place-3{grid-column:3}
-    .podium-card{position:relative;min-width:0;height:224px;display:flex;flex-direction:column;align-items:center;padding:18px 7px 14px;margin-bottom:10px;border:1px solid #e5def2;border-radius:16px;background:#fff;box-shadow:0 5px 0 #eee9f6;overflow-wrap:anywhere}
+    .leaderboard-podium .place-2{padding-top:20px}.leaderboard-podium .place-3{padding-top:36px}
+    .podium-card{position:relative;min-width:0;min-height:224px;flex:1;display:flex;flex-direction:column;align-items:center;padding:18px 7px 14px;margin-bottom:10px;border:1px solid #e5def2;border-radius:16px;background:#fff;box-shadow:0 5px 0 #eee9f6;overflow-wrap:anywhere}
     .place-1 .podium-card{border-color:#e6c552;box-shadow:0 5px 0 #f5e6aa;padding-top:26px}
     .podium-crown{position:absolute;top:-25px;left:50%;transform:translateX(-50%);color:#d3a000;font-size:34px;line-height:1}
     .leaderboard-avatar{display:grid;place-items:center;flex-shrink:0;width:36px;height:36px;border-radius:50%;background:#eee8ff;color:#7950e8;font-size:16px;font-weight:900}
     .podium-card .leaderboard-avatar{width:48px;height:48px;margin:0 auto 10px;font-size:22px}.place-1 .leaderboard-avatar{background:#fff3bf;color:#997100}
     .leaderboard-name{display:block;color:#30263f;font-size:13px;font-weight:850;line-height:1.35;overflow-wrap:anywhere}
     .leaderboard-school{display:block;margin-top:4px;font-size:10px;line-height:1.4;font-weight:500;color:#776b86;overflow-wrap:anywhere}
-    .podium-card .leaderboard-name,.podium-card .leaderboard-school{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+    .podium-card .leaderboard-name{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+    .podium-card .leaderboard-school{display:block;width:100%;flex-shrink:0;white-space:normal;overflow:visible;line-height:1.5}
     .leaderboard-xp{display:block;color:#946b00;font-weight:900;font-size:16px;line-height:1.4;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
     .leaderboard-xp small{font-size:9px;letter-spacing:.04em}.podium-card .leaderboard-xp{margin-top:auto;padding-top:8px;width:100%}
-    .podium-step{display:grid;place-items:center;height:48px;background:linear-gradient(135deg,#ffe984,#edc23c);color:#775100;font-size:26px;font-weight:900;border-radius:7px 7px 0 0;border-top:4px solid #d6a717}
+    .podium-step{display:grid;place-items:center;flex-shrink:0;height:48px;background:linear-gradient(135deg,#ffe984,#edc23c);color:#775100;font-size:26px;font-weight:900;border-radius:7px 7px 0 0;border-top:4px solid #d6a717}
     .place-1 .podium-step{height:76px}.place-2 .podium-step{height:56px}.place-3 .podium-step{height:40px}
     .leaderboard-runners{list-style:none;display:grid;gap:10px;margin:0;padding:0}
     .leaderboard-row{display:flex;align-items:center;gap:10px;padding:14px 12px;background:#fff;border:1px solid #e9e2f2;border-radius:16px;box-shadow:0 4px 0 #f0ecf5;min-width:0}
@@ -4173,7 +4175,7 @@ renderQuestions=async function(){ const container=$('questionList'),papers=$('go
       entries=[...unique.values()].filter(entry=>entry.uid&&entry.name).map(entry=>({...entry,xp:Number.isFinite(Number(entry.xp))?Math.max(0,Number(entry.xp)):0,status:entry.status==='gold'?'gold':'normal'})).sort((a,b)=>b.xp-a.xp||String(a.name).localeCompare(String(b.name),'ms')||String(a.uid).localeCompare(String(b.uid))).slice(0,100);
       if(!entries.length){list.innerHTML='<p class="leaderboard-empty">Belum ada pengguna dalam leaderboard.</p>';return}
       const renderEntry=(entry,index)=>{
-        const rank=index+1,current=entry.uid===user.uid,name=escapeHtml(String(entry.name)),school=escapeHtml(String(entry.school||'Sekolah belum ditetapkan'));
+        const rank=index+1,current=entry.uid===user.uid,name=escapeHtml(String(entry.name)),school=escapeHtml(String(entry.school||'Sekolah belum ditetapkan').replace(/\bsekolah\s+menengah\s+kebangsaan\b/gi,'SMK'));
         const initial=escapeHtml(Array.from(String(entry.name).trim())[0]?.toLocaleUpperCase('ms-MY')||'?');
         const avatar=`<span class="leaderboard-avatar" aria-hidden="true">${initial}</span>`,person=`<span class="leaderboard-name" title="${name}">${name}</span><span class="leaderboard-school" title="${school}">${school}</span>${current?'<span class="leaderboard-you">ANDA</span>':''}`,xp=`<span class="leaderboard-xp">${entry.xp.toLocaleString('ms-MY')} <small>XP</small></span>`;
         if(rank<=3)return `<li class="place-${rank}${current?' is-current':''}" value="${rank}" aria-label="Tempat ${rank}"><div class="podium-card">${rank===1?'<span class="podium-crown" aria-hidden="true">♛</span>':''}${avatar}${person}${xp}</div><div class="podium-step" aria-hidden="true">${rank}</div></li>`;
