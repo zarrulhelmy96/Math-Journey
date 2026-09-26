@@ -179,7 +179,7 @@
     async function redeem(){
       if(redeeming)return;const user=auth.currentUser,input=$('redeemGoldVoucherCode'),button=$('redeemGoldVoucher');
       if(!user?.emailVerified||!canCheckout()){toast('Log masuk dan tunggu status akaun disemak dahulu.');return;}
-      if(!/^MDG[A-F0-9]{40}$/.test(input.value.toUpperCase().replace(/[\s-]/g,''))){toast(errors.invalid_voucher);return;}
+      if(!/^(?:MDG[A-F0-9]{40}|MDGLT[A-HJ-NP-Z2-9]{20})$/.test(input.value.toUpperCase().replace(/[\s-]/g,''))){toast(errors.invalid_voucher);return;}
       if(!root.confirm('Tebus voucher ini ke akaun yang sedang log masuk? Kod hanya boleh ditebus sekali.'))return;
       redeeming=true;button.disabled=true;button.textContent='Menyemak…';
       try{const result=await call('redeem',{code:input.value},user);input.value='';toast(`${result.alreadyRedeemed?'Voucher ini sudah ditebus oleh akaun anda':'Tebusan berjaya'}: ${result.label}.`);priceRefreshAt=0;lastPriceQuote=null;onPaid();void refreshTestPrice();void refreshVouchers(true);}
