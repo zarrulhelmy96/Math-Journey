@@ -38,14 +38,18 @@
     const panel=document.createElement('section');panel.id='securePaymentStatus';panel.hidden=true;panel.setAttribute('aria-label','Status pembayaran');panel.style.cssText='margin:16px 0;padding:16px;border:2px solid #dfd3ff;border-radius:16px;background:#faf8ff;text-align:left;overflow-wrap:anywhere';
     panel.innerHTML='<strong id="securePaymentState"></strong><p id="securePaymentDetail" style="font-size:13px;line-height:1.5"></p><small id="securePaymentOrderId" style="display:block;user-select:all"></small><div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px"><button type="button" id="securePaymentRefresh" class="secondary">Semak Status</button><button type="button" id="securePaymentResume" class="secondary" hidden>Sambung Bayaran</button><button type="button" id="securePaymentCancel" class="secondary" hidden>Batalkan Pesanan</button></div>';
     const historyBox=document.createElement('section');historyBox.id='securePurchaseHistory';historyBox.setAttribute('aria-labelledby','securePurchaseHistoryTitle');
-    historyBox.innerHTML='<div class="purchase-history-heading"><h2 id="securePurchaseHistoryTitle">Log Pembelian</h2><button type="button" id="securePurchaseRefresh">Muat Semula</button></div><p id="securePurchaseMessage" role="status">Log masuk untuk melihat pembelian anda.</p><div id="securePurchaseList"></div><button type="button" id="securePurchaseMore" hidden>Lihat Lagi</button>';
-    $('storeBalance').after(historyBox);historyBox.append(panel);
+    historyBox.innerHTML='<h2 id="securePurchaseHistoryTitle"><button type="button" id="securePurchaseToggle" aria-expanded="false" aria-controls="securePurchaseBody"><span>Log Pembelian</span><svg class="purchase-history-arrow" aria-hidden="true" viewBox="0 0 24 24" width="24" height="24"><path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></h2><div id="securePurchaseBody" hidden><button type="button" id="securePurchaseRefresh">Muat Semula</button><p id="securePurchaseMessage" role="status">Log masuk untuk melihat pembelian anda.</p><div id="securePurchaseList"></div><button type="button" id="securePurchaseMore" hidden>Lihat Lagi</button></div>';
+    $('storeBalance').after(historyBox);$('securePurchaseBody').append(panel);
+    function setHistoryOpen(open){$('securePurchaseToggle').setAttribute('aria-expanded',String(open));$('securePurchaseBody').hidden=!open;}
+    $('securePurchaseToggle').onclick=()=>setHistoryOpen($('securePurchaseBody').hidden);
     const historyStyle=document.createElement('style');historyStyle.textContent=`
       #securePurchaseHistory{margin:20px 0;padding:18px;border:2px solid #e4dafa;border-radius:20px;background:#faf8ff;text-align:left;min-width:0}
-      .purchase-history-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
       #securePurchaseHistory h2{margin:0;font-size:20px;color:#30263f}
       #securePurchaseHistory button{font:inherit;font-size:12px;font-weight:800;cursor:pointer;border:1px solid #d8c9f2;border-radius:10px;padding:9px 12px;background:#fff;color:#6742bd;min-height:40px}
       #securePurchaseHistory button:disabled{opacity:.55;cursor:wait}#securePurchaseHistory button:focus-visible{outline:3px solid #845cff;outline-offset:2px}
+      #securePurchaseHistory #securePurchaseToggle{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding:0;border:0;border-radius:6px;background:transparent;color:#30263f;font-size:20px;text-align:left;box-shadow:none;min-height:44px}
+      .purchase-history-arrow{flex:none;transition:transform .18s ease}#securePurchaseToggle[aria-expanded="true"] .purchase-history-arrow{transform:rotate(180deg)}
+      #securePurchaseBody{padding-top:12px}@media(prefers-reduced-motion:reduce){.purchase-history-arrow{transition:none}}
       #securePurchaseMessage{font-size:13px;line-height:1.5;color:#75677f;margin:12px 0 0}
       #securePurchaseList article{padding:14px 0;border-bottom:1px solid #e7def2;font-size:13px;line-height:1.5}
       #securePurchaseList article:last-child{border-bottom:0}.purchase-log-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
@@ -261,7 +265,7 @@
       busy=true;try{const user=auth.currentUser,result=await call('cancel',{orderId:lastOrder.orderId},user);remember(result,user.uid);show(result);}catch(error){toast(message(error));}finally{busy=false;}
     };
     options.onAuthChanged(()=>{generation++;checkoutVersion++;quotedAmount=null;priceRefreshAt=0;lastPriceQuote=null;paintTestPrice(null);clearTimeout(pollTimer);polls=0;lastUser='';lastRefresh=0;lastOrder=null;panel.hidden=true;selected='';owner='';overlay.classList.add('hidden');$('secureCheckoutPhone').value='';voucherRefreshAt=0;voucherRefreshAgain=false;voucherCursor=null;
-      historyLoading=null;historyRefreshAgain=false;historyRefreshAt=0;historyCursor=null;historyIds.clear();$('securePurchaseList').replaceChildren();$('securePurchaseMessage').textContent='Log masuk untuk melihat pembelian anda.';$('securePurchaseMore').hidden=true;$('securePurchaseMore').disabled=false;$('securePurchaseRefresh').disabled=false;
+      historyLoading=null;historyRefreshAgain=false;historyRefreshAt=0;historyCursor=null;historyIds.clear();setHistoryOpen(false);$('securePurchaseList').replaceChildren();$('securePurchaseMessage').textContent='Log masuk untuk melihat pembelian anda.';$('securePurchaseMore').hidden=true;$('securePurchaseMore').disabled=false;$('securePurchaseRefresh').disabled=false;
       if(shop){$('secureVoucherList').replaceChildren();$('secureVoucherMessage').textContent='Log masuk untuk melihat voucher anda.';$('secureVoucherMore').hidden=true;$('redeemGoldVoucherCode').value='';}});
     root.addEventListener?.('online',()=>void refresh());root.addEventListener?.('focus',()=>void refresh());
     return {refresh,handleClick(event,target){
