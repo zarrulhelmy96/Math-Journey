@@ -5,7 +5,7 @@ import path from 'node:path';
 import {questionBankFiles,validateQuestionBank} from './question-bank-files.mjs';
 const root=fileURLToPath(new URL('../',import.meta.url)),dist=path.join(root,'dist');
 // Build into a fresh private staging directory. Never merge cached files into public output.
-const files=['index.html','mathday-account-wallet.js','mathday-member-id.js','mathday-payments.js','mathday-learning-sync-core.js','mathday-single-session.js','sekolah-menengah-kpm-2022.js','manifest.webmanifest','mathday-pwa.js','mathday-pwa.css','offline.html','sw.js',...questionBankFiles];
+const files=['index.html','mathday-account-wallet.js','mathday-member-id.js','mathday-payments.js','mathday-learning-sync-core.js','mathday-single-session.js','sekolah-menengah-kpm-2022.js','manifest.webmanifest','mathday-pwa.js','mathday-pwa.css','mathday-update-loader.js','offline.html','sw.js',...questionBankFiles];
 console.log('Validated question bank: '+await validateQuestionBank(root)+' existing records.');
 const staging=await mkdtemp(path.join(root,'.mathday-build-'));
 const publicDir=path.join(staging,'public');
