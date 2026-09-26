@@ -241,27 +241,32 @@
   <style>.public-announcement{position:relative;margin:18px 0 22px;padding:22px 20px;border-radius:24px;background:linear-gradient(135deg,#f2edff,#fff4bc);overflow:hidden;text-align:left}.public-announcement::after{content:'✦';position:absolute;right:18px;top:12px;color:var(--yellow);font-size:30px}.public-eyebrow{margin:0 0 7px;color:var(--purple);font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.08em}.public-message{min-height:48px;margin:0;padding-right:24px;font-size:16px;font-weight:800;line-height:1.45;transition:opacity .2s,transform .2s}.public-message.changing{opacity:0;transform:translateX(-8px)}.announcement-dots{display:flex;gap:6px;margin-top:13px}.announcement-dot{width:7px;height:7px;border:0;border-radius:50%;padding:0;background:#d7ccef}.announcement-dot.active{background:var(--purple)}</style>
   <style>#continueLearning{width:100%;margin-top:18px;padding:12px 18px;color:var(--purple)}</style>
   <style>.bottom-nav{position:fixed;z-index:35;left:50%;bottom:0;transform:translateX(-50%);width:min(100%,430px);display:grid;grid-template-columns:repeat(4,1fr);padding:9px 6px max(9px,env(safe-area-inset-bottom));border-top:1px solid #e9e3ef;background:rgba(255,255,255,.96);backdrop-filter:blur(12px);box-shadow:0 -8px 28px rgba(40,34,55,.08)}.bottom-nav button{display:grid;gap:3px;place-items:center;border:0;background:transparent;color:#8b8495;padding:5px 2px;font-size:10px;font-weight:900;cursor:pointer}.bottom-nav .nav-icon{font-size:19px;line-height:1}.bottom-nav button.active{color:var(--purple)}.bottom-nav button[data-main-nav="store"].active{color:var(--yellow)}.bottom-nav~.screen.active{padding-bottom:100px}</style>
-  <style id="leaderboard-table-style">
-    .leaderboard-list{width:100%;min-width:0;margin:24px 0;text-align:left}
-    .leaderboard-table-wrap{width:100%;overflow-x:auto;border:3px solid #000;border-radius:0;background:#fff;box-shadow:none}
-    .leaderboard-table-wrap:focus-visible{outline:3px solid #000;outline-offset:3px}
-    .leaderboard-table{width:100%;table-layout:fixed;border-collapse:collapse;font-size:12px;line-height:1.5;background:#fff;color:#000}
-    .leaderboard-table .rank-column{width:18%}.leaderboard-table .name-column{width:26%}.leaderboard-table .school-column{width:36%}.leaderboard-table .xp-column{width:20%}
-    .leaderboard-table th,.leaderboard-table td{padding:13px 7px;border-bottom:3px solid #000;vertical-align:top;overflow-wrap:anywhere}
-    .leaderboard-table thead th{background:#fff;color:#000;font-size:11px;font-weight:900;text-align:left}
-    .leaderboard-table th+th,.leaderboard-table td+td{border-left:3px solid #000}
-    .leaderboard-table tbody tr:last-child td{border-bottom:0}
-    .leaderboard-table tbody tr:nth-child(even){background:#fff}
-    .leaderboard-table tbody tr.is-current{background:#fff}
-    .leaderboard-table tbody tr.is-current td:first-child{box-shadow:none}
-    .leaderboard-table .leaderboard-rank,.leaderboard-table th:first-child{text-align:center}
-    .leaderboard-rank{color:#000;font-size:13px;font-weight:900;font-variant-numeric:tabular-nums}
-    .leaderboard-name{font-weight:800}.leaderboard-school{color:#000;font-weight:600}
-    .leaderboard-you{display:block;margin-top:3px;color:#000;font-size:9px;font-weight:900}
-    .leaderboard-table .leaderboard-xp,.leaderboard-table th:last-child{text-align:right}
-    .leaderboard-xp{color:#000;font-weight:900;font-variant-numeric:tabular-nums}
-    .leaderboard-empty{margin:0;padding:24px 18px;border-radius:0;background:#fff;border:3px solid #000;color:#000;text-align:center;font-weight:800}
-    @media(max-width:380px){.leaderboard-table{font-size:11px}.leaderboard-table th,.leaderboard-table td{padding:11px 5px}.leaderboard-table thead th{font-size:10px}}
+  <style id="leaderboard-podium-style">
+    #leaderboardScreen{background:#fff}
+    .leaderboard-list{width:100%;min-width:0;margin:24px 0;text-align:left;padding-bottom:24px}
+    .leaderboard-podium{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:end;gap:6px;list-style:none;margin:32px 0 26px;padding:0;border-bottom:5px solid #dfb329;border-radius:0 0 10px 10px}
+    .leaderboard-podium>li{min-width:0;text-align:center;grid-row:1;display:flex;flex-direction:column;justify-content:flex-end}
+    .leaderboard-podium .place-1{grid-column:2}.leaderboard-podium .place-2{grid-column:1}.leaderboard-podium .place-3{grid-column:3}
+    .podium-card{position:relative;min-width:0;height:224px;display:flex;flex-direction:column;align-items:center;padding:18px 7px 14px;margin-bottom:10px;border:1px solid #e5def2;border-radius:16px;background:#fff;box-shadow:0 5px 0 #eee9f6;overflow-wrap:anywhere}
+    .place-1 .podium-card{border-color:#e6c552;box-shadow:0 5px 0 #f5e6aa;padding-top:26px}
+    .podium-crown{position:absolute;top:-25px;left:50%;transform:translateX(-50%);color:#d3a000;font-size:34px;line-height:1}
+    .leaderboard-avatar{display:grid;place-items:center;flex-shrink:0;width:36px;height:36px;border-radius:50%;background:#eee8ff;color:#7950e8;font-size:16px;font-weight:900}
+    .podium-card .leaderboard-avatar{width:48px;height:48px;margin:0 auto 10px;font-size:22px}.place-1 .leaderboard-avatar{background:#fff3bf;color:#997100}
+    .leaderboard-name{display:block;color:#30263f;font-size:13px;font-weight:850;line-height:1.35;overflow-wrap:anywhere}
+    .leaderboard-school{display:block;margin-top:4px;font-size:10px;line-height:1.4;font-weight:500;color:#776b86;overflow-wrap:anywhere}
+    .podium-card .leaderboard-name,.podium-card .leaderboard-school{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+    .leaderboard-xp{display:block;color:#946b00;font-weight:900;font-size:16px;line-height:1.4;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+    .leaderboard-xp small{font-size:9px;letter-spacing:.04em}.podium-card .leaderboard-xp{margin-top:auto;padding-top:8px;width:100%}
+    .podium-step{display:grid;place-items:center;height:48px;background:linear-gradient(135deg,#ffe984,#edc23c);color:#775100;font-size:26px;font-weight:900;border-radius:7px 7px 0 0;border-top:4px solid #d6a717}
+    .place-1 .podium-step{height:76px}.place-2 .podium-step{height:56px}.place-3 .podium-step{height:40px}
+    .leaderboard-runners{list-style:none;display:grid;gap:10px;margin:0;padding:0}
+    .leaderboard-row{display:flex;align-items:center;gap:10px;padding:14px 12px;background:#fff;border:1px solid #e9e2f2;border-radius:16px;box-shadow:0 4px 0 #f0ecf5;min-width:0}
+    .leaderboard-rank{flex:0 0 26px;text-align:center;font-size:17px;font-weight:900;color:#685b7a;font-variant-numeric:tabular-nums}
+    .leaderboard-person{flex:1;min-width:0}.leaderboard-row .leaderboard-xp{flex:0 1 90px;text-align:right;font-size:15px}
+    .leaderboard-you{display:block;margin-top:4px;font-size:9px;font-weight:900;letter-spacing:.08em;color:#7950e8}
+    .leaderboard-row.is-current,.is-current .podium-card{border:2px solid #9874ef}
+    .leaderboard-empty{margin:0;padding:24px 18px;border-radius:18px;background:#fff;border:1px solid #e5def2;color:#776b86;text-align:center;font-weight:700;line-height:1.6}
+    @media(max-width:380px){.leaderboard-podium{gap:4px}.podium-card{padding-left:5px;padding-right:5px}.podium-card .leaderboard-name{font-size:11px}.podium-card .leaderboard-xp{font-size:14px}.podium-card .leaderboard-avatar{width:40px;height:40px}.leaderboard-row{gap:7px;padding:12px 8px}.leaderboard-row .leaderboard-avatar{width:28px;height:28px;font-size:13px}.leaderboard-rank{flex-basis:23px;font-size:15px}.leaderboard-row .leaderboard-xp{flex-basis:70px;font-size:13px}}
   </style>
   <style>.school-combobox{position:relative}.school-combobox input[role="combobox"]{padding-right:42px}.school-combobox::after{content:'⌄';position:absolute;right:15px;top:43px;color:var(--purple);font-size:20px;font-weight:900;pointer-events:none}#registerSchoolCombobox::after{top:15px}.school-dropdown{position:absolute;z-index:60;top:calc(100% - 4px);left:0;right:0;max-height:290px;overflow-y:auto;border:2px solid #ded3f8;border-radius:16px;background:#fff;box-shadow:0 16px 35px rgba(44,31,72,.2);scrollbar-width:thin;text-align:left}.school-result-summary{position:sticky;z-index:2;top:0;margin:0;padding:10px 13px;border-bottom:1px solid #eee8f7;background:#f8f5ff;color:#6f657b;font-size:11px;font-weight:800}.school-option{display:block;width:100%;padding:12px 13px;border:0;border-bottom:1px solid #f0ebf6;background:#fff;color:var(--ink);text-align:left;cursor:pointer}.school-option:hover,.school-option:focus-visible,.school-option.active{background:#f2edff;outline:0}.school-option strong{display:block;font-size:13px;line-height:1.35}.school-option small{display:block;margin-top:3px;color:#756c80;font-size:10px;font-weight:700}.school-search-help{margin:6px 2px 0;color:#7c7487;font-size:11px;font-weight:700}.school-no-result{margin:0;padding:18px;text-align:center;font-size:12px;font-weight:800}</style>
   <style>
@@ -1801,7 +1806,7 @@ body.gold-access-prompt-open{overflow:hidden}#goldAccessOverlay{z-index:60}#gold
     <section class="screen" id="leaderboardScreen" aria-labelledby="leaderboardTitle">
       <div class="screen-head"><button class="back" data-go="profile" aria-label="Kembali">‹</button><h2 class="mini-brand"><span class="brand-purple">Math</span><span class="brand-yellow">Day</span></h2></div>
       <h1 class="screen-title" id="leaderboardTitle">Leaderboard</h1>
-      <p class="chapter-name">Kedudukan berdasarkan jumlah MathDay Experience (XP)</p>
+      <p class="chapter-name">100 pelajar terbaik · Kedudukan berdasarkan jumlah XP</p>
       <div class="leaderboard-list" id="leaderboardList"><p class="leaderboard-empty">Memuatkan kedudukan…</p></div>
     </section>
     <section class="screen" id="editProfileScreen" aria-labelledby="editProfileTitle">
@@ -4165,10 +4170,17 @@ renderQuestions=async function(){ const container=$('questionList'),papers=$('go
       try{const snapshot=await getDocsFromServer(collection(db,'leaderboard'));if(auth.currentUser?.uid!==user.uid)return;entries=snapshot.docs.map(item=>({...item.data(),uid:item.id}))}catch(error){console.warn('Leaderboard load unavailable',error?.code||error?.message);if(auth.currentUser?.uid!==user.uid)return;list.innerHTML='<p class="leaderboard-empty" role="status">Leaderboard global belum dapat dimuatkan. Sila cuba lagi kemudian.</p>';return}
       const unique=new Map(entries.map(entry=>[entry.uid,entry]));
       if(mine)unique.set(mine.uid,{...(unique.get(mine.uid)||{}),...mine,xp:Math.max(Number(unique.get(mine.uid)?.xp)||0,Number(mine.xp)||0)});
-      entries=[...unique.values()].filter(entry=>entry.uid&&entry.name).map(entry=>({...entry,xp:Number.isFinite(Number(entry.xp))?Math.max(0,Number(entry.xp)):0,status:entry.status==='gold'?'gold':'normal'})).sort((a,b)=>b.xp-a.xp||String(a.name).localeCompare(String(b.name),'ms'));
+      entries=[...unique.values()].filter(entry=>entry.uid&&entry.name).map(entry=>({...entry,xp:Number.isFinite(Number(entry.xp))?Math.max(0,Number(entry.xp)):0,status:entry.status==='gold'?'gold':'normal'})).sort((a,b)=>b.xp-a.xp||String(a.name).localeCompare(String(b.name),'ms')||String(a.uid).localeCompare(String(b.uid))).slice(0,100);
       if(!entries.length){list.innerHTML='<p class="leaderboard-empty">Belum ada pengguna dalam leaderboard.</p>';return}
-      const rows=entries.map((entry,index)=>{const current=entry.uid===user.uid,name=escapeHtml(entry.name),school=escapeHtml(entry.school||'Sekolah belum ditetapkan');return `<tr${current?' class="is-current"':''}><td class="leaderboard-rank">${index+1}</td><td class="leaderboard-name">${name}${current?'<span class="leaderboard-you">ANDA</span>':''}</td><td class="leaderboard-school">${school}</td><td class="leaderboard-xp">${entry.xp.toLocaleString('ms-MY')}</td></tr>`}).join('');
-      list.innerHTML=`<div class="leaderboard-table-wrap" role="region" aria-label="Jadual kedudukan pengguna" tabindex="0"><table class="leaderboard-table" aria-labelledby="leaderboardTitle"><colgroup><col class="rank-column"><col class="name-column"><col class="school-column"><col class="xp-column"></colgroup><thead><tr><th scope="col">No.</th><th scope="col">Nama</th><th scope="col">Nama sekolah</th><th scope="col">Jumlah XP</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+      const renderEntry=(entry,index)=>{
+        const rank=index+1,current=entry.uid===user.uid,name=escapeHtml(String(entry.name)),school=escapeHtml(String(entry.school||'Sekolah belum ditetapkan'));
+        const initial=escapeHtml(Array.from(String(entry.name).trim())[0]?.toLocaleUpperCase('ms-MY')||'?');
+        const avatar=`<span class="leaderboard-avatar" aria-hidden="true">${initial}</span>`,person=`<span class="leaderboard-name" title="${name}">${name}</span><span class="leaderboard-school" title="${school}">${school}</span>${current?'<span class="leaderboard-you">ANDA</span>':''}`,xp=`<span class="leaderboard-xp">${entry.xp.toLocaleString('ms-MY')} <small>XP</small></span>`;
+        if(rank<=3)return `<li class="place-${rank}${current?' is-current':''}" value="${rank}" aria-label="Tempat ${rank}"><div class="podium-card">${rank===1?'<span class="podium-crown" aria-hidden="true">♛</span>':''}${avatar}${person}${xp}</div><div class="podium-step" aria-hidden="true">${rank}</div></li>`;
+        return `<li class="leaderboard-row${current?' is-current':''}" value="${rank}"><span class="leaderboard-rank" aria-label="Tempat ${rank}">${rank}</span>${avatar}<div class="leaderboard-person">${person}</div>${xp}</li>`;
+      };
+      const podium=entries.slice(0,3).map(renderEntry).join(''),rows=entries.slice(3).map((entry,index)=>renderEntry(entry,index+3)).join('');
+      list.innerHTML=`<ol class="leaderboard-podium" aria-label="Tiga kedudukan teratas">${podium}</ol>${rows?`<ol class="leaderboard-runners" start="4" aria-label="Kedudukan 4 hingga ${entries.length}">${rows}</ol>`:''}`;
     }
     const renderProfileBeforeLeaderboard=renderProfile;
     renderProfile=function(user){renderProfileBeforeLeaderboard(user);void publishLeaderboardEntry(user)};
