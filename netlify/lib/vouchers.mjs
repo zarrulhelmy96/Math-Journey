@@ -1,5 +1,6 @@
 import {randomBytes} from 'node:crypto';
 import {CATALOG,digest,insist,grant} from './payment-policy.mjs';
+import {readGoldAccess,requireGoldAvailable,nextGoldAccess,goldAccessPath} from './gold-access.mjs';
 
 // 160 random bits. The registry uses a digest; the plaintext is only in the
 // purchaser's server-only history. Never put voucher codes in logs or URLs.
@@ -41,9 +42,12 @@ export function createVoucherService({store,mode,now}){
         insist(v.state==='available'&&(!v.expiresAt||v.expiresAt>now()),'voucher_unavailable',409);
         insist(v.catalogVersion===1&&Object.hasOwn(CATALOG,v.packageId),'voucher_requires_review',409);
         const walletPath=`accountWallets/${uid}`,wallet=await tx.get(walletPath),itemPath=voucherItemPath(v.issuerUid,v.orderId),item=await tx.get(itemPath);
+        const access=await readGoldAccess(tx,uid,wallet,mode,now());
         insist(item&&item.voucherKey===key&&item.state==='available','voucher_requires_review',409);
-        const timestamp=now(),next=grant(wallet,CATALOG[v.packageId],timestamp);
+        const timestamp=now();requireGoldAvailable(wallet,access,v.packageId,timestamp);
+        const next=grant(wallet,CATALOG[v.packageId],timestamp);
         tx.set(walletPath,next);
+        tx.set(goldAccessPath(uid),nextGoldAccess(access,next,v.packageId,timestamp));
         tx.set(path,{...v,state:'redeemed',redeemedBy:uid,redeemedAt:timestamp});
         tx.set(itemPath,{...item,state:'redeemed',redeemedAt:timestamp});
         return {redeemed:true,alreadyRedeemed:false,packageId:v.packageId,label:CATALOG[v.packageId].label};

@@ -1,6 +1,7 @@
 import {CATALOG,insist,orderId,digest,grant,validWallet,verifiedPayment,PaymentError} from './payment-policy.mjs';
 import {newVoucherCode,voucherKey,voucherItemPath,createVoucherService} from './vouchers.mjs';
 import {quotePrice,orderPricing,validOrderPrice} from './payment-pricing.mjs';
+import {readGoldAccess,requireGoldAvailable,goldBlockReason,nextGoldAccess,goldAccessPath} from './gold-access.mjs';
 export function createPaymentService({store,provider,mode,now=Date.now,testPriceEnabled=true}){
   const vouchers=createVoucherService({store,mode,now});
   const path=id=>`paymentOrders/${id}`;
@@ -16,6 +17,7 @@ export function createPaymentService({store,provider,mode,now=Date.now,testPrice
       const plan=CATALOG[o.packageId];insist(validOrderPrice(o),'catalog_requires_review',409);
       const receiptPath=`paymentReceipts/${digest(`${mode}:${payment.invoiceId}`)}`,receipt=await tx.get(receiptPath);
       const walletPath=`accountWallets/${o.uid}`,wallet=await tx.get(walletPath),lockPath=`paymentLocks/${o.uid}`,lock=await tx.get(lockPath);
+      const access=o.purpose==='voucher'?null:await readGoldAccess(tx,o.uid,wallet,mode,now());
       insist(!receipt,'invoice_already_used',409);
       insist(!o.purpose||['self','voucher'].includes(o.purpose),'order_requires_review',409);
       const timestamp=now();
@@ -25,7 +27,11 @@ export function createPaymentService({store,provider,mode,now=Date.now,testPrice
         insist(!collision&&!existingItem,'voucher_requires_review',409);
         tx.set(voucherPath,{issuerUid:o.uid,orderId:id,packageId:o.packageId,catalogVersion:1,mode,state:'available',issuedAt:timestamp,expiresAt:0});
         tx.set(itemPath,{code,voucherKey:key,orderId:id,packageId:o.packageId,mode,state:'available',issuedAt:timestamp});
-      }else tx.set(walletPath,grant(wallet,plan,timestamp));
+      }else{
+        requireGoldAvailable(wallet,access,o.packageId,timestamp);
+        const next=grant(wallet,plan,timestamp);tx.set(walletPath,next);
+        tx.set(goldAccessPath(o.uid),nextGoldAccess(access,next,o.packageId,timestamp));
+      }
       const paid={...o,state:'paid',invoiceId:payment.invoiceId,paidAt:timestamp,fulfilledAt:timestamp,updatedAt:timestamp};
       tx.set(path(id),paid);tx.set(receiptPath,{orderId:id,uid:o.uid,amountCents:o.amountCents,invoiceId:payment.invoiceId,mode,createdAt:timestamp});
       if(lock?.orderId===id)tx.set(lockPath,{orderId:null});
@@ -53,7 +59,15 @@ export function createPaymentService({store,provider,mode,now=Date.now,testPrice
   }
   return {
     publicOrder,
-    quote:(user,packageId,purpose)=>quotePrice(user,packageId,purpose,testPriceEnabled),
+    async quote(user,packageId,purpose='self'){
+      const quote=quotePrice(user,packageId,purpose,testPriceEnabled);
+      if(purpose==='voucher')return quote;
+      return store.transaction(async tx=>{
+        const wallet=await tx.get(`accountWallets/${user.uid}`),access=await readGoldAccess(tx,user.uid,wallet,mode,now());
+        const blockedPackages=Object.fromEntries(['gold-30','gold-90-bonus','gold-lifetime'].map(id=>[id,goldBlockReason(wallet,access,id,now())]));
+        return {...quote,blockedReason:blockedPackages[packageId]||null,blockedPackages};
+      });
+    },
     listVouchers:vouchers.list,
     redeemVoucher:vouchers.redeem,
     async create(user,input){
@@ -66,8 +80,10 @@ export function createPaymentService({store,provider,mode,now=Date.now,testPrice
         if(existing){insist(existing.uid===user.uid&&existing.packageId===input.packageId&&existing.mode===mode&&(existing.purpose||'self')===purpose,'request_conflict',409);return {fresh:false,order:existing};}
         const wallet=await tx.get(`accountWallets/${user.uid}`),lock=await tx.get(`paymentLocks/${user.uid}`),limit=await tx.get(`paymentLimits/${user.uid}`);
         const active=lock?.orderId?await tx.get(path(lock.orderId)):null;
-        if(active&&!['paid','cancelled','create_failed'].includes(active.state))return {fresh:false,order:active,active:true};
+        const access=purpose==='voucher'?null:await readGoldAccess(tx,user.uid,wallet,mode,now());
         insist(validWallet(wallet),'wallet_not_ready',409);insist(!(purpose==='self'&&wallet.goldPlan==='lifetime'&&(plan.days||plan.lifetime)),'already_lifetime',409);
+        if(purpose==='self')requireGoldAvailable(wallet,access,input.packageId,now());
+        if(active&&!['paid','cancelled','create_failed'].includes(active.state))return {fresh:false,order:active,active:true};
         const timestamp=now(),sameDay=limit&&timestamp-limit.startedAt<86400000;
         insist(!sameDay||limit.count<10,'daily_checkout_limit',429);insist(!limit||timestamp-limit.lastAt>=10000,'checkout_too_fast',429);
         const order={id,uid:user.uid,packageId:input.packageId,purpose,catalogVersion:1,amountCents:price.amountCents,...orderPricing(user,price),currency:'MYR',mode,state:'creating',billCode:null,createdAt:timestamp,updatedAt:timestamp};

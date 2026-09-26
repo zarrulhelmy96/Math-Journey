@@ -18,7 +18,18 @@ function initialize(){
       if(after)query=query.startAfter(...after);
       return (await query.limit(limit).get()).docs.map(doc=>doc.data());
     },
-    transaction:fn=>db.runTransaction(async transaction=>fn({get:async path=>{const snapshot=await transaction.get(db.doc(path));return snapshot.exists?snapshot.data():null;},set:(path,data)=>transaction.set(db.doc(path),data)}))
+    transaction:fn=>db.runTransaction(async transaction=>fn({
+      get:async path=>{const snapshot=await transaction.get(db.doc(path));return snapshot.exists?snapshot.data():null;},
+      goldHistory:async uid=>{
+        const orders=await transaction.get(db.collection('paymentOrders').where('uid','==',uid));
+        const vouchers=await transaction.get(db.collection('paymentVouchers').where('redeemedBy','==',uid));
+        return [
+          ...orders.docs.map(doc=>doc.data()).filter(o=>o.state==='paid'&&o.purpose!=='voucher').map(o=>({mode:o.mode,packageId:o.packageId,at:o.fulfilledAt||o.paidAt})),
+          ...vouchers.docs.map(doc=>doc.data()).filter(v=>v.state==='redeemed').map(v=>({mode:v.mode,packageId:v.packageId,at:v.redeemedAt}))
+        ];
+      },
+      set:(path,data)=>transaction.set(db.doc(path),data)
+    }))
   };
   const config={mode,enabled:env.PAYMENTS_ENABLED==='true',secret:env.TOYYIBPAY_SECRET_KEY,category:env.TOYYIBPAY_CATEGORY_CODE,appUrl:site.origin+'/index.html',callbackUrl:site.origin+'/.netlify/functions/payments?op=callback',allowedOrigins:[site.origin,...(env.PAYMENT_ALLOWED_ORIGINS||'').split(',').map(s=>s.trim()).filter(Boolean)]};
   const provider=createProvider(config),service=createPaymentService({store,provider,mode,testPriceEnabled:(env.GOLD30_TEST_PRICE_ENABLED||'true')==='true'});

@@ -25,7 +25,7 @@ export function createHandler({config,service,verifyToken}){
       insist(user?.uid&&user.email_verified===true&&typeof user.email==='string','verified_email_required',403);
       if(op==='quote'){
         insist(request.method==='GET','method_not_allowed',405);const params=new URL(request.url).searchParams;
-        return send(service.quote(user,params.get('packageId'),params.get('purpose')||'self'));
+        return send(await service.quote(user,params.get('packageId'),params.get('purpose')||'self'));
       }
       if(op==='status'){insist(request.method==='GET','method_not_allowed',405);return send(await service.status(user.uid,new URL(request.url).searchParams.get('orderId')));}
       if(op==='vouchers'){insist(request.method==='GET','method_not_allowed',405);return send(await service.listVouchers(user.uid,new URL(request.url).searchParams.get('cursor')));}
