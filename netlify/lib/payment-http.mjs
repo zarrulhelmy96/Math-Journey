@@ -19,7 +19,7 @@ export function createHandler({config,service,verifyToken}){
         checkCallback(body,config.secret);return send(await service.callback(body));
       }
       insist(!origin||origins.has(origin),'origin_not_allowed',403);
-      insist(['create','status','cancel','vouchers','redeem','quote'].includes(op),'not_found',404);
+      insist(['create','status','cancel','vouchers','redeem','quote','history'].includes(op),'not_found',404);
       const auth=request.headers.get('authorization')||'';insist(auth.startsWith('Bearer ')&&auth.length<10000,'login_required',401);
       let user;try{user=await verifyToken(auth.slice(7));}catch{throw new PaymentError('login_required',401);}
       insist(user?.uid&&user.email_verified===true&&typeof user.email==='string','verified_email_required',403);
@@ -29,6 +29,7 @@ export function createHandler({config,service,verifyToken}){
       }
       if(op==='status'){insist(request.method==='GET','method_not_allowed',405);return send(await service.status(user.uid,new URL(request.url).searchParams.get('orderId')));}
       if(op==='vouchers'){insist(request.method==='GET','method_not_allowed',405);return send(await service.listVouchers(user.uid,new URL(request.url).searchParams.get('cursor')));}
+      if(op==='history'){insist(request.method==='GET','method_not_allowed',405);return send(await service.listPurchases(user.uid,new URL(request.url).searchParams.get('cursor')));}
       insist(request.method==='POST','method_not_allowed',405);insist(request.headers.get('content-type')?.includes('application/json'),'invalid_content_type',415);
       const raw=await request.text();insist(raw.length<=2048,'payload_too_large',413);let body;try{body=JSON.parse(raw);}catch{throw new PaymentError('invalid_json');}
       insist(body&&typeof body==='object'&&!Array.isArray(body),'invalid_json');

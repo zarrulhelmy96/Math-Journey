@@ -2,6 +2,7 @@ import {CATALOG,insist,orderId,digest,grant,validWallet,verifiedPayment,PaymentE
 import {newVoucherCode,voucherKey,voucherItemPath,createVoucherService} from './vouchers.mjs';
 import {quotePrice,orderPricing,validOrderPrice} from './payment-pricing.mjs';
 import {readGoldAccess,requireGoldAvailable,goldBlockReason,nextGoldAccess,goldAccessPath} from './gold-access.mjs';
+import {createPurchaseHistory} from './purchase-history.mjs';
 export function createPaymentService({store,provider,mode,now=Date.now,testPriceEnabled=true}){
   const vouchers=createVoucherService({store,mode,now});
   const path=id=>`paymentOrders/${id}`;
@@ -69,6 +70,7 @@ export function createPaymentService({store,provider,mode,now=Date.now,testPrice
       });
     },
     listVouchers:vouchers.list,
+    listPurchases:createPurchaseHistory({store,mode,now}),
     redeemVoucher:vouchers.redeem,
     async create(user,input){
       const purpose=input.purpose??'self';insist(['self','voucher'].includes(purpose),'invalid_purpose');

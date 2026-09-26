@@ -4,6 +4,7 @@ import {getFirestore,FieldPath} from 'firebase-admin/firestore';
 import {createProvider} from '../lib/toyyibpay.mjs';
 import {createPaymentService} from '../lib/payment-service.mjs';
 import {createHandler} from '../lib/payment-http.mjs';
+import {PaymentError} from '../lib/payment-policy.mjs';
 let handler;
 function initialize(){
   const env=process.env,mode=env.TOYYIBPAY_MODE,site=new URL(env.PAYMENT_SITE_URL||'https://mathdays.netlify.app');
@@ -13,6 +14,12 @@ function initialize(){
   const app=getApps().find(a=>a.name==='mathday-payments')||initializeApp({credential:cert({projectId:env.FIREBASE_PROJECT_ID,clientEmail:env.FIREBASE_CLIENT_EMAIL,privateKey:env.FIREBASE_PRIVATE_KEY.replace(/\\n/g,'\n')})},'mathday-payments');
   const db=getFirestore(app),store={
     async get(path){const snapshot=await db.doc(path).get();return snapshot.exists?snapshot.data():null;},
+    async listOrders(uid,after,limit){
+      let query=db.collection('paymentOrders').where('uid','==',uid).orderBy('createdAt','desc').orderBy(FieldPath.documentId(),'desc');
+      if(after)query=query.startAfter(...after);
+      try{return (await query.limit(limit).get()).docs.map(doc=>({...doc.data(),id:doc.id}));}
+      catch(error){if(error.code===9&&/index/i.test(error.message||''))throw new PaymentError('purchase_history_index_required',503);throw error;}
+    },
     async listVouchers(uid,after,limit){
       let query=db.collection(`voucherAccounts/${uid}/items`).orderBy('issuedAt','desc').orderBy(FieldPath.documentId(),'desc');
       if(after)query=query.startAfter(...after);
