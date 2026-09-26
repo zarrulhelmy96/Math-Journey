@@ -19,10 +19,14 @@ export function createHandler({config,service,verifyToken}){
         checkCallback(body,config.secret);return send(await service.callback(body));
       }
       insist(!origin||origins.has(origin),'origin_not_allowed',403);
-      insist(['create','status','cancel','vouchers','redeem'].includes(op),'not_found',404);
+      insist(['create','status','cancel','vouchers','redeem','quote'].includes(op),'not_found',404);
       const auth=request.headers.get('authorization')||'';insist(auth.startsWith('Bearer ')&&auth.length<10000,'login_required',401);
       let user;try{user=await verifyToken(auth.slice(7));}catch{throw new PaymentError('login_required',401);}
       insist(user?.uid&&user.email_verified===true&&typeof user.email==='string','verified_email_required',403);
+      if(op==='quote'){
+        insist(request.method==='GET','method_not_allowed',405);const params=new URL(request.url).searchParams;
+        return send(service.quote(user,params.get('packageId'),params.get('purpose')||'self'));
+      }
       if(op==='status'){insist(request.method==='GET','method_not_allowed',405);return send(await service.status(user.uid,new URL(request.url).searchParams.get('orderId')));}
       if(op==='vouchers'){insist(request.method==='GET','method_not_allowed',405);return send(await service.listVouchers(user.uid,new URL(request.url).searchParams.get('cursor')));}
       insist(request.method==='POST','method_not_allowed',405);insist(request.headers.get('content-type')?.includes('application/json'),'invalid_content_type',415);

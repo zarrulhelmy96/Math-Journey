@@ -21,7 +21,7 @@ function initialize(){
     transaction:fn=>db.runTransaction(async transaction=>fn({get:async path=>{const snapshot=await transaction.get(db.doc(path));return snapshot.exists?snapshot.data():null;},set:(path,data)=>transaction.set(db.doc(path),data)}))
   };
   const config={mode,enabled:env.PAYMENTS_ENABLED==='true',secret:env.TOYYIBPAY_SECRET_KEY,category:env.TOYYIBPAY_CATEGORY_CODE,appUrl:site.origin+'/index.html',callbackUrl:site.origin+'/.netlify/functions/payments?op=callback',allowedOrigins:[site.origin,...(env.PAYMENT_ALLOWED_ORIGINS||'').split(',').map(s=>s.trim()).filter(Boolean)]};
-  const provider=createProvider(config),service=createPaymentService({store,provider,mode});
+  const provider=createProvider(config),service=createPaymentService({store,provider,mode,testPriceEnabled:(env.GOLD30_TEST_PRICE_ENABLED||'true')==='true'});
   return createHandler({config,service,verifyToken:token=>getAuth(app).verifyIdToken(token,true)});
 }
 export default async request=>{

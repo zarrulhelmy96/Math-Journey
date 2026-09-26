@@ -1,6 +1,7 @@
 import {CATALOG,insist,orderId,digest,grant,validWallet,verifiedPayment,PaymentError} from './payment-policy.mjs';
 import {newVoucherCode,voucherKey,voucherItemPath,createVoucherService} from './vouchers.mjs';
-export function createPaymentService({store,provider,mode,now=Date.now}){
+import {quotePrice,orderPricing,validOrderPrice} from './payment-pricing.mjs';
+export function createPaymentService({store,provider,mode,now=Date.now,testPriceEnabled=true}){
   const vouchers=createVoucherService({store,mode,now});
   const path=id=>`paymentOrders/${id}`;
   const publicOrder=o=>({orderId:o.id,packageId:o.packageId,purpose:o.purpose||'self',label:(o.purpose==='voucher'?'Voucher ':'')+CATALOG[o.packageId]?.label,amountCents:o.amountCents,state:o.state==='creating'&&now()-o.createdAt>60000?'create_uncertain':o.state,reviewReason:o.reviewReason||null,checkoutUrl:o.state==='pending'&&o.billCode?provider.url(o.billCode):null});
@@ -12,7 +13,7 @@ export function createPaymentService({store,provider,mode,now=Date.now}){
       const o=await tx.get(path(id));insist(o&&o.mode===mode,'order_not_found',404);
       if(o.state==='paid')return o;
       insist(['pending','cancelled'].includes(o.state),'order_requires_review',409);
-      const plan=CATALOG[o.packageId];insist(plan&&o.catalogVersion===1&&o.amountCents===plan.amountCents,'catalog_requires_review',409);
+      const plan=CATALOG[o.packageId];insist(validOrderPrice(o),'catalog_requires_review',409);
       const receiptPath=`paymentReceipts/${digest(`${mode}:${payment.invoiceId}`)}`,receipt=await tx.get(receiptPath);
       const walletPath=`accountWallets/${o.uid}`,wallet=await tx.get(walletPath),lockPath=`paymentLocks/${o.uid}`,lock=await tx.get(lockPath);
       insist(!receipt,'invoice_already_used',409);
@@ -52,11 +53,13 @@ export function createPaymentService({store,provider,mode,now=Date.now}){
   }
   return {
     publicOrder,
+    quote:(user,packageId,purpose)=>quotePrice(user,packageId,purpose,testPriceEnabled),
     listVouchers:vouchers.list,
     redeemVoucher:vouchers.redeem,
     async create(user,input){
       const purpose=input.purpose??'self';insist(['self','voucher'].includes(purpose),'invalid_purpose');
       insist(typeof input.packageId==='string'&&Object.hasOwn(CATALOG,input.packageId),'invalid_package');const plan=CATALOG[input.packageId];
+      const price=quotePrice(user,input.packageId,purpose,testPriceEnabled);
       const phone=String(input.phone||'').replace(/[ +()-]/g,'');insist(/^(60\d{8,10}|0\d{8,10})$/.test(phone),'invalid_phone');
       const id=orderId(user.uid,input.requestId),created=await store.transaction(async tx=>{
         const existing=await tx.get(path(id));
@@ -67,7 +70,7 @@ export function createPaymentService({store,provider,mode,now=Date.now}){
         insist(validWallet(wallet),'wallet_not_ready',409);insist(!(purpose==='self'&&wallet.goldPlan==='lifetime'&&(plan.days||plan.lifetime)),'already_lifetime',409);
         const timestamp=now(),sameDay=limit&&timestamp-limit.startedAt<86400000;
         insist(!sameDay||limit.count<10,'daily_checkout_limit',429);insist(!limit||timestamp-limit.lastAt>=10000,'checkout_too_fast',429);
-        const order={id,uid:user.uid,packageId:input.packageId,purpose,catalogVersion:1,amountCents:plan.amountCents,currency:'MYR',mode,state:'creating',billCode:null,createdAt:timestamp,updatedAt:timestamp};
+        const order={id,uid:user.uid,packageId:input.packageId,purpose,catalogVersion:1,amountCents:price.amountCents,...orderPricing(user,price),currency:'MYR',mode,state:'creating',billCode:null,createdAt:timestamp,updatedAt:timestamp};
         tx.set(path(id),order);tx.set(`paymentLocks/${user.uid}`,{orderId:id});tx.set(`paymentLimits/${user.uid}`,{startedAt:sameDay?limit.startedAt:timestamp,lastAt:timestamp,count:sameDay?limit.count+1:1});
         return {fresh:true,order};
       });
