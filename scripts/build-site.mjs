@@ -2,13 +2,15 @@ import {mkdir,mkdtemp,copyFile,cp,lstat,realpath,rename,readFile,writeFile} from
 import {createHash} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
+import {questionBankFiles,validateQuestionBank} from './question-bank-files.mjs';
 const root=fileURLToPath(new URL('../',import.meta.url)),dist=path.join(root,'dist');
 // Build into a fresh private staging directory. Never merge cached files into public output.
-const files=['index.html','mathday-account-wallet.js','mathday-member-id.js','mathday-payments.js','mathday-learning-sync-core.js','mathday-single-session.js','sekolah-menengah-kpm-2022.js','manifest.webmanifest','mathday-pwa.js','mathday-pwa.css','offline.html','sw.js'];
+const files=['index.html','mathday-account-wallet.js','mathday-member-id.js','mathday-payments.js','mathday-learning-sync-core.js','mathday-single-session.js','sekolah-menengah-kpm-2022.js','manifest.webmanifest','mathday-pwa.js','mathday-pwa.css','offline.html','sw.js',...questionBankFiles];
+console.log('Validated question bank: '+await validateQuestionBank(root)+' existing records.');
 const staging=await mkdtemp(path.join(root,'.mathday-build-'));
 const publicDir=path.join(staging,'public');
 await mkdir(publicDir);
-for(const file of files)await copyFile(path.join(root,file),path.join(publicDir,file));
+for(const file of files){await mkdir(path.dirname(path.join(publicDir,file)),{recursive:true});await copyFile(path.join(root,file),path.join(publicDir,file));}
 await cp(path.join(root,'quiz-assets'),path.join(publicDir,'quiz-assets'),{recursive:true});
 await cp(path.join(root,'pwa-icons'),path.join(publicDir,'pwa-icons'),{recursive:true});
 // Changing app code changes the worker bytes, so installed users can opt into the update.
