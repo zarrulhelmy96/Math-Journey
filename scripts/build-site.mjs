@@ -11,10 +11,15 @@ const staging=await mkdtemp(path.join(root,'.mathday-build-'));
 const publicDir=path.join(staging,'public');
 await mkdir(publicDir);
 for(const file of files){await mkdir(path.dirname(path.join(publicDir,file)),{recursive:true});await copyFile(path.join(root,file),path.join(publicDir,file));}
+// Physical entry pages avoid redirect cycles with Netlify's HTML URL normalization.
+// Keep source index.html as the app for local previews; remap only the fresh build.
+await copyFile(path.join(root,'index.html'),path.join(publicDir,'login.html'));
+await copyFile(path.join(root,'landing.html'),path.join(publicDir,'index.html'));
 await cp(path.join(root,'quiz-assets'),path.join(publicDir,'quiz-assets'),{recursive:true});
 await cp(path.join(root,'pwa-icons'),path.join(publicDir,'pwa-icons'),{recursive:true});
 // Changing app code changes the worker bytes, so installed users can opt into the update.
 const versionHash=createHash('sha256');
+versionHash.update('physical-entry-pages-v1');
 for(const file of [...files,'pwa-icons/icon-192.png','pwa-icons/icon-512.png','pwa-icons/maskable-512.png','pwa-icons/apple-touch-icon.png']){
   versionHash.update(file).update(await readFile(path.join(root,file)));
 }
