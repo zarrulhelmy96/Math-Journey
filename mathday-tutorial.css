@@ -1,0 +1,25 @@
+.md-tour[hidden]{display:none!important}
+.md-tour{position:fixed;inset:0;z-index:2147483000;isolation:isolate;touch-action:none;overflow:hidden}
+.md-tour-spot{position:absolute;border:3px solid #f4ce43;border-radius:18px;box-shadow:0 0 0 9999px rgba(24,18,40,.55);pointer-events:none}
+.md-tour-card{position:absolute;box-sizing:border-box;width:min(360px,calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow:auto;touch-action:pan-y;background:#fff;border:1px solid #e5dbff;border-radius:22px;padding:20px;color:#282237;box-shadow:0 16px 50px #160c3938;text-align:left;font-family:inherit}
+.md-tour-top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.md-tour-progress{font-size:12px;font-weight:800;color:#7952ce;letter-spacing:.04em}
+.md-tour .md-tour-close{border:0;background:#f3efff;color:#65517f;border-radius:10px;padding:9px 12px;font:700 13px inherit;cursor:pointer}
+.md-tour h2{margin:14px 0 9px;font-size:23px;line-height:1.2;color:#282237}
+.md-tour p{margin:0;font-size:15px;line-height:1.6;color:#655b73}
+.md-tour-track{height:4px;background:#eee8fb;border-radius:8px;margin:18px 0;overflow:hidden}
+.md-tour-track span{display:block;height:100%;background:#845cff}
+.md-tour-actions{display:flex;gap:10px}
+.md-tour-actions button{flex:1;min-height:44px;border-radius:12px;border:1px solid #ddd1fa;padding:11px 8px;font-size:14px;font-weight:800;cursor:pointer;background:#f5f1ff;color:#6c48bb}
+.md-tour-actions button:last-child{background:#8054ee;border-color:#8054ee;color:#fff}
+.md-tour-actions button:disabled{opacity:.4;cursor:default}
+.md-tour button:focus-visible{outline:3px solid #dda900;outline-offset:3px}
+#profileScreen .profile-actions #startTutorial{grid-column:1/-1;justify-self:center;width:calc((100% - 12px)/2);background:#fff9db;border-color:#efd067;color:#806000}
+.md-tour-welcome{box-sizing:border-box;width:min(400px,calc(100vw - 32px));max-height:calc(100dvh - 32px);overflow:auto;border:1px solid #e3d8ff;border-radius:24px;padding:26px 22px;color:#282237;background:#fff;text-align:center;box-shadow:0 18px 70px #25134833}
+.md-tour-welcome::backdrop{background:rgba(24,18,40,.55)}
+.md-welcome-icon{display:grid;place-items:center;width:58px;height:58px;margin:0 auto 14px;border-radius:18px;background:#fff4c1;color:#b08700;font-size:36px}
+.md-tour-welcome h2{font-size:25px;line-height:1.2;margin:0 0 12px}
+.md-tour-welcome p{font-size:15px;line-height:1.6;color:#675d75}
+.md-tour-welcome .md-welcome-note{font-size:13px;margin:14px 0 22px}
+.md-tour-welcome button:focus-visible{outline:3px solid #dda900;outline-offset:3px}
+@media(max-height:540px){.md-tour-card{padding:12px}.md-tour h2{font-size:19px;margin:8px 0}.md-tour p{font-size:13px;line-height:1.4}.md-tour-track{margin:10px 0}}

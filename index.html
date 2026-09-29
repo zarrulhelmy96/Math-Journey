@@ -11,6 +11,8 @@
   <link rel="icon" type="image/png" sizes="192x192" href="./pwa-icons/icon-192.png">
   <link rel="apple-touch-icon" sizes="180x180" href="./pwa-icons/apple-touch-icon.png">
   <link rel="stylesheet" href="./mathday-pwa.css">
+  <link rel="stylesheet" href="./mathday-tutorial.css">
+  <script src="./mathday-tutorial.js"></script>
   <script src="./mathday-pwa.js" defer></script>
   <title>MathDay</title>
   <style>
@@ -1701,6 +1703,9 @@
 .extra-store-package{padding:18px 14px;border:2px solid #dfd3ff;border-radius:14px;background:#fff;box-shadow:0 6px 0 #dfd3ff;margin-bottom:8px}
 .extra-store-package.gold-periodic{border-color:#edca5b;box-shadow:0 6px 0 #edca5b;background:#fffbea}
 .extra-store-package .store-price{flex-shrink:0;color:#6446bb}.extra-store-package small{display:block;margin-top:6px;line-height:1.5}
+.extra-store-package.reset-package{flex-wrap:wrap;gap:10px}
+.extra-store-package.reset-package>span:first-child{flex:1;min-width:0}
+.extra-store-package .reset-package-description{flex-basis:100%;display:block;padding-top:12px;margin-top:2px;border-top:1px solid #e9e1f6;text-align:left;font-size:13px;font-weight:400;line-height:1.65;color:#70617f}
 .extra-store-package:hover,.extra-store-package:focus-visible{border-color:#8057ff;outline:2px solid #8057ff;outline-offset:3px}
 .extra-store-package:active{transform:translateY(4px);box-shadow:0 2px 0 #dfd3ff}.extra-store-package:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
 </style>
@@ -1843,6 +1848,8 @@ body.gold-access-prompt-open{overflow:hidden}#goldAccessOverlay{z-index:60}#gold
     </section>
     <section class="screen" id="quizPlayScreen" aria-labelledby="quizPlayTitle">
       <div class="screen-head"><button class="back" data-go="question" aria-label="Kembali ke senarai soalan">‹</button><h2 class="mini-brand"><span class="brand-purple">Math</span><span class="brand-yellow">Day</span></h2></div>
+      <nav class="quiz-step-nav" aria-label="Navigasi soalan kuiz"><button id="quizPrevious" type="button" aria-label="Soalan sebelumnya" title="Soalan sebelumnya" disabled><span aria-hidden="true">‹</span></button><span id="quizNavigationCount" role="status" aria-live="polite"></span><button id="quizNext" type="button" aria-label="Soalan seterusnya" title="Soalan seterusnya" disabled><span aria-hidden="true">›</span></button></nav>
+      <style>.quiz-step-nav{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 18px}.quiz-step-nav button{display:grid;place-items:center;width:48px;height:48px;flex:0 0 48px;padding:0;border:2px solid #dcd0ff;border-radius:14px;background:#f7f3ff;color:#7950dc;font-size:34px;line-height:1;cursor:pointer;box-shadow:0 4px 0 #e2d8f4}.quiz-step-nav button:disabled{opacity:.35;cursor:default;box-shadow:none}.quiz-step-nav button:focus-visible{outline:3px solid #d8ac00;outline-offset:3px}.quiz-step-nav>span{font-size:14px;font-weight:800;color:#756187;text-align:center}</style>
       <article class="quiz-card"><p class="quiz-count" id="quizCount"></p><h1 class="quiz-question" id="quizPlayTitle"></h1><p class="quiz-reward" id="quizReward"></p><img class="quiz-media" id="quizMedia" alt="Gambar soalan"><div class="quiz-table-visual hidden" id="quizTableVisual"></div><div class="answer-list" id="answerList"></div><p class="quiz-feedback" id="quizFeedback" aria-live="polite"></p><div class="quiz-tools"><button class="quiz-text-button" id="revealSolution" type="button">Lihat Jawapan</button><button class="quiz-text-button hidden" id="showSolution">Penjelasan</button><button class="quiz-text-button" id="showHint">Nota/Hint</button></div><img class="quiz-media hint-image hidden" id="quizSolutionMedia" alt="Gambar penerangan jawapan"></article>
     </section>
     <div class="retry-overlay hidden" id="answerConfirmOverlay" role="dialog" aria-modal="true" aria-labelledby="answerConfirmTitle" aria-describedby="answerConfirmMessage"><div class="retry-popup answer-confirm-popup"><div class="answer-confirm-icon" aria-hidden="true">?</div><h2 id="answerConfirmTitle">Adakah anda yakin?</h2><p id="answerConfirmMessage">Adakah anda yakin dengan jawapan yang dipilih?</p><div class="answer-confirm-actions"><button class="answer-confirm-yes" id="answerConfirmYes" type="button">Yakin!</button><button class="answer-confirm-no" id="answerConfirmNo" type="button">Hmm..</button></div></div></div>
@@ -2805,7 +2812,8 @@ renderQuestions=async function(){ const container=$('questionList'),papers=$('go
     }
     function extraStorePackageMarkup(id){
       const plan=extraStorePackages[id],total=plan.kind==='gold'?`${plan.days+plan.bonusDays} hari · Akses Normal & Gold`:`Jumlah ${plan.coins+plan.bonusCoins} coin · 1 coin untuk 1 reset`;
-      return `<button type="button" class="store-package extra-store-package ${plan.kind==='gold'?'gold-periodic':'reset-package'}" data-extra-package="${id}"><span><strong>${plan.label}</strong><small>${total}</small></span><span class="store-price">RM${plan.price}</span></button>`;
+      const description=plan.kind==='reset'?'<span class="reset-package-description">Reset Coin ialah kredit untuk reset soalan yang dijawab salah supaya anda boleh cuba semula. Setiap reset menggunakan 1 coin. Pembelian Reset Coin tidak mengaktifkan akses Gold.</span>':'';
+      return `<button type="button" class="store-package extra-store-package ${plan.kind==='gold'?'gold-periodic':'reset-package'}" data-extra-package="${id}"><span><strong>${plan.label}</strong><small>${total}</small></span><span class="store-price">RM${plan.price}</span>${description}</button>`;
     }
     lifetimePackage.insertAdjacentHTML('beforebegin',extraStorePackageMarkup('gold-30')+extraStorePackageMarkup('gold-90-bonus'));
     storeGrid.append(storeHeading('Reset Coin'));
@@ -4355,7 +4363,7 @@ renderQuestions=async function(){ const container=$('questionList'),papers=$('go
       if(walletAnswerBusy)return {blocked:true};
       const uid=auth.currentUser?.uid,key=quizAnswerKey(item),version=resetQuestionVersion;
       if(!uid||!singleSession.isReady())return {blocked:true};
-      walletAnswerBusy=true;
+      walletAnswerBusy=true;refreshQuizNavigation();
       try{
         const previous=getSavedQuizResult(item);
         if(previous&&!previous.correct&&!previous.answerViewed&&!wasQuizAnswerViewed(item)){
@@ -4368,7 +4376,7 @@ renderQuestions=async function(){ const container=$('questionList'),papers=$('go
         }
         return saveResultBeforeWallet(item,selected);
       }catch(error){console.warn('Answer/reset transaction failed',error?.code||error?.message);toast('Jawapan belum selesai disimpan. Buka semula soalan apabila online.');scheduleLearningSync(true);return {blocked:true};}
-      finally{cloudConsumedReset='';walletAnswerBusy=false;}
+      finally{cloudConsumedReset='';walletAnswerBusy=false;refreshQuizNavigation();}
     };
     // No simulated checkout can activate a real account wallet. A verified payment backend is required.
     const paymentUnavailable=()=>toast('Pembayaran atau voucher belum tersedia. Muat semula aplikasi ketika online; jangan gunakan kod simulasi lama.');
@@ -4430,7 +4438,7 @@ renderQuestions=async function(){ const container=$('questionList'),papers=$('go
     // Verified server checkout for own packages and single-use gift vouchers.
     if(window.MathDayPayments){
       const checkout=window.MathDayPayments.create({
-        auth,apiBase:'https://mathdays.netlify.app/.netlify/functions/payments',
+        auth,apiBase:'https://mathday.app/.netlify/functions/payments',
         canCheckout:()=>singleSession.isReady()&&Boolean(accountWallet.read()),sessionReady:()=>singleSession.isReady(),
         onAuthChanged:listener=>onAuthStateChanged(auth,listener),toast,
         terms:()=>$('purchaseTerms').classList.remove('hidden'),
@@ -4444,6 +4452,53 @@ renderQuestions=async function(){ const container=$('questionList'),papers=$('go
       if(new URL(location.href).searchParams.has('payment_order')){const note=document.createElement('p');note.textContent='Kembali daripada pembayaran? Log masuk akaun yang digunakan untuk membeli, kemudian semak Status Pembayaran di Pakej Gold.';note.style.cssText='font-size:13px;line-height:1.5;text-align:center;color:#655285';$('loginForm').before(note);}
     }
     // End verified server checkout.
+    // Adjacent questions always use the existing renderer and Gold access gate.
+    let quizNavigationIndex=-1,quizNavigationItems=null;
+    function refreshQuizNavigation(){
+      const valid=quizNavigationItems===currentQuizItems&&Boolean(currentQuizItems[quizNavigationIndex]);
+      $('quizPrevious').disabled=!valid||walletAnswerBusy||quizNavigationIndex<=0;
+      $('quizNext').disabled=!valid||walletAnswerBusy||quizNavigationIndex>=currentQuizItems.length-1;
+      $('quizNavigationCount').textContent=valid?`Soalan ${quizNavigationIndex+1} / ${currentQuizItems.length}`:'';
+    }
+    const openQuizBeforeNavigation=openQuizQuestion;
+    openQuizQuestion=function(index){
+      if(!Number.isInteger(index)||index<0||index>=currentQuizItems.length)return;
+      const previousVersion=resetQuestionVersion;
+      const result=openQuizBeforeNavigation(index);
+      if(resetQuestionVersion!==previousVersion){
+        quizNavigationIndex=index;quizNavigationItems=currentQuizItems;state.questionPage=Math.floor(index/20);refreshQuizNavigation();
+      }
+      return result;
+    };
+    function moveQuizQuestion(direction){
+      if(!auth.currentUser||!singleSession.isReady()||!$('quizPlayScreen').classList.contains('active')||walletAnswerBusy||quizNavigationItems!==currentQuizItems)return;
+      if(document.querySelector('.retry-overlay:not(.hidden)'))return;
+      const next=quizNavigationIndex+direction;
+      if(next<0||next>=currentQuizItems.length)return;
+      openQuizQuestion(next);
+      if(quizNavigationIndex===next){$('quizPlayTitle').setAttribute('tabindex','-1');$('quizPlayTitle').focus({preventScroll:true});}
+    }
+    $('quizPrevious').onclick=()=>moveQuizQuestion(-1);
+    $('quizNext').onclick=()=>moveQuizQuestion(1);
+    // End adjacent question navigation.
+    // Tutorial previews screens without clicking purchases or saving learning choices.
+    if(window.MathDayTutorial){
+      const tutorial=window.MathDayTutorial.create({
+        getUserKey:()=>auth.currentUser?.uid||'',
+        canStart:()=>Boolean(auth.currentUser)&&singleSession.isReady()&&!document.querySelector('#loginScreen.active,#verifyScreen.active,#registerScreen.active'),
+        begin:()=>({...state}),
+        navigate:screen=>{
+          if(screen==='form')renderForms();
+          if(['chapter','subtopic','chapterHub'].includes(screen)){state.form=1;state.chapter=0;state.subtopic='0';}
+          if(screen==='chapter')renderChapters();
+          if(screen==='subtopic')renderSubtopics();
+          if(screen==='chapterHub')renderChapterHub();
+          showScreen(screen);
+        },
+        restore:(saved,returnToProfile)=>{if(saved){for(const key of Object.keys(state))if(!(key in saved))delete state[key];Object.assign(state,saved);}if(returnToProfile)showScreen('profile');}
+      });
+      onAuthStateChanged(auth,user=>{if(!user)tutorial?.stop(false);});
+    }
     window.dispatchEvent(new Event('mathday:app-ready'));
   </script>
 </body>

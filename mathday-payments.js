@@ -15,7 +15,7 @@
   const voucherBlockedMessages={already_lifetime:'Anda sudah mempunyai access Gold Lifetime',gold_30_active:'Gold 30 anda masih aktif, voucher tak boleh digunakan',gold_90_active:'Gold 90 anda masih aktif, voucher tak boleh digunakan',gold_active_unknown:'Gold anda masih aktif. Jenis pakej perlu disemak oleh admin; voucher belum digunakan.'};
   function create(options){
     const {auth,canCheckout,onPaid=()=>{},toast=()=>{},terms=()=>{}}=options,document=options.document||root.document,storage=options.storage||root.localStorage;
-    const api=options.apiBase||'https://mathdays.netlify.app/.netlify/functions/payments',request=options.fetch||root.fetch.bind(root),navigate=options.navigate||(url=>root.location.assign(url));
+    const api=options.apiBase||'https://mathday.app/.netlify/functions/payments',request=options.fetch||root.fetch.bind(root),navigate=options.navigate||(url=>root.location.assign(url));
     let selected='',purpose='self',owner='',busy=false,lastOrder=null,refreshing=false,lastRefresh=0,lastUser='',pollTimer=null,polls=0,generation=0;
     let quotedAmount=null,checkoutVersion=0,priceRefreshAt=0,priceLoading=false,lastPriceQuote=null;
     let voucherLoading=false,voucherRefreshAgain=false,voucherRefreshAt=0,voucherCursor=null,redeeming=false;
