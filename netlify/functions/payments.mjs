@@ -7,7 +7,7 @@ import {createHandler} from '../lib/payment-http.mjs';
 import {PaymentError} from '../lib/payment-policy.mjs';
 let handler;
 function initialize(){
-  const env=process.env,mode=env.TOYYIBPAY_MODE,site=new URL(env.PAYMENT_SITE_URL||'https://mathdays.netlify.app');
+  const env=process.env,mode=env.TOYYIBPAY_MODE,site=new URL(env.PAYMENT_SITE_URL||'https://mathday.app');
   if(!['live','sandbox'].includes(mode)||site.protocol!=='https:'||site.username||site.password||site.search||site.hash||site.pathname!=='/')throw Error('Invalid payment configuration');
   for(const key of ['TOYYIBPAY_SECRET_KEY','TOYYIBPAY_CATEGORY_CODE','FIREBASE_PROJECT_ID','FIREBASE_CLIENT_EMAIL','FIREBASE_PRIVATE_KEY'])if(!env[key])throw Error('Missing payment configuration');
   if(mode==='sandbox'&&env.FIREBASE_PROJECT_ID==='mathday-e808f')throw Error('Sandbox payments require a separate Firebase project');
