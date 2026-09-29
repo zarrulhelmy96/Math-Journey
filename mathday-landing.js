@@ -1,5 +1,13 @@
 (() => {
   'use strict';
+  // Keep the local file preview usable; deployed links use the clean /login route.
+  if(location.protocol==='file:'){
+    document.querySelectorAll('a[href="./login"]').forEach(link=>link.setAttribute('href','./index.html'));
+  }else if(new URL(location.href).searchParams.has('payment_order')||window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true){
+    // Existing installed PWAs may still launch at /; legacy payment queries stay intact.
+    const login=new URL('./login',location.href);login.search=location.search;login.hash=location.hash;
+    location.replace(login.href);return;
+  }
   const toggle=document.querySelector('.menu-toggle');
   const menu=document.getElementById('mobile-nav');
   toggle.hidden=false;

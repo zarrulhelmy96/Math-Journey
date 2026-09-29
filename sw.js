@@ -29,7 +29,7 @@ self.addEventListener('fetch', event => {
   // Non-GET, cross-origin Firebase/ToyyibPay, API, auth and callback requests are untouched.
   if (request.method !== 'GET' || url.origin !== BASE.origin || !url.pathname.startsWith(BASE.pathname)) return;
   if (url.pathname.includes('/.netlify/') || url.pathname.includes('/__/auth/') || request.headers.has('authorization')) return;
-  const appNavigation = request.mode === 'navigate' && [BASE.pathname, BASE.pathname + 'index.html'].includes(url.pathname);
+  const appNavigation = request.mode === 'navigate' && [BASE.pathname, BASE.pathname + 'index.html', BASE.pathname + 'login', BASE.pathname + 'login/'].includes(url.pathname);
   if (appNavigation) {
     event.respondWith((async () => {
       try {

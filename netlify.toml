@@ -9,6 +9,48 @@
 [functions]
   node_bundler = "esbuild"
 
+# Public homepage and clean application URL. Keep API routes untouched.
+[[redirects]]
+  from = "/login/"
+  to = "/login"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/login"
+  to = "/index.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/index.html"
+  to = "/login"
+  status = 302
+  force = true
+
+[[redirects]]
+  from = "/landing.html"
+  to = "/"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/landing"
+  to = "/"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/"
+  to = "/landing.html"
+  status = 200
+  force = true
+
+[[headers]]
+  for = "/login"
+  [headers.values]
+    Cache-Control = "no-cache"
+
 [[headers]]
   for = "/sw.js"
   [headers.values]
