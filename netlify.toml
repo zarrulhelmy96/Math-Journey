@@ -9,42 +9,9 @@
 [functions]
   node_bundler = "esbuild"
 
-# Public homepage and clean application URL. Keep API routes untouched.
-[[redirects]]
-  from = "/login/"
-  to = "/login"
-  status = 301
-  force = true
-
-[[redirects]]
-  from = "/login"
-  to = "/index.html"
-  status = 200
-  force = true
-
-[[redirects]]
-  from = "/index.html"
-  to = "/login"
-  status = 302
-  force = true
-
-[[redirects]]
-  from = "/landing.html"
-  to = "/"
-  status = 301
-  force = true
-
-[[redirects]]
-  from = "/landing"
-  to = "/"
-  status = 301
-  force = true
-
-[[redirects]]
-  from = "/"
-  to = "/landing.html"
-  status = 200
-  force = true
+# Build emits index.html (landing) and login.html (app).
+# Netlify serves /login from login.html without reciprocal redirect/rewrite rules.
+# Do not add /login -> /index.html or / -> /landing.html rewrites here.
 
 [[headers]]
   for = "/login"
