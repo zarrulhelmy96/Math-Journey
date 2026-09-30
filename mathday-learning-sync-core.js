@@ -9,7 +9,7 @@
     if(!value||!Number.isInteger(value.form)||value.form<1||value.form>5||!Number.isInteger(value.chapter)||value.chapter<0||value.chapter>99||typeof value.questionId!=='string'||!value.questionId.length||value.questionId.length>300)return null;
     const r=value.result;if(!r||typeof r.correct!=='boolean')return null;
     const viewed=r.answerViewed===true||r.completedBy==='answer-reveal';
-    const result={selected:Number.isSafeInteger(r.selected)?r.selected:0,correct:r.correct||viewed,xp:number(r.xp),rewarded:r.rewarded===true,answerViewed:viewed,retried:r.retried===true,completedBy:viewed?'answer-reveal':'answer'};
+    const result={selected:Number.isSafeInteger(r.selected)?r.selected:0,correct:r.correct||viewed,xp:number(r.xp),rewarded:r.rewarded===true,answerViewed:viewed,retried:r.retried===true,completedBy:viewed?'answer-reveal':'answer',resetVersion:number(r.resetVersion)};
     const credits=value.credit?credit(value.credit):credit({xp:result.xp,answered:viewed?0:1,correct:!viewed&&result.correct?1:0});
     return {schema:1,form:value.form,chapter:value.chapter,questionId:value.questionId,result,credit:credits};
   }
@@ -17,6 +17,11 @@
   function merge(left,right){
     const a=normalize(left),b=normalize(right);if(!a)return b;if(!b)return a;
     if(id(a)!==id(b))throw Error('Cannot merge different questions');
+    // A paid retry supersedes the earlier reveal, even on a stale device.
+    if(a.result.resetVersion!==b.result.resetVersion){
+      const winner=a.result.resetVersion>b.result.resetVersion?a:b;
+      return normalize({...winner,credit:Object.fromEntries(fields.map(key=>[key,Math.max(a.credit[key],b.credit[key])]))});
+    }
     const rank=r=>r.answerViewed?2:r.correct?1:0;
     const winner=rank(a.result)!==rank(b.result)?(rank(a.result)>rank(b.result)?a:b):(a.result.selected<=b.result.selected?a:b);
     const result={...winner.result,correct:a.result.correct||b.result.correct,answerViewed:a.result.answerViewed||b.result.answerViewed,retried:a.result.retried||b.result.retried,rewarded:a.result.rewarded||b.result.rewarded,xp:Math.max(a.result.xp,b.result.xp)};
@@ -44,7 +49,12 @@
     // Attach sync metadata without deleting any pre-existing quiz fields.
     let previous={};try{previous=JSON.parse(storage.getItem(localKey)||'{}')||{};}catch{}
     storage.setItem(localKey,JSON.stringify({...previous,...r.result,syncCredit:r.credit}));
-    if(r.result.answerViewed)storage.setItem(localKey+':answer-viewed','true');
+    storage.setItem(localKey+':answer-viewed',String(r.result.answerViewed));
+  }
+  function retry(record,selected,correct){
+    const r=normalize(record);if(!r||(!r.result.answerViewed&&r.result.correct))throw Error('wallet/not-resettable');
+    const viewed=r.result.answerViewed;
+    return normalize({...r,result:{...r.result,selected,correct,answerViewed:false,completedBy:'answer',retried:true,rewarded:false,resetVersion:r.result.resetVersion+(viewed?1:0)},credit:{...r.credit,answered:1,correct:Math.max(r.credit.correct,correct?1:0)}});
   }
   function totals(records){const total={xp:0,answered:0,correct:0};for(const r of records.values())for(const field of fields)total[field]+=r.credit[field];return total;}
   function captureLegacy(storage,uid){
@@ -65,5 +75,5 @@
     if(after.result.correct&&!after.result.answerViewed&&after.credit.answered)after.credit.correct=1;
     after=merge(before,after);put(storage,uid,after);return after;
   }
-  root.MathDayLearningSync={normalize,id,merge,key,fromLocal,collect,put,totals,captureLegacy,mergeLegacy,rebuildStats,captureChange,baseline};
+  root.MathDayLearningSync={normalize,id,merge,key,fromLocal,collect,put,retry,totals,captureLegacy,mergeLegacy,rebuildStats,captureChange,baseline};
 })(globalThis);

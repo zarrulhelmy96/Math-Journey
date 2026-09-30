@@ -1,0 +1,209 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function verifiedStudent() { return signedIn() && request.auth.token.email_verified == true; }
+    function isAdmin() { return signedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid)); }
+
+    // Private browser/device session coordination (also works before email verification).
+    match /activeSessions/{uid} {
+      allow read: if signedIn() && request.auth.uid == uid;
+      allow create, update: if signedIn() && request.auth.uid == uid
+        && request.resource.data.keys().hasAll(['deviceId','updatedAt'])
+        && request.resource.data.keys().hasOnly(['deviceId','updatedAt'])
+        && request.resource.data.deviceId is string
+        && request.resource.data.deviceId.matches('^[a-f0-9]{64}$')
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if false;
+    }
+
+    // Authoritative Gold / Reset Coin wallet. Never import client-local paid balances.
+    match /accountWallets/{uid} {
+      function owner() { return signedIn() && request.auth.uid == uid; }
+      function validWallet() {
+        let d = request.resource.data;
+        return d.keys().hasAll(['schema','resetCoins','goldPlan','goldUntil','pending','lastQuestion','revision'])
+          && d.keys().hasOnly(['schema','resetCoins','goldPlan','goldUntil','pending','lastQuestion','revision'])
+          && d.schema == 1
+          && d.resetCoins is int && d.resetCoins >= 0 && d.resetCoins <= 1000000
+          && d.goldPlan in ['normal','timed','lifetime']
+          && d.goldUntil is int && d.goldUntil >= 0
+          && (d.goldPlan == 'timed' ? d.goldUntil > 0 : d.goldUntil == 0)
+          && d.pending is map && d.pending.size() <= 1000
+          && d.lastQuestion is string && d.lastQuestion.size() <= 1200
+          && d.revision is int && d.revision >= 0;
+      }
+      function starter() {
+        let d = request.resource.data;
+        return d.resetCoins == 10 && d.goldPlan == 'normal' && d.goldUntil == 0
+          && d.pending == {} && d.lastQuestion == '' && d.revision == 0;
+      }
+      function reserveOne() {
+        let d = request.resource.data;
+        let old = resource.data;
+        let changes = d.pending.diff(old.pending);
+        let answer = getAfter(/databases/$(database)/documents/studentProfiles/$(uid)/quizAnswers/$(d.lastQuestion)).data;
+        return d.lastQuestion.size() > 0 && !d.lastQuestion.matches('.*/.*')
+          && changes.addedKeys().hasOnly([d.lastQuestion]) && changes.addedKeys().size() == 1
+          && changes.removedKeys().size() == 0 && changes.changedKeys().size() == 0
+          && d.pending[d.lastQuestion] == true && d.resetCoins == old.resetCoins - 1
+          && (answer.result.correct == false || answer.result.answerViewed == true);
+      }
+      function consumeOne() {
+        let d = request.resource.data;
+        let changes = d.pending.diff(resource.data.pending);
+        return changes.removedKeys().hasOnly([d.lastQuestion]) && changes.removedKeys().size() == 1
+          && changes.addedKeys().size() == 0 && changes.changedKeys().size() == 0
+          && resource.data.pending[d.lastQuestion] == true
+          && d.resetCoins == resource.data.resetCoins;
+      }
+      allow read: if owner() || isAdmin();
+      allow create: if validWallet() && ((owner() && starter()) || isAdmin());
+      allow update: if validWallet() && request.resource.data.revision == resource.data.revision + 1
+        && (isAdmin() || (owner() && verifiedStudent()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['resetCoins','pending','lastQuestion','revision'])
+          && (reserveOne() || consumeOne())));
+      // Prevent deleting/recreating a wallet to claim another starter grant.
+      allow delete: if false;
+    }
+
+    // Immutable, cross-device member number; this is NOT a login credential.
+    match /memberAccounts/{uid} {
+      allow get: if signedIn() && (request.auth.uid == uid || isAdmin());
+      allow list: if false;
+      allow create: if signedIn() && request.auth.uid == uid
+        && request.resource.data.keys().hasAll(['memberId','createdAt'])
+        && request.resource.data.keys().hasOnly(['memberId','createdAt'])
+        && request.resource.data.memberId is string
+        && request.resource.data.memberId.matches('^[0-9]{12}$')
+        && request.resource.data.createdAt == request.time
+        && !exists(/databases/$(database)/documents/memberIds/$(request.resource.data.memberId))
+        && getAfter(/databases/$(database)/documents/memberIds/$(request.resource.data.memberId)).data.uid == uid;
+      allow update, delete: if false;
+    }
+    match /memberIds/{memberId} {
+      // A signed-in transaction can check one candidate for collisions; no directory listing.
+      // The registry contains only UID, never email, name, school or wallet data.
+      allow get: if signedIn();
+      allow list: if false;
+      allow create: if signedIn() && memberId.matches('^[0-9]{12}$')
+        && request.resource.data.keys().hasAll(['uid'])
+        && request.resource.data.keys().hasOnly(['uid'])
+        && request.resource.data.uid == request.auth.uid
+        && !exists(/databases/$(database)/documents/memberAccounts/$(request.auth.uid))
+        && getAfter(/databases/$(database)/documents/memberAccounts/$(request.auth.uid)).data.memberId == memberId;
+      allow update, delete: if false;
+    }
+
+    match /admins/{uid} {
+      allow read: if signedIn() && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    match /curriculum/{formId}/chapters/{chapterId}/content/{contentId} {
+      allow read: if isAdmin() || (verifiedStudent() && resource.data.status == 'published');
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /studentProfiles/{uid} {
+      allow read, create, update: if signedIn() && request.auth.uid == uid;
+      allow delete: if false;
+
+      // Learning history belongs only to its verified account owner.
+      match /quizAnswers/{answerId} {
+        function owner() { return verifiedStudent() && request.auth.uid == uid; }
+        function validAnswer() {
+          let d = request.resource.data;
+          let r = d.result;
+          let c = d.credit;
+          return d.keys().hasAll(['schema','form','chapter','questionId','result','credit'])
+            && d.keys().hasOnly(['schema','form','chapter','questionId','result','credit'])
+            && d.schema == 1 && d.form is int && d.form >= 1 && d.form <= 5
+            && d.chapter is int && d.chapter >= 0 && d.chapter <= 99
+            && d.questionId is string && d.questionId.size() > 0 && d.questionId.size() <= 300
+            && r.keys().hasOnly(['selected','correct','xp','rewarded','answerViewed','retried','completedBy','resetVersion'])
+            && r.get('resetVersion', 0) is int && r.get('resetVersion', 0) >= 0 && r.get('resetVersion', 0) <= 1000000000
+            && r.selected is int && r.correct is bool && r.rewarded is bool
+            && r.answerViewed is bool && r.retried is bool
+            && r.completedBy in ['answer','answer-reveal']
+            && r.xp is int && r.xp >= 0 && r.xp <= 1000000000
+            && c.keys().hasOnly(['xp','answered','correct'])
+            && c.xp is int && c.xp >= 0 && c.xp <= 1000000000
+            && c.answered is int && c.answered in [0,1]
+            && c.correct is int && c.correct >= 0 && c.correct <= c.answered;
+        }
+        function paidRevealRetry() {
+          let before = get(/databases/$(database)/documents/accountWallets/$(uid)).data;
+          let after = getAfter(/databases/$(database)/documents/accountWallets/$(uid)).data;
+          let old = resource.data.result;
+          let next = request.resource.data.result;
+          return old.answerViewed == true && next.answerViewed == false
+            && next.completedBy == 'answer' && next.retried == true && next.rewarded == false
+            && next.xp == old.xp
+            && next.get('resetVersion', 0) == old.get('resetVersion', 0) + 1
+            && before.pending.get(answerId, false) == true
+            && after.pending.get(answerId, false) == false
+            && after.lastQuestion == answerId && after.revision == before.revision + 1
+            && after.resetCoins == before.resetCoins
+            && request.resource.data.credit.xp == resource.data.credit.xp;
+        }
+        allow read: if owner();
+        allow create: if owner() && validAnswer() && request.resource.data.result.get('resetVersion', 0) == 0;
+        allow update: if owner() && validAnswer()
+          && request.resource.data.form == resource.data.form
+          && request.resource.data.chapter == resource.data.chapter
+          && request.resource.data.questionId == resource.data.questionId
+          && ((request.resource.data.result.get('resetVersion', 0) == resource.data.result.get('resetVersion', 0)
+            && (!resource.data.result.correct || request.resource.data.result.correct)
+            && (!resource.data.result.answerViewed || request.resource.data.result.answerViewed))
+            || paidRevealRetry())
+          && request.resource.data.credit.xp >= resource.data.credit.xp
+          && request.resource.data.credit.answered >= resource.data.credit.answered
+          && request.resource.data.credit.correct >= resource.data.credit.correct;
+        allow delete: if false;
+      }
+      match /learningMeta/{metaId} {
+        allow read: if verifiedStudent() && request.auth.uid == uid;
+        allow create, update: if verifiedStudent() && request.auth.uid == uid && metaId == 'legacy'
+          && request.resource.data.keys().hasOnly(['xp','answered','correct'])
+          && request.resource.data.xp is int && request.resource.data.xp >= 0 && request.resource.data.xp <= 1000000000
+          && request.resource.data.answered is int && request.resource.data.answered >= 0 && request.resource.data.answered <= 1000000000
+          && request.resource.data.correct is int && request.resource.data.correct >= 0
+          && request.resource.data.correct <= request.resource.data.answered;
+        allow delete: if false;
+      }
+    }
+
+    // Global ranking: verified users may read public display fields only.
+    // Individual quizAnswers remain private under studentProfiles.
+    match /leaderboard/{uid} {
+      function validEntry() {
+        let d = request.resource.data;
+        return d.keys().hasAll(['uid','name','school','xp','status','updatedAt'])
+          && d.keys().hasOnly(['uid','name','school','xp','status','updatedAt'])
+          && d.uid == uid
+          && d.name is string && d.name.size() > 0 && d.name.size() <= 200
+          && d.school is string && d.school.size() <= 500
+          && d.xp is int && d.xp >= 0 && d.xp <= 1000000000
+          && d.status in ['normal','gold'] && d.updatedAt is int;
+      }
+      allow read: if verifiedStudent();
+      allow create: if verifiedStudent() && request.auth.uid == uid && validEntry();
+      allow update: if verifiedStudent() && request.auth.uid == uid && validEntry()
+        && request.resource.data.xp >= resource.data.xp;
+      allow delete: if false;
+    }
+
+    // Payment orders/receipts/locks are accessible only through the trusted Admin SDK backend.
+    match /paymentOrders/{id} { allow read, write: if false; }
+    match /paymentReceipts/{id} { allow read, write: if false; }
+    match /paymentLocks/{uid} { allow read, write: if false; }
+    match /paymentLimits/{uid} { allow read, write: if false; }
+    match /goldPackageAccess/{uid} { allow read, write: if false; }
+    match /paymentVouchers/{id} { allow read, write: if false; }
+    match /voucherAccounts/{document=**} { allow read, write: if false; }
+    match /voucherRedeemLimits/{uid} { allow read, write: if false; }
+
+    match /{document=**} { allow read, write: if false; }
+  }
+}
