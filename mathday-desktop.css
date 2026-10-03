@@ -55,7 +55,9 @@
   #questionPagination{max-width:960px;margin:0 auto}
   #quizPlayScreen .quiz-card{max-width:900px;margin:24px auto 0}
   #quizPlayScreen .quiz-question{font-size:23px;line-height:1.65}
-  #quizPlayScreen .quiz-media{max-height:440px}
+  /* Inline SVG diagrams need their own limit; they do not use .quiz-media. */
+  #quizPlayScreen .quiz-media,
+  #quizPlayTitle svg:is([class*="-diagram"],[class*="-map"],[class*="-graph"],.grid-cell-scale-comparison,.orthographic-two-plane-scene,.orthographic-projection-shape,.ortho-precise-svg){display:block;width:100%;max-width:560px;max-height:360px;height:auto;object-fit:contain;margin-inline:auto}
   #quizPlayScreen .answer-button{min-height:76px}
   #quizPlayScreen .quiz-tools{margin-top:28px}
   #quizPlayScreen .quiz-step-nav{max-width:900px;margin-inline:auto}
