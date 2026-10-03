@@ -1,0 +1,84 @@
+/* Desktop presentation only. Existing account, navigation and quiz handlers are shared. */
+.desktop-welcome{display:none}
+@media(min-width:1000px){
+  body{display:block;background:#f3f1f8;padding:24px 0}
+  .app{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:center;gap:48px;width:min(1080px,calc(100% - 48px));min-height:calc(100dvh - 48px);margin:0 auto;padding:48px;border:1px solid #e8e1f3;border-radius:28px;overflow:visible;box-shadow:0 18px 60px #32234e0d}
+  .desktop-welcome{display:block;align-self:stretch;align-content:center;padding:42px 32px;border-radius:24px;background:linear-gradient(145deg,#eee6ff,#faf7ff 60%,#fff5cd);text-align:left}
+  .desktop-welcome .desktop-eyebrow{color:#7045c0;font-size:12px;letter-spacing:1.5px;font-weight:900}
+  .desktop-welcome h2{margin:20px 0;font-size:42px;line-height:1.15;letter-spacing:-1.3px;color:#30253f}
+  .desktop-welcome h2 span{color:#8050e1}
+  .desktop-welcome p{font-size:16px;line-height:1.8;color:#6a5e7b}
+  .desktop-welcome ul{list-style:none;padding:0;margin:24px 0 0;display:grid;gap:15px;font-size:15px;font-weight:800;color:#5e4481}
+  .desktop-welcome li::before{content:'✓';color:#168754;margin-right:10px}
+  .app>.login{width:100%;max-width:380px;min-width:0;margin:0 auto;padding:24px 0}
+  .app>.screen{min-height:0;padding:16px 0 32px;min-width:0}
+  .app>#registerScreen,.app>#verifyScreen{max-width:420px;margin:auto}
+  .app:has(#mainNavigation:not(.hidden)){display:block;width:min(1440px,calc(100% - 48px));padding:32px 36px 40px 256px;min-height:calc(100dvh - 48px)}
+  .app:has(#mainNavigation:not(.hidden))>.desktop-welcome{display:none}
+  .app:has(#mainNavigation:not(.hidden))>.screen.active{padding:0 0 28px;min-height:calc(100dvh - 122px)}
+  #mainNavigation.bottom-nav{position:fixed;left:max(24px,calc((100vw - 1440px)/2));top:24px;bottom:24px;transform:none;width:220px;display:flex;flex-direction:column;align-items:stretch;gap:12px;padding:36px 20px 24px;border:0;border-right:1px solid #eee6f7;border-radius:28px 0 0 28px;background:#fcfaff;box-shadow:none;overflow-y:auto}
+  #mainNavigation::before{content:'MathDay';display:block;margin:4px 0 32px;font-size:32px;letter-spacing:-1.8px;line-height:1.2;font-weight:950;text-align:center;color:#8050e1}
+  #mainNavigation::after{content:'Belajar sedikit, maju setiap hari.';display:block;margin-top:auto;padding-top:30px;color:#8a7e99;font-size:12px;font-weight:700;text-align:center;line-height:1.7}
+  #mainNavigation button{display:flex;align-items:center;justify-content:flex-start;gap:12px;width:100%;min-height:56px;margin:0;padding:14px 16px;border:1px solid transparent;border-radius:14px;font-size:14px;color:#746880;box-shadow:none;text-align:left}
+  #mainNavigation button:hover{background:#f0e9fb;color:#7045c0}
+  #mainNavigation button.active{border-color:#dfd1fa;background:#eee5ff;color:#7045c0;box-shadow:0 4px 0 #e0d2f5}
+  #mainNavigation button[data-main-nav="store"].active{border-color:#ecd27b;background:#fff6cf;color:#8b6400;box-shadow:0 4px 0 #efdfaa}
+  #mainNavigation button:focus-visible{outline:3px solid #8050e1;outline-offset:3px}
+  #mainNavigation .nav-icon{width:24px;flex:0 0 24px;text-align:center;font-size:23px}
+  .screen-head{min-height:48px;margin-bottom:30px}
+  .screen-title{font-size:34px}
+  #profileScreen .profile-dashboard{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px 26px;max-width:1000px;margin:0 auto;text-align:left}
+  #profileScreen .profile-dashboard>*{grid-column:1/-1;min-width:0}
+  #profileScreen .profile-top{margin:0}.profile-greeting{font-size:32px}
+  #profileScreen .student-details{text-align:left;margin:0 0 6px;overflow-wrap:anywhere}
+  #profileScreen .profile-choice{margin-top:8px}
+  #profileScreen .xp-card{grid-column:1;grid-row:3;margin:0;padding:28px;align-content:center}
+  #profileScreen .membership-card{grid-column:2;grid-row:3;align-self:center;justify-self:center;max-width:360px;margin:0;padding:24px}
+  #profileScreen .profile-dashboard:has(#membershipCard[hidden]) .xp-card{grid-column:1/-1}
+  #profileScreen .dashboard-heading{margin:12px 0 -7px;font-size:23px}
+  #profileScreen .stats-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+  #profileScreen .stat-card{min-height:125px;text-align:center}
+  #profileScreen .stat-value{font-size:32px}
+  #profileScreen .profile-actions{grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:10px 0 0}
+  #profileScreen .profile-actions button{font-size:15px;min-height:52px}
+  #profileScreen .profile-actions #startTutorial,#profileScreen .profile-actions #logoutButton{grid-column:auto;width:100%;justify-self:stretch}
+  #editProfileScreen form{max-width:560px;margin:32px auto 0;text-align:left}
+  #formGrid{width:min(880px,100%);max-width:880px;margin:40px auto;gap:22px;grid-template-columns:repeat(5,minmax(0,1fr))}
+  #formGrid .question-number{min-height:120px;font-size:30px}
+  #chapterList,#subtopicList{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;max-width:1000px;margin:32px auto}
+  #chapterList .list-button,#subtopicList .list-button{height:100%;margin:0;min-height:88px;padding:20px;text-align:left}
+  #chapterList .list-label,#subtopicList .list-label{text-align:left;line-height:1.5}
+  #chapterHubScreen .hub-actions{grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;margin:40px auto;max-width:950px}
+  #chapterHubScreen .hub-action{min-height:150px;font-size:26px}
+  #questionList{grid-template-columns:repeat(10,minmax(0,1fr));gap:18px 14px;max-width:960px;margin:36px auto}
+  #questionList .question-number{min-height:60px;width:100%;font-size:22px}
+  #questionPagination{max-width:960px;margin:0 auto}
+  #quizPlayScreen .quiz-card{max-width:900px;margin:24px auto 0}
+  #quizPlayScreen .quiz-question{font-size:23px;line-height:1.65}
+  #quizPlayScreen .quiz-media{max-height:440px}
+  #quizPlayScreen .answer-button{min-height:76px}
+  #quizPlayScreen .quiz-tools{margin-top:28px}
+  #quizPlayScreen .quiz-step-nav{max-width:900px;margin-inline:auto}
+  #leaderboardScreen .leaderboard-list{max-width:800px;margin:0 auto}
+  #leaderboardScreen .leaderboard-podium{gap:18px;max-width:650px;margin:36px auto}
+  #storeScreen .store-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin-block:32px}
+  #storeScreen .store-grid>h2,#storeScreen .store-grid>p{grid-column:1/-1}
+  #storeScreen .plan-comparison{gap:24px;max-width:880px;margin-inline:auto}
+  #storeScreen .plan-comparison-card{padding:26px}
+  #storeScreen .plan-comparison-card li{font-size:15px}
+  #storeScreen .voucher-row{max-width:750px;margin-inline:auto}
+  .retry-overlay,.announcement-overlay{left:0;right:0;top:0;bottom:0;width:100%;transform:none;padding:32px}
+  .retry-overlay>.retry-popup,.announcement-overlay>.announcement-card{width:min(480px,100%);max-height:calc(100dvh - 64px);overflow:auto}
+  #hintOverlay .retry-popup,#solutionOverlay .retry-popup{width:min(860px,100%)}
+  #noteScreen,#exampleScreen{max-width:960px;margin:auto}
+  .chapter-progress-dialog{width:min(680px,calc(100% - 64px));max-height:85dvh}
+}
+@media(min-width:1000px) and (max-width:1199px){
+  .app:has(#mainNavigation:not(.hidden)){padding-left:224px;padding-right:26px}
+  #mainNavigation.bottom-nav{width:196px;padding-inline:14px}
+  #mainNavigation button{padding-inline:12px;font-size:13px}
+  #questionList{grid-template-columns:repeat(5,minmax(0,1fr))}
+  #profileScreen .profile-actions{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #profileScreen .profile-dashboard{gap:20px}
+  #profileScreen .membership-card{padding:16px}
+}
