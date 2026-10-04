@@ -108,7 +108,7 @@
       const result=await response.json();if(auth.currentUser?.uid!==user.uid||version!==generation)throw Error('account_changed');if(!response.ok||result.error){if(/^[a-f0-9]{32}$/.test(result.orderId||''))storage.setItem(lastKey(user.uid),result.orderId);throw Error(result.error||'payment_service_unavailable');}return result;
     }
     function paintTestPrice(quote){
-      const button=document.querySelector('[data-extra-package="gold-30"]'),price=button?.querySelector('.store-price');
+      const button=document.querySelector('[data-extra-package="gold-30"]'),price=button?.querySelector('.store-price')||button?.closest('.gold-plan-card')?.querySelector('.store-price');
       if(price&&(!quote||quote.packageId==='gold-30'))price.textContent=quote?.testPrice?'RM1 · Ujian':'RM30';
       if(quote?.blockedPackages)for(const [id,reason]of Object.entries(quote.blockedPackages)){
         const target=document.querySelector(id==='gold-lifetime'?'[data-unlimited-lifetime]':`[data-extra-package="${id}"]`);

@@ -1765,6 +1765,8 @@ body.gold-access-prompt-open{overflow:hidden}#goldAccessOverlay{z-index:60}#gold
   </style>
   <link rel="stylesheet" href="./mathday-chapter-progress.css">
   <link rel="stylesheet" href="./mathday-desktop.css">
+  <link rel="stylesheet" href="./mathday-store-cards.css">
+  <script src="./mathday-store-cards.js"></script>
 </head>
 <body>
   <script src="./mathday-update-loader.js"></script>
@@ -4468,6 +4470,7 @@ renderQuestions=async function(){ const container=$('questionList'),papers=$('go
     const retryMemberId=()=>{if(auth.currentUser)void memberIdService.start(auth.currentUser.uid);};
     window.addEventListener('online',retryMemberId);window.addEventListener('focus',retryMemberId);
     // End permanent membership card.
+    window.MathDayStoreCards?.mount({catalog:window.MathDayPayments?.catalog,onBasic:()=>{renderForms();showScreen('form');}});
     // Verified server checkout for own packages and single-use gift vouchers.
     if(window.MathDayPayments){
       const checkout=window.MathDayPayments.create({

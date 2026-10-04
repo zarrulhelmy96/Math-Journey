@@ -1,0 +1,24 @@
+#storeScreen .gold-plan-cards{display:grid;grid-template-columns:minmax(0,1fr);gap:24px;margin:44px 0 28px;text-align:left}
+#storeScreen .gold-plan-card{position:relative;display:flex;flex-direction:column;min-width:0;padding:28px 22px;border:1px solid #e4dcf5;border-radius:20px;background:#fff}
+#storeScreen .gold-plan-tier{color:#8050ef;font-size:12px;letter-spacing:1.1px;font-weight:900}
+#storeScreen .gold-plan-card h2{font-size:25px;line-height:1.25;margin:14px 0 28px;color:#282237}
+#storeScreen .gold-plan-price{font-size:38px;line-height:1.2;font-weight:950;margin:0 0 14px;color:#282237;overflow-wrap:anywhere}
+#storeScreen .gold-plan-note{min-height:44px;margin:0;color:#786c86;font-size:13px;line-height:1.65}
+#storeScreen .gold-plan-card ul{list-style:none;border-top:1px solid #e9e1f3;padding:24px 0 0;margin:24px 0 30px;display:grid;gap:16px}
+#storeScreen .gold-plan-card li{position:relative;padding-left:23px;font-size:14px;line-height:1.6;color:#70617e}
+#storeScreen .gold-plan-card li::before{content:'✓';position:absolute;left:0;color:#845cff;font-weight:900}
+#storeScreen .gold-plan-card.bestseller{border:2px solid #845cff;background:#faf7ff}
+#storeScreen .gold-plan-card.lifetime{border-color:#ebca65;background:#fffbee}
+#storeScreen .lifetime .gold-plan-tier{color:#956f00}
+#storeScreen .gold-plan-badge{position:absolute;top:-15px;right:20px;max-width:calc(100% - 40px);padding:8px 12px;background:#f3cf43;color:#654b00;border-radius:7px;font-size:11px;letter-spacing:.6px;font-weight:950;text-align:center}
+#storeScreen .bestseller .gold-plan-badge{top:-25px;padding:16px 14px 23px;border-radius:0;border-top:3px solid #b99100;clip-path:polygon(0 0,100% 0,100% 84%,50% 100%,0 84%);background:linear-gradient(120deg,#ffe994,#e9be24)}
+#storeScreen .gold-plan-card .gold-buy-button{display:block;flex:none;width:100%;min-height:54px;margin:auto 0 0;padding:14px 12px;border:1px solid #e3daf4;border-radius:13px;background:#fff;box-shadow:none;color:#282237;font:inherit;font-size:15px;font-weight:900;text-align:center;cursor:pointer}
+#storeScreen .bestseller .gold-buy-button{background:#7950ea;color:#fff;border-color:#7950ea;box-shadow:0 5px 0 #5936bd}
+#storeScreen .lifetime .gold-buy-button{background:#f3d247;border-color:#f3d247;color:#503b00;box-shadow:0 5px 0 #c8a824}
+#storeScreen .gold-plan-card .gold-buy-button:hover:not(:disabled){filter:brightness(.97)}
+#storeScreen .gold-plan-card .gold-buy-button:focus-visible{outline:3px solid #845cff;outline-offset:4px}
+#storeScreen .gold-plan-card .gold-buy-button:active:not(:disabled){transform:translateY(3px);box-shadow:none}
+#storeScreen .gold-plan-card .gold-buy-button:disabled{opacity:.45;cursor:not-allowed;box-shadow:none;transform:none}
+#storeScreen .gold-plan-card .gold-buy-button::before,#storeScreen .gold-plan-card .gold-buy-button::after{content:none;animation:none}
+@media(min-width:600px){#storeScreen .gold-plan-cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:32px 18px}}
+@media(min-width:1400px){#storeScreen .gold-plan-cards{grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}#storeScreen .gold-plan-card{padding:30px 20px}#storeScreen .gold-plan-card h2{font-size:24px}}
